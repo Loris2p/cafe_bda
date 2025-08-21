@@ -5,10 +5,10 @@ packages:
     dependency: transitive
     description:
       name: _discoveryapis_commons
-      sha256: f8bb1fdbd77f3d5c1d62b5b0eca75fbf1e41bf4f6c62628f880582e2182ae45d
+      sha256: "113c4100b90a5b70a983541782431b82168b3cae166ab130649c36eb3559d498"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.6"
+    version: "1.0.7"
   args:
     dependency: transitive
     description:
@@ -61,10 +61,10 @@ packages:
     dependency: "direct main"
     description:
       name: connectivity_plus
-      sha256: b74247fad72c171381dbe700ca17da24deac637ab6d43c343b42867acb95c991
+      sha256: "224a77051d52a11fbad53dd57827594d3bd24f945af28bd70bab376d68d437f0"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.6"
+    version: "5.0.2"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
