@@ -16,35 +16,37 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
+            
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme"
                 />
+                
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             
-            <!-- Ajoutez cet intent-filter pour gérer les redirections OAuth -->
+            <!-- Intent filter pour les redirections OAuth -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data 
                     android:scheme="exceleditor"
-                    android:host="callback" />
+                    android:host="oauth2redirect" />
             </intent-filter>
         </activity>
 
-        <!-- Activité spécifique pour flutter_web_auth (si vous l'utilisez) -->
+        <!-- Activité pour flutter_web_auth_2 -->
         <activity
-            android:name="com.linusu.flutter_web_auth.CallbackActivity"
+            android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
             android:exported="true">
-            <intent-filter>
+            <intent-filter android:label="flutter_web_auth_2">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="exceleditor" /> 
+                <data android:scheme="exceleditor" />
             </intent-filter>
         </activity>
 
