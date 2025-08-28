@@ -1,10 +1,15 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:googleapis/sheets/v4.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth_io;
-import 'package:http/src/client.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Pour mobile seulement - conditionnel
+import 'package:flutter_web_auth/flutter_web_auth.dart';
 
 class GoogleSheetsService {
   static const _authCredentialsKey = 'google_auth_credentials';
@@ -12,6 +17,11 @@ class GoogleSheetsService {
   static const _authClientSecretKey = 'google_auth_client_secret';
   SheetsApi? sheetsApi;
   auth_io.AutoRefreshingAuthClient? client;
+  
+  // Pour mobile seulement
+  final String _redirectUriMobile = 'com.cytechdata.exceleditor:/oauth2redirect';
+  final String _customScheme = 'com.cytechdata.exceleditor';
+
   // Vérifier les variables d'environnement
   String checkEnvVariables() {
     final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
@@ -44,7 +54,7 @@ class GoogleSheetsService {
         client = await auth_io.autoRefreshingClient(
           clientId,
           credentials,
-          Client(),
+          http.Client(),
         );
         sheetsApi = SheetsApi(client!);
         return true;
@@ -83,19 +93,28 @@ class GoogleSheetsService {
     await prefs.remove(_authClientSecretKey);
   }
 
-  // Authentification
   Future<String?> authenticate() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      return _authenticateMobile();
+    } else {
+      return _authenticateDesktop();
+    }
+  }
+
+  Future<String?> _authenticateDesktop() async {
     final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
     final clientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
     final scopes = [SheetsApi.spreadsheetsScope];
+    
     if (clientId.isEmpty || clientSecret.isEmpty) {
       return 'CLIENT_ID ou CLIENT_SECRET manquant dans .env';
     }
+    
     try {
       final credentials = await auth_io.obtainAccessCredentialsViaUserConsent(
         auth_io.ClientId(clientId, clientSecret),
         scopes,
-        Client(),
+        http.Client(),
         (String url) async {
           final uri = Uri.parse(url);
           if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -107,12 +126,81 @@ class GoogleSheetsService {
       client = await auth_io.autoRefreshingClient(
         auth_io.ClientId(clientId, clientSecret),
         credentials,
-        Client(),
+        http.Client(),
       );
       sheetsApi = SheetsApi(client!);
       return null;
     } catch (e) {
-      return 'Erreur d\'authentification: ${e.toString()}';
+      return 'Erreur d\'authentification desktop: ${e.toString()}';
+    }
+  }
+
+  Future<String?> _authenticateMobile() async {
+    final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
+    final scopes = [SheetsApi.spreadsheetsScope];
+    
+    if (clientId.isEmpty) {
+      return 'CLIENT_ID manquant dans .env';
+    }
+
+    try {
+      final authUrl = 'https://accounts.google.com/o/oauth2/auth?' +
+          'response_type=code&' +
+          'client_id=$clientId&' +
+          'redirect_uri=${Uri.encodeComponent(_redirectUriMobile)}&' +
+          'scope=${Uri.encodeComponent(scopes.join(' '))}';
+
+      final result = await FlutterWebAuth.authenticate(
+        url: authUrl,
+        callbackUrlScheme: _customScheme,
+      );
+
+      final code = Uri.parse(result).queryParameters['code'];
+      
+      if (code == null) {
+        return 'Code d\'autorisation non reçu';
+      }
+
+      final response = await http.post(
+        Uri.parse('https://oauth2.googleapis.com/token'),
+        body: {
+          'code': code,
+          'client_id': clientId,
+          'redirect_uri': _redirectUriMobile,
+          'grant_type': 'authorization_code',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> tokenData = jsonDecode(response.body);
+        final credentials = auth_io.AccessCredentials(
+          auth_io.AccessToken(
+            'Bearer',
+            tokenData['access_token'],
+            DateTime.now().add(Duration(seconds: tokenData['expires_in'])),
+          ),
+          tokenData['refresh_token'],
+          scopes,
+        );
+        
+        await _storeAuthCredentials(credentials);
+        
+        // Initialiser le client
+        final clientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
+        final authClientId = auth_io.ClientId(clientId, clientSecret);
+        client = await auth_io.autoRefreshingClient(
+          authClientId,
+          credentials,
+          http.Client(),
+        );
+        sheetsApi = SheetsApi(client!);
+        
+        return null;
+      } else {
+        return 'Erreur lors de l\'échange du token: ${response.statusCode}';
+      }
+    } catch (e) {
+      return 'Erreur d\'authentification mobile: ${e.toString()}';
     }
   }
 

@@ -29,13 +29,11 @@
             
             <!-- Intent filter pour les redirections OAuth -->
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data 
-                    android:scheme="exceleditor"
-                    android:host="oauth2redirect" />
-            </intent-filter>
+  <action android:name="android.intent.action.VIEW" />
+  <category android:name="android.intent.category.DEFAULT" />
+  <category android:name="android.intent.category.BROWSABLE" />
+  <data android:scheme="com.example.yourapp" /> <!-- Remplacez par votre ID -->
+</intent-filter>
         </activity>
 
         <!-- Activité pour flutter_web_auth_2 -->
