@@ -399,7 +399,7 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestion Café - Google Sheets'),
+        title: const Text('Gestion Café - BDA'),
         actions: [
           if (_sheetsService.sheetsApi != null)
             IconButton(

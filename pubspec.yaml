@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.5.0+1
 
 environment:
   sdk: ^3.9.0
@@ -37,23 +37,34 @@ dependencies:
   flutter_dotenv: ^6.0.0
   shared_preferences: ^2.1.1
   intl: ^0.20.2 
+  #flutter_launcher_icons: ^0.14.4x
   connectivity_plus: ^6.1.5
-  
-  
-
-
-
-
-
-
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  msix: ^3.16.12
+
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"  # PNG au lieu de JPG
+  android: true
+  ios: true
+  windows:
+    image_path: "assets/icon/icon.png"
+    generate: true  # Obligatoire pour la v0.14.4+
+  linux:
+    image_path: "assets/icon/icon.png"
+    generate: true
+  macos:
+    image_path: "assets/icon/icon.png"
+    generate: true
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+
+msix_config:
+  vs_build_path: "C:/Program Files (x86)/Microsoft Visual Studio/Community"  # Chemin sans espaces
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -61,6 +72,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -96,7 +108,7 @@ flutter:
   #       - asset: fonts/Schyler-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
-  #   - family: Trajan Pro
+  #   - family: Trajan Pro  
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf
   #       - asset: fonts/TrajanPro_Bold.ttf
