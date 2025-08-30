@@ -48,17 +48,17 @@ dependencies:
 
 
 flutter_launcher_icons:
-  image_path: "assets/icon/icon.png"  # PNG au lieu de JPG
+  image_path: "assets/icon/red.png"  # PNG au lieu de JPG
   android: true
   ios: true
   windows:
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon/green.png"
     generate: true  # Obligatoire pour la v0.14.4+
   linux:
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon/green.png"
     generate: true
   macos:
-    image_path: "assets/icon/icon.png"
+    image_path: "assets/icon/red.png"
     generate: true
 
 dev_dependencies:
