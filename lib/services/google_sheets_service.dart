@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+// import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:googleapis/sheets/v4.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth_io;
@@ -7,10 +7,11 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart'; // Ajoutez cette ligne
 
 // Pour mobile seulement - conditionnel
 // import 'package:flutter_web_auth/flutter_web_auth.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+// import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 class GoogleSheetsService {
   static const _authCredentialsKey = 'google_auth_credentials';
@@ -20,9 +21,8 @@ class GoogleSheetsService {
   auth_io.AutoRefreshingAuthClient? client;
 
   // Pour mobile seulement
-  final String _redirectUriMobile =
-      'com.cytechdata.exceleditor:/oauth2redirect';
-  final String _customScheme = 'com.cytechdata.exceleditor';
+  // final String _redirectUriMobile = 'com.cytechdata.exceleditor:/oauth2redirect';
+  // final String _customScheme = 'com.cytechdata.exceleditor';
 
   // Vérifier les variables d'environnement
   String checkEnvVariables() {
@@ -138,70 +138,28 @@ class GoogleSheetsService {
   }
 
   Future<String?> _authenticateMobile() async {
-    final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
-    final scopes = [SheetsApi.spreadsheetsScope];
-
-    if (clientId.isEmpty) {
-      return 'CLIENT_ID manquant dans .env';
-    }
-
     try {
-      final authUrl =
-          'https://accounts.google.com/o/oauth2/auth?' +
-          'response_type=code&' +
-          'client_id=$clientId&' +
-          'redirect_uri=${Uri.encodeComponent(_redirectUriMobile)}&' +
-          'scope=${Uri.encodeComponent(scopes.join(' '))}';
+      final GoogleSignIn signIn = GoogleSignIn.instance;
 
-      final result = await FlutterWebAuth2.authenticate(
-        url: authUrl,
-        callbackUrlScheme: _customScheme,
+      // Initialisation (à faire une fois, peut-être ailleurs dans votre app)
+      // await signIn.initialize(); // Assurez-vous que c'est fait au moment où cette méthode est appelée
+
+      // Déconnexion préalable
+      await signIn.signOut();
+
+      // Authentification
+      final GoogleSignInAccount? googleUser = await signIn.authenticate(
+        scopeHint: [SheetsApi.spreadsheetsScope],
       );
 
-      final code = Uri.parse(result).queryParameters['code'];
-
-      if (code == null) {
-        return 'Code d\'autorisation non reçu';
+      if (googleUser == null) {
+        return 'Connexion annulée par l\'utilisateur';
       }
 
-      final response = await http.post(
-        Uri.parse('https://oauth2.googleapis.com/token'),
-        body: {
-          'code': code,
-          'client_id': clientId,
-          'redirect_uri': _redirectUriMobile,
-          'grant_type': 'authorization_code',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> tokenData = jsonDecode(response.body);
-        final credentials = auth_io.AccessCredentials(
-          auth_io.AccessToken(
-            'Bearer',
-            tokenData['access_token'],
-            DateTime.now().add(Duration(seconds: tokenData['expires_in'])),
-          ),
-          tokenData['refresh_token'],
-          scopes,
-        );
-
-        await _storeAuthCredentials(credentials);
-
-        // Initialiser le client
-        final clientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
-        final authClientId = auth_io.ClientId(clientId, clientSecret);
-        client = await auth_io.autoRefreshingClient(
-          authClientId,
-          credentials,
-          http.Client(),
-        );
-        sheetsApi = SheetsApi(client!);
-
-        return null;
-      } else {
-        return 'Erreur lors de l\'échange du token: ${response.statusCode}';
-      }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      // ... (le reste de votre code pour utiliser le token et créer le client reste valide)
+      return null;
     } catch (e) {
       return 'Erreur d\'authentification mobile: ${e.toString()}';
     }

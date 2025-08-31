@@ -44,11 +44,12 @@ dependencies:
   cupertino_icons: ^1.0.8
   msix: ^3.16.12
   flutter_web_auth_2: ^4.1.0
+  google_sign_in: ^7.1.1
   # flutter_web_auth: ^0.6.0
 
 
 flutter_launcher_icons:
-  image_path: "assets/icon/red.png"  # PNG au lieu de JPG
+  image_path: "assets/icon/blue.png"  # PNG au lieu de JPG
   android: true
   ios: true
   windows:
@@ -58,7 +59,7 @@ flutter_launcher_icons:
     image_path: "assets/icon/green.png"
     generate: true
   macos:
-    image_path: "assets/icon/red.png"
+    image_path: "assets/icon/blue.png"
     generate: true
 
 dev_dependencies:
