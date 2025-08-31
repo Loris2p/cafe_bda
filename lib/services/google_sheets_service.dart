@@ -158,7 +158,33 @@ class GoogleSheetsService {
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-      // ... (le reste de votre code pour utiliser le token et créer le client reste valide)
+      // Création des credentials à partir de l'access token
+      final credentials = auth_io.AccessCredentials(
+        auth_io.AccessToken(
+          'Bearer',
+          googleAuth.idToken!,
+          DateTime.now().add(const Duration(hours: 1)),
+        ),
+        null, // Pas de refresh token pour ce flux
+        [SheetsApi.spreadsheetsScope],
+      );
+
+      // Initialisation du client
+      final clientId = auth_io.ClientId(
+        dotenv.env['GOOGLE_ANDROID_CLIENT_ID'] ?? '',
+        dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '',
+      );
+
+      client = await auth_io.autoRefreshingClient(
+        clientId,
+        credentials,
+        http.Client(),
+      );
+
+      sheetsApi = SheetsApi(client!);
+
+      // Stockez les informations si nécessaire
+      await _storeAuthCredentials(credentials);
       return null;
     } catch (e) {
       return 'Erreur d\'authentification mobile: ${e.toString()}';
