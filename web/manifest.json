@@ -1,6 +1,6 @@
 {
-    "name": "excel_editor",
-    "short_name": "excel_editor",
+    "name": "cafe_bda",
+    "short_name": "cafe_bda",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

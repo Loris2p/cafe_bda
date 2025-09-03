@@ -138,8 +138,8 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug",
-		"source" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows"
+		"build" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug",
+		"source" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows"
 	},
 	"version" : 
 	{

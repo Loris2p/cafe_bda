@@ -63,19 +63,19 @@
 		{
 			"backtrace" : 1,
 			"component" : "Runtime",
-			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug",
+			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug",
 			"paths" : 
 			[
-				"runner/excel_editor.exe"
+				"runner/cafe_bda.exe"
 			],
-			"targetId" : "excel_editor::@056c4f61b0156d1d9b06",
+			"targetId" : "cafe_bda::@056c4f61b0156d1d9b06",
 			"targetIndex" : 1,
 			"type" : "target"
 		},
 		{
 			"backtrace" : 2,
 			"component" : "Runtime",
-			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug/data",
+			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug/data",
 			"paths" : 
 			[
 				"flutter/ephemeral/icudtl.dat"
@@ -85,7 +85,7 @@
 		{
 			"backtrace" : 3,
 			"component" : "Runtime",
-			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug",
+			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug",
 			"paths" : 
 			[
 				"flutter/ephemeral/flutter_windows.dll"
@@ -95,7 +95,7 @@
 		{
 			"backtrace" : 4,
 			"component" : "Runtime",
-			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug",
+			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug",
 			"paths" : 
 			[
 				"out/build/x64-Debug/plugins/connectivity_plus/connectivity_plus_plugin.dll",
@@ -106,11 +106,11 @@
 		{
 			"backtrace" : 5,
 			"component" : "Runtime",
-			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug",
+			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug",
 			"paths" : 
 			[
 				{
-					"from" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/build/native_assets/windows",
+					"from" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/build/native_assets/windows",
 					"to" : "."
 				}
 			],
@@ -124,10 +124,10 @@
 		{
 			"backtrace" : 7,
 			"component" : "Runtime",
-			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug/data",
+			"destination" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug/data",
 			"paths" : 
 			[
-				"H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/build//flutter_assets"
+				"H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/build//flutter_assets"
 			],
 			"type" : "directory"
 		}

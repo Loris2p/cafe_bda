@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.cytechdata" "\0"
-            VALUE "FileDescription", "excel_editor" "\0"
+            VALUE "FileDescription", "cafe_bda" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "excel_editor" "\0"
+            VALUE "InternalName", "cafe_bda" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.cytechdata. All rights reserved." "\0"
-            VALUE "OriginalFilename", "excel_editor.exe" "\0"
-            VALUE "ProductName", "excel_editor" "\0"
+            VALUE "OriginalFilename", "cafe_bda.exe" "\0"
+            VALUE "ProductName", "cafe_bda" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

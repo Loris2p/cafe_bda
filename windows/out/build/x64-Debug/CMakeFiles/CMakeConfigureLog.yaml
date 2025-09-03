@@ -39,7 +39,7 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.obj"
       
       The CXX compiler identification is MSVC, found in:
-        H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/CMakeFiles/3.31.6-msvc6/CompilerIdCXX/CMakeCXXCompilerId.exe
+        H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/CMakeFiles/3.31.6-msvc6/CompilerIdCXX/CMakeCXXCompilerId.exe
       
   -
     kind: "message-v1"
@@ -51,7 +51,7 @@ events:
     message: |
       Detecting CXX compiler /showIncludes prefix:
         main.c
-        Remarque : inclusion du fichier :  H:\\CYTECHDATA\\Documents\\Bda\\Cafe\\excel_editor\\windows\\out\\build\\x64-Debug\\CMakeFiles\\ShowIncludes\\foo.h
+        Remarque : inclusion du fichier :  H:\\CYTECHDATA\\Documents\\Bda\\Cafe\\cafe_bda\\windows\\out\\build\\x64-Debug\\CMakeFiles\\ShowIncludes\\foo.h
         
       Found prefix "Remarque : inclusion du fichier :  "
   -
@@ -63,8 +63,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-auhin6"
-      binary: "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-auhin6"
+      source: "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-auhin6"
+      binary: "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-auhin6"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /W3 /GR /EHsc"
       CMAKE_CXX_FLAGS_DEBUG: "/MDd /Zi /Ob0 /Od /RTC1"
@@ -74,7 +74,7 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-auhin6'
+        Change Dir: 'H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/CMakeFiles/CMakeScratch/TryCompile-auhin6'
         
         Run Build Command(s): "H:/CYTECHDATA/apps/Microsoft Visual Studio/2022/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe" -v cmTC_09db1
         [1/2] H:\\CYTECH~2\\apps\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\MSVC\\1444~1.352\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP   /DWIN32 /D_WINDOWS /W3 /GR /EHsc  /MDd /Zi /Ob0 /Od /RTC1 /showIncludes /FoCMakeFiles\\cmTC_09db1.dir\\CMakeCXXCompilerABI.cpp.obj /FdCMakeFiles\\cmTC_09db1.dir\\ /FS -c "H:\\CYTECHDATA\\apps\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\share\\cmake-3.31\\Modules\\CMakeCXXCompilerABI.cpp"

@@ -4,8 +4,8 @@ version: '1.0'
 summary: Une application Flutter pour gérer le café BDA
 description: |
   Ceci est une application construite avec Flutter pour Linux.
-grade: stable # doit être 'stable' pour publier dans le store
-confinement: strict # utilise le confinement strict par défaut
+grade: stable
+confinement: strict
 
 parts:
   cafe-bda:
@@ -16,5 +16,5 @@ parts:
 
 apps:
   cafe-bda:
-    command: usr/share/cafe-bda/le_cafe
-    desktop: usr/share/applications/cafe-bda.desktop
+    command: usr/share/cafe-bda/cafe_bda
+    desktop: snap/gui/cafe_bda.desktop

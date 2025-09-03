@@ -2,10 +2,10 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "runner/excel_editor.exe"
+			"path" : "runner/cafe_bda.exe"
 		},
 		{
-			"path" : "runner/excel_editor.pdb"
+			"path" : "runner/cafe_bda.pdb"
 		}
 	],
 	"backtrace" : 1,
@@ -259,23 +259,23 @@
 			[
 				{
 					"backtrace" : 25,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows"
 				},
 				{
 					"backtrace" : 4,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral"
 				},
 				{
 					"backtrace" : 4,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/include"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/include"
 				},
 				{
 					"backtrace" : 8,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/.plugin_symlinks/connectivity_plus/windows/include"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/.plugin_symlinks/connectivity_plus/windows/include"
 				},
 				{
 					"backtrace" : 9,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/windows/include"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/windows/include"
 				}
 			],
 			"language" : "CXX",
@@ -350,23 +350,23 @@
 			[
 				{
 					"backtrace" : 25,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows"
 				},
 				{
 					"backtrace" : 4,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral"
 				},
 				{
 					"backtrace" : 4,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/include"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/include"
 				},
 				{
 					"backtrace" : 8,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/.plugin_symlinks/connectivity_plus/windows/include"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/.plugin_symlinks/connectivity_plus/windows/include"
 				},
 				{
 					"backtrace" : 9,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/windows/include"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/windows/include"
 				}
 			],
 			"language" : "RC",
@@ -395,19 +395,19 @@
 			"id" : "url_launcher_windows_plugin::@82e8e937a0da8e6132e4"
 		}
 	],
-	"id" : "excel_editor::@056c4f61b0156d1d9b06",
+	"id" : "cafe_bda::@056c4f61b0156d1d9b06",
 	"install" : 
 	{
 		"destinations" : 
 		[
 			{
 				"backtrace" : 3,
-				"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug"
+				"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug"
 			}
 		],
 		"prefix" : 
 		{
-			"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug"
+			"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug"
 		}
 	},
 	"link" : 
@@ -444,7 +444,7 @@
 			},
 			{
 				"backtrace" : 11,
-				"fragment" : "H:\\CYTECHDATA\\Documents\\Bda\\Cafe\\excel_editor\\windows\\flutter\\ephemeral\\flutter_windows.dll.lib",
+				"fragment" : "H:\\CYTECHDATA\\Documents\\Bda\\Cafe\\cafe_bda\\windows\\flutter\\ephemeral\\flutter_windows.dll.lib",
 				"role" : "libraries"
 			},
 			{
@@ -454,8 +454,8 @@
 		],
 		"language" : "CXX"
 	},
-	"name" : "excel_editor",
-	"nameOnDisk" : "excel_editor.exe",
+	"name" : "cafe_bda",
+	"nameOnDisk" : "cafe_bda.exe",
 	"paths" : 
 	{
 		"build" : "runner",
