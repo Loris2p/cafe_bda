@@ -11,7 +11,7 @@
 # =============================================================================
 
 # =============================================================================
-# Project: excel_editor
+# Project: cafe_bda
 # Configurations: Debug
 # =============================================================================
 
@@ -39,13 +39,13 @@ include CMakeFiles\rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\
+cmake_ninja_workdir = H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\
 
 #############################################
 # Utility command for edit_cache
 
 build CMakeFiles\edit_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -56,7 +56,7 @@ build edit_cache: phony CMakeFiles\edit_cache.util
 # Utility command for rebuild_cache
 
 build CMakeFiles\rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -74,7 +74,7 @@ build list_install_components: phony
 # Utility command for install
 
 build CMakeFiles\install.util: CUSTOM_COMMAND all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
   DESC = Install the project...
   pool = console
   restat = 1
@@ -86,7 +86,7 @@ build install: phony CMakeFiles\install.util
 # Utility command for install/local
 
 build CMakeFiles\install\local.util: CUSTOM_COMMAND all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -95,7 +95,7 @@ build install\local: phony CMakeFiles\install\local.util
 
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
-# H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/CMakeLists.txt
+# H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/CMakeLists.txt
 # =============================================================================
 
 # =============================================================================
@@ -105,30 +105,30 @@ build install\local: phony CMakeFiles\install\local.util
 #############################################
 # Order-only phony target for flutter_wrapper_plugin
 
-build cmake_object_order_depends_target_flutter_wrapper_plugin: phony || H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.h flutter\_phony_ flutter\flutter_assemble
+build cmake_object_order_depends_target_flutter_wrapper_plugin: phony || H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.h flutter\_phony_ flutter\flutter_assemble
 
-build flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper\core_implementations.cc.obj: CXX_COMPILER__flutter_wrapper_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc || cmake_object_order_depends_target_flutter_wrapper_plugin
+build flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper\core_implementations.cc.obj: CXX_COMPILER__flutter_wrapper_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc || cmake_object_order_depends_target_flutter_wrapper_plugin
   DEFINES = -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral
   OBJECT_DIR = flutter\CMakeFiles\flutter_wrapper_plugin.dir
   OBJECT_FILE_DIR = flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper
   TARGET_COMPILE_PDB = flutter\CMakeFiles\flutter_wrapper_plugin.dir\flutter_wrapper_plugin.pdb
   TARGET_PDB = flutter\flutter_wrapper_plugin.pdb
 
-build flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper\standard_codec.cc.obj: CXX_COMPILER__flutter_wrapper_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc || cmake_object_order_depends_target_flutter_wrapper_plugin
+build flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper\standard_codec.cc.obj: CXX_COMPILER__flutter_wrapper_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc || cmake_object_order_depends_target_flutter_wrapper_plugin
   DEFINES = -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral
   OBJECT_DIR = flutter\CMakeFiles\flutter_wrapper_plugin.dir
   OBJECT_FILE_DIR = flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper
   TARGET_COMPILE_PDB = flutter\CMakeFiles\flutter_wrapper_plugin.dir\flutter_wrapper_plugin.pdb
   TARGET_PDB = flutter\flutter_wrapper_plugin.pdb
 
-build flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper\plugin_registrar.cc.obj: CXX_COMPILER__flutter_wrapper_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc || cmake_object_order_depends_target_flutter_wrapper_plugin
+build flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper\plugin_registrar.cc.obj: CXX_COMPILER__flutter_wrapper_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc || cmake_object_order_depends_target_flutter_wrapper_plugin
   DEFINES = -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral
   OBJECT_DIR = flutter\CMakeFiles\flutter_wrapper_plugin.dir
   OBJECT_FILE_DIR = flutter\CMakeFiles\flutter_wrapper_plugin.dir\ephemeral\cpp_client_wrapper
   TARGET_COMPILE_PDB = flutter\CMakeFiles\flutter_wrapper_plugin.dir\flutter_wrapper_plugin.pdb
@@ -159,39 +159,39 @@ build flutter\flutter_wrapper_plugin.lib: CXX_STATIC_LIBRARY_LINKER__flutter_wra
 #############################################
 # Order-only phony target for flutter_wrapper_app
 
-build cmake_object_order_depends_target_flutter_wrapper_app: phony || H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.h flutter\_phony_ flutter\flutter_assemble
+build cmake_object_order_depends_target_flutter_wrapper_app: phony || H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.h flutter\_phony_ flutter\flutter_assemble
 
-build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\core_implementations.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc || cmake_object_order_depends_target_flutter_wrapper_app
+build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\core_implementations.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc || cmake_object_order_depends_target_flutter_wrapper_app
   DEFINES = -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral
   OBJECT_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir
   OBJECT_FILE_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper
   TARGET_COMPILE_PDB = flutter\CMakeFiles\flutter_wrapper_app.dir\flutter_wrapper_app.pdb
   TARGET_PDB = flutter\flutter_wrapper_app.pdb
 
-build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\standard_codec.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc || cmake_object_order_depends_target_flutter_wrapper_app
+build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\standard_codec.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc || cmake_object_order_depends_target_flutter_wrapper_app
   DEFINES = -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral
   OBJECT_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir
   OBJECT_FILE_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper
   TARGET_COMPILE_PDB = flutter\CMakeFiles\flutter_wrapper_app.dir\flutter_wrapper_app.pdb
   TARGET_PDB = flutter\flutter_wrapper_app.pdb
 
-build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\flutter_engine.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc || cmake_object_order_depends_target_flutter_wrapper_app
+build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\flutter_engine.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc || cmake_object_order_depends_target_flutter_wrapper_app
   DEFINES = -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral
   OBJECT_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir
   OBJECT_FILE_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper
   TARGET_COMPILE_PDB = flutter\CMakeFiles\flutter_wrapper_app.dir\flutter_wrapper_app.pdb
   TARGET_PDB = flutter\flutter_wrapper_app.pdb
 
-build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\flutter_view_controller.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc || cmake_object_order_depends_target_flutter_wrapper_app
+build flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper\flutter_view_controller.cc.obj: CXX_COMPILER__flutter_wrapper_app_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc || cmake_object_order_depends_target_flutter_wrapper_app
   DEFINES = -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral
   OBJECT_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir
   OBJECT_FILE_DIR = flutter\CMakeFiles\flutter_wrapper_app.dir\ephemeral\cpp_client_wrapper
   TARGET_COMPILE_PDB = flutter\CMakeFiles\flutter_wrapper_app.dir\flutter_wrapper_app.pdb
@@ -219,14 +219,14 @@ build flutter\flutter_wrapper_app.lib: CXX_STATIC_LIBRARY_LINKER__flutter_wrappe
 #############################################
 # Utility command for flutter_assemble
 
-build flutter\flutter_assemble: phony flutter\CMakeFiles\flutter_assemble H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc flutter\_phony_
+build flutter\flutter_assemble: phony flutter\CMakeFiles\flutter_assemble H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc flutter\_phony_
 
 
 #############################################
 # Utility command for edit_cache
 
 build flutter\CMakeFiles\edit_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -237,7 +237,7 @@ build flutter\edit_cache: phony flutter\CMakeFiles\edit_cache.util
 # Utility command for rebuild_cache
 
 build flutter\CMakeFiles\rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -255,7 +255,7 @@ build flutter\list_install_components: phony
 # Utility command for install
 
 build flutter\CMakeFiles\install.util: CUSTOM_COMMAND flutter\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
   DESC = Install the project...
   pool = console
   restat = 1
@@ -267,7 +267,7 @@ build flutter\install: phony flutter\CMakeFiles\install.util
 # Utility command for install/local
 
 build flutter\CMakeFiles\install\local.util: CUSTOM_COMMAND flutter\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -276,114 +276,114 @@ build flutter\install\local: phony flutter\CMakeFiles\install\local.util
 
 
 #############################################
-# Custom command for H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll
+# Custom command for H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll
 
-build H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc flutter\_phony_ | ${cmake_ninja_workdir}flutter\_phony_: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=H:\CYTECHDATA\Documents\.flutter_sdk_windows\flutter PROJECT_DIR=H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor FLUTTER_ROOT=H:\CYTECHDATA\Documents\.flutter_sdk_windows\flutter FLUTTER_EPHEMERAL_DIR=H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral PROJECT_DIR=H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor FLUTTER_TARGET=H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\lib\main.dart DART_DEFINES=RkxVVFRFUl9WRVJTSU9OPTMuMzUuMQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049MjBmODI3NDkzOQ==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049MWU5YTgxMWJmOA==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My45LjA= DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\.dart_tool\package_config.json H:/CYTECHDATA/Documents/.flutter_sdk_windows/flutter/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug"
-  DESC = Generating H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/flutter_windows.dll, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/flutter_export.h, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/flutter_windows.h, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/flutter_messenger.h, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/flutter_plugin_registrar.h, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/flutter_texture_registrar.h, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/core_implementations.cc, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/standard_codec.cc, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/plugin_registrar.cc, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/flutter_engine.cc, H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/flutter_view_controller.cc, _phony_
+build H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc flutter\_phony_ | ${cmake_ninja_workdir}flutter\_phony_: CUSTOM_COMMAND
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\flutter && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=H:\CYTECHDATA\Documents\.flutter_sdk_windows\flutter PROJECT_DIR=H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda FLUTTER_ROOT=H:\CYTECHDATA\Documents\.flutter_sdk_windows\flutter FLUTTER_EPHEMERAL_DIR=H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral PROJECT_DIR=H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda FLUTTER_TARGET=H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\lib\main.dart DART_DEFINES=RkxVVFRFUl9WRVJTSU9OPTMuMzUuMQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049MjBmODI3NDkzOQ==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049MWU5YTgxMWJmOA==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My45LjA= DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\.dart_tool\package_config.json H:/CYTECHDATA/Documents/.flutter_sdk_windows/flutter/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug"
+  DESC = Generating H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/flutter_windows.dll, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/flutter_export.h, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/flutter_windows.h, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/flutter_messenger.h, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/flutter_plugin_registrar.h, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/flutter_texture_registrar.h, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/core_implementations.cc, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/standard_codec.cc, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/plugin_registrar.cc, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/flutter_engine.cc, H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/flutter_view_controller.cc, _phony_
 
 
 #############################################
 # Phony custom command for flutter\CMakeFiles\flutter_assemble
 
-build flutter\CMakeFiles\flutter_assemble | ${cmake_ninja_workdir}flutter\CMakeFiles\flutter_assemble: phony H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc
+build flutter\CMakeFiles\flutter_assemble | ${cmake_ninja_workdir}flutter\CMakeFiles\flutter_assemble: phony H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_export.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_messenger.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_plugin_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_texture_registrar.h H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\core_implementations.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\standard_codec.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\plugin_registrar.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_engine.cc H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\flutter_view_controller.cc
 
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
-# H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/CMakeLists.txt
+# H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/CMakeLists.txt
 # =============================================================================
 
 # =============================================================================
-# Object build statements for EXECUTABLE target excel_editor
+# Object build statements for EXECUTABLE target cafe_bda
 
 
 #############################################
-# Order-only phony target for excel_editor
+# Order-only phony target for cafe_bda
 
-build cmake_object_order_depends_target_excel_editor: phony || cmake_object_order_depends_target_connectivity_plus_plugin cmake_object_order_depends_target_flutter_wrapper_app cmake_object_order_depends_target_url_launcher_windows_plugin flutter\flutter_assemble
+build cmake_object_order_depends_target_cafe_bda: phony || cmake_object_order_depends_target_connectivity_plus_plugin cmake_object_order_depends_target_flutter_wrapper_app cmake_object_order_depends_target_url_launcher_windows_plugin flutter\flutter_assemble
 
-build runner\CMakeFiles\excel_editor.dir\flutter_window.cpp.obj: CXX_COMPILER__excel_editor_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\flutter_window.cpp || cmake_object_order_depends_target_excel_editor
+build runner\CMakeFiles\cafe_bda.dir\flutter_window.cpp.obj: CXX_COMPILER__cafe_bda_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\flutter_window.cpp || cmake_object_order_depends_target_cafe_bda
   DEFINES = -DFLUTTER_VERSION=\"1.0.0+1\" -DFLUTTER_VERSION_BUILD=1 -DFLUTTER_VERSION_MAJOR=1 -DFLUTTER_VERSION_MINOR=0 -DFLUTTER_VERSION_PATCH=0 -DNOMINMAX -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
-  OBJECT_DIR = runner\CMakeFiles\excel_editor.dir
-  OBJECT_FILE_DIR = runner\CMakeFiles\excel_editor.dir
-  TARGET_COMPILE_PDB = runner\CMakeFiles\excel_editor.dir\
-  TARGET_PDB = runner\excel_editor.pdb
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
+  OBJECT_DIR = runner\CMakeFiles\cafe_bda.dir
+  OBJECT_FILE_DIR = runner\CMakeFiles\cafe_bda.dir
+  TARGET_COMPILE_PDB = runner\CMakeFiles\cafe_bda.dir\
+  TARGET_PDB = runner\cafe_bda.pdb
 
-build runner\CMakeFiles\excel_editor.dir\main.cpp.obj: CXX_COMPILER__excel_editor_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\main.cpp || cmake_object_order_depends_target_excel_editor
+build runner\CMakeFiles\cafe_bda.dir\main.cpp.obj: CXX_COMPILER__cafe_bda_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\main.cpp || cmake_object_order_depends_target_cafe_bda
   DEFINES = -DFLUTTER_VERSION=\"1.0.0+1\" -DFLUTTER_VERSION_BUILD=1 -DFLUTTER_VERSION_MAJOR=1 -DFLUTTER_VERSION_MINOR=0 -DFLUTTER_VERSION_PATCH=0 -DNOMINMAX -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
-  OBJECT_DIR = runner\CMakeFiles\excel_editor.dir
-  OBJECT_FILE_DIR = runner\CMakeFiles\excel_editor.dir
-  TARGET_COMPILE_PDB = runner\CMakeFiles\excel_editor.dir\
-  TARGET_PDB = runner\excel_editor.pdb
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
+  OBJECT_DIR = runner\CMakeFiles\cafe_bda.dir
+  OBJECT_FILE_DIR = runner\CMakeFiles\cafe_bda.dir
+  TARGET_COMPILE_PDB = runner\CMakeFiles\cafe_bda.dir\
+  TARGET_PDB = runner\cafe_bda.pdb
 
-build runner\CMakeFiles\excel_editor.dir\utils.cpp.obj: CXX_COMPILER__excel_editor_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\utils.cpp || cmake_object_order_depends_target_excel_editor
+build runner\CMakeFiles\cafe_bda.dir\utils.cpp.obj: CXX_COMPILER__cafe_bda_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\utils.cpp || cmake_object_order_depends_target_cafe_bda
   DEFINES = -DFLUTTER_VERSION=\"1.0.0+1\" -DFLUTTER_VERSION_BUILD=1 -DFLUTTER_VERSION_MAJOR=1 -DFLUTTER_VERSION_MINOR=0 -DFLUTTER_VERSION_PATCH=0 -DNOMINMAX -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
-  OBJECT_DIR = runner\CMakeFiles\excel_editor.dir
-  OBJECT_FILE_DIR = runner\CMakeFiles\excel_editor.dir
-  TARGET_COMPILE_PDB = runner\CMakeFiles\excel_editor.dir\
-  TARGET_PDB = runner\excel_editor.pdb
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
+  OBJECT_DIR = runner\CMakeFiles\cafe_bda.dir
+  OBJECT_FILE_DIR = runner\CMakeFiles\cafe_bda.dir
+  TARGET_COMPILE_PDB = runner\CMakeFiles\cafe_bda.dir\
+  TARGET_PDB = runner\cafe_bda.pdb
 
-build runner\CMakeFiles\excel_editor.dir\win32_window.cpp.obj: CXX_COMPILER__excel_editor_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\win32_window.cpp || cmake_object_order_depends_target_excel_editor
+build runner\CMakeFiles\cafe_bda.dir\win32_window.cpp.obj: CXX_COMPILER__cafe_bda_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\win32_window.cpp || cmake_object_order_depends_target_cafe_bda
   DEFINES = -DFLUTTER_VERSION=\"1.0.0+1\" -DFLUTTER_VERSION_BUILD=1 -DFLUTTER_VERSION_MAJOR=1 -DFLUTTER_VERSION_MINOR=0 -DFLUTTER_VERSION_PATCH=0 -DNOMINMAX -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
-  OBJECT_DIR = runner\CMakeFiles\excel_editor.dir
-  OBJECT_FILE_DIR = runner\CMakeFiles\excel_editor.dir
-  TARGET_COMPILE_PDB = runner\CMakeFiles\excel_editor.dir\
-  TARGET_PDB = runner\excel_editor.pdb
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
+  OBJECT_DIR = runner\CMakeFiles\cafe_bda.dir
+  OBJECT_FILE_DIR = runner\CMakeFiles\cafe_bda.dir
+  TARGET_COMPILE_PDB = runner\CMakeFiles\cafe_bda.dir\
+  TARGET_PDB = runner\cafe_bda.pdb
 
-build runner\CMakeFiles\excel_editor.dir\__\flutter\generated_plugin_registrant.cc.obj: CXX_COMPILER__excel_editor_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\generated_plugin_registrant.cc || cmake_object_order_depends_target_excel_editor
+build runner\CMakeFiles\cafe_bda.dir\__\flutter\generated_plugin_registrant.cc.obj: CXX_COMPILER__cafe_bda_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\generated_plugin_registrant.cc || cmake_object_order_depends_target_cafe_bda
   DEFINES = -DFLUTTER_VERSION=\"1.0.0+1\" -DFLUTTER_VERSION_BUILD=1 -DFLUTTER_VERSION_MAJOR=1 -DFLUTTER_VERSION_MINOR=0 -DFLUTTER_VERSION_PATCH=0 -DNOMINMAX -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
-  OBJECT_DIR = runner\CMakeFiles\excel_editor.dir
-  OBJECT_FILE_DIR = runner\CMakeFiles\excel_editor.dir\__\flutter
-  TARGET_COMPILE_PDB = runner\CMakeFiles\excel_editor.dir\
-  TARGET_PDB = runner\excel_editor.pdb
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
+  OBJECT_DIR = runner\CMakeFiles\cafe_bda.dir
+  OBJECT_FILE_DIR = runner\CMakeFiles\cafe_bda.dir\__\flutter
+  TARGET_COMPILE_PDB = runner\CMakeFiles\cafe_bda.dir\
+  TARGET_PDB = runner\cafe_bda.pdb
 
-build runner\CMakeFiles\excel_editor.dir\Runner.rc.res: RC_COMPILER__excel_editor_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\Runner.rc || cmake_object_order_depends_target_excel_editor
+build runner\CMakeFiles\cafe_bda.dir\Runner.rc.res: RC_COMPILER__cafe_bda_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\Runner.rc || cmake_object_order_depends_target_cafe_bda
   DEFINES = -DFLUTTER_VERSION=\"1.0.0+1\" -DFLUTTER_VERSION_BUILD=1 -DFLUTTER_VERSION_MAJOR=1 -DFLUTTER_VERSION_MINOR=0 -DFLUTTER_VERSION_PATCH=0 -DNOMINMAX -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE
-  DEP_FILE = runner\CMakeFiles\excel_editor.dir\Runner.rc.res.d
+  DEP_FILE = runner\CMakeFiles\cafe_bda.dir\Runner.rc.res.d
   FLAGS = -DWIN32 -D_DEBUG
-  INCLUDES = -I H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -I H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -I H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include -I H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -I H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
-  OBJECT_DIR = runner\CMakeFiles\excel_editor.dir
-  OBJECT_FILE_DIR = runner\CMakeFiles\excel_editor.dir
-  TARGET_COMPILE_PDB = runner\CMakeFiles\excel_editor.dir\
-  TARGET_PDB = runner\excel_editor.pdb
+  INCLUDES = -I H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -I H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -I H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include -I H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\include -I H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\include
+  OBJECT_DIR = runner\CMakeFiles\cafe_bda.dir
+  OBJECT_FILE_DIR = runner\CMakeFiles\cafe_bda.dir
+  TARGET_COMPILE_PDB = runner\CMakeFiles\cafe_bda.dir\
+  TARGET_PDB = runner\cafe_bda.pdb
 
 
 # =============================================================================
-# Link build statements for EXECUTABLE target excel_editor
+# Link build statements for EXECUTABLE target cafe_bda
 
 
 #############################################
-# Link the executable runner\excel_editor.exe
+# Link the executable runner\cafe_bda.exe
 
-build runner\excel_editor.exe: CXX_EXECUTABLE_LINKER__excel_editor_Debug runner\CMakeFiles\excel_editor.dir\flutter_window.cpp.obj runner\CMakeFiles\excel_editor.dir\main.cpp.obj runner\CMakeFiles\excel_editor.dir\utils.cpp.obj runner\CMakeFiles\excel_editor.dir\win32_window.cpp.obj runner\CMakeFiles\excel_editor.dir\__\flutter\generated_plugin_registrant.cc.obj runner\CMakeFiles\excel_editor.dir\Runner.rc.res | flutter\flutter_wrapper_app.lib plugins\connectivity_plus\connectivity_plus_plugin.lib plugins\url_launcher_windows\url_launcher_windows_plugin.lib H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll.lib H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\runner.exe.manifest || flutter\flutter_assemble flutter\flutter_wrapper_app.lib plugins\connectivity_plus\connectivity_plus_plugin.dll plugins\url_launcher_windows\url_launcher_windows_plugin.dll
+build runner\cafe_bda.exe: CXX_EXECUTABLE_LINKER__cafe_bda_Debug runner\CMakeFiles\cafe_bda.dir\flutter_window.cpp.obj runner\CMakeFiles\cafe_bda.dir\main.cpp.obj runner\CMakeFiles\cafe_bda.dir\utils.cpp.obj runner\CMakeFiles\cafe_bda.dir\win32_window.cpp.obj runner\CMakeFiles\cafe_bda.dir\__\flutter\generated_plugin_registrant.cc.obj runner\CMakeFiles\cafe_bda.dir\Runner.rc.res | flutter\flutter_wrapper_app.lib plugins\connectivity_plus\connectivity_plus_plugin.lib plugins\url_launcher_windows\url_launcher_windows_plugin.lib H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll.lib H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\runner.exe.manifest || flutter\flutter_assemble flutter\flutter_wrapper_app.lib plugins\connectivity_plus\connectivity_plus_plugin.dll plugins\url_launcher_windows\url_launcher_windows_plugin.dll
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL /subsystem:windows
-  LINK_LIBRARIES = flutter\flutter_wrapper_app.lib  dwmapi.lib  plugins\connectivity_plus\connectivity_plus_plugin.lib  plugins\url_launcher_windows\url_launcher_windows_plugin.lib  H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
-  MANIFESTS = H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\runner.exe.manifest
-  OBJECT_DIR = runner\CMakeFiles\excel_editor.dir
+  LINK_LIBRARIES = flutter\flutter_wrapper_app.lib  dwmapi.lib  plugins\connectivity_plus\connectivity_plus_plugin.lib  plugins\url_launcher_windows\url_launcher_windows_plugin.lib  H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  MANIFESTS = H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\runner.exe.manifest
+  OBJECT_DIR = runner\CMakeFiles\cafe_bda.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_COMPILE_PDB = runner\CMakeFiles\excel_editor.dir\
-  TARGET_FILE = runner\excel_editor.exe
-  TARGET_IMPLIB = runner\excel_editor.lib
-  TARGET_PDB = runner\excel_editor.pdb
+  TARGET_COMPILE_PDB = runner\CMakeFiles\cafe_bda.dir\
+  TARGET_FILE = runner\cafe_bda.exe
+  TARGET_IMPLIB = runner\cafe_bda.lib
+  TARGET_PDB = runner\cafe_bda.pdb
 
 
 #############################################
 # Utility command for edit_cache
 
 build runner\CMakeFiles\edit_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -394,7 +394,7 @@ build runner\edit_cache: phony runner\CMakeFiles\edit_cache.util
 # Utility command for rebuild_cache
 
 build runner\CMakeFiles\rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -412,7 +412,7 @@ build runner\list_install_components: phony
 # Utility command for install
 
 build runner\CMakeFiles\install.util: CUSTOM_COMMAND runner\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
   DESC = Install the project...
   pool = console
   restat = 1
@@ -424,7 +424,7 @@ build runner\install: phony runner\CMakeFiles\install.util
 # Utility command for install/local
 
 build runner\CMakeFiles\install\local.util: CUSTOM_COMMAND runner\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\runner && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -433,7 +433,7 @@ build runner\install\local: phony runner\CMakeFiles\install\local.util
 
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
-# H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/generated_plugins.cmake
+# H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/generated_plugins.cmake
 # =============================================================================
 
 # =============================================================================
@@ -445,19 +445,19 @@ build runner\install\local: phony runner\CMakeFiles\install\local.util
 
 build cmake_object_order_depends_target_connectivity_plus_plugin: phony || cmake_object_order_depends_target_flutter_wrapper_plugin flutter\flutter_assemble
 
-build plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\connectivity_plus_plugin.cpp.obj: CXX_COMPILER__connectivity_plus_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\connectivity_plus_plugin.cpp || cmake_object_order_depends_target_connectivity_plus_plugin
+build plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\connectivity_plus_plugin.cpp.obj: CXX_COMPILER__connectivity_plus_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\connectivity_plus_plugin.cpp || cmake_object_order_depends_target_connectivity_plus_plugin
   DEFINES = -DFLUTTER_PLUGIN_IMPL -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE -Dconnectivity_plus_plugin_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include
   OBJECT_DIR = plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir
   OBJECT_FILE_DIR = plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir
   TARGET_COMPILE_PDB = plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\
   TARGET_PDB = plugins\connectivity_plus\connectivity_plus_plugin.pdb
 
-build plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\network_manager.cpp.obj: CXX_COMPILER__connectivity_plus_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\network_manager.cpp || cmake_object_order_depends_target_connectivity_plus_plugin
+build plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\network_manager.cpp.obj: CXX_COMPILER__connectivity_plus_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\network_manager.cpp || cmake_object_order_depends_target_connectivity_plus_plugin
   DEFINES = -DFLUTTER_PLUGIN_IMPL -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE -Dconnectivity_plus_plugin_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include
   OBJECT_DIR = plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir
   OBJECT_FILE_DIR = plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir
   TARGET_COMPILE_PDB = plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\
@@ -471,10 +471,10 @@ build plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\network_
 #############################################
 # Link the shared library plugins\connectivity_plus\connectivity_plus_plugin.dll
 
-build plugins\connectivity_plus\connectivity_plus_plugin.dll plugins\connectivity_plus\connectivity_plus_plugin.lib: CXX_SHARED_LIBRARY_LINKER__connectivity_plus_plugin_Debug plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\connectivity_plus_plugin.cpp.obj plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\network_manager.cpp.obj | flutter\flutter_wrapper_plugin.lib H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll.lib || flutter\flutter_assemble flutter\flutter_wrapper_plugin.lib
+build plugins\connectivity_plus\connectivity_plus_plugin.dll plugins\connectivity_plus\connectivity_plus_plugin.lib: CXX_SHARED_LIBRARY_LINKER__connectivity_plus_plugin_Debug plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\connectivity_plus_plugin.cpp.obj plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir\network_manager.cpp.obj | flutter\flutter_wrapper_plugin.lib H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll.lib || flutter\flutter_assemble flutter\flutter_wrapper_plugin.lib
   LANGUAGE_COMPILE_FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL
-  LINK_LIBRARIES = flutter\flutter_wrapper_plugin.lib  iphlpapi.lib  H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = flutter\flutter_wrapper_plugin.lib  iphlpapi.lib  H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = plugins\connectivity_plus\CMakeFiles\connectivity_plus_plugin.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -489,7 +489,7 @@ build plugins\connectivity_plus\connectivity_plus_plugin.dll plugins\connectivit
 # Utility command for edit_cache
 
 build plugins\connectivity_plus\CMakeFiles\edit_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -500,7 +500,7 @@ build plugins\connectivity_plus\edit_cache: phony plugins\connectivity_plus\CMak
 # Utility command for rebuild_cache
 
 build plugins\connectivity_plus\CMakeFiles\rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -518,7 +518,7 @@ build plugins\connectivity_plus\list_install_components: phony
 # Utility command for install
 
 build plugins\connectivity_plus\CMakeFiles\install.util: CUSTOM_COMMAND plugins\connectivity_plus\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
   DESC = Install the project...
   pool = console
   restat = 1
@@ -530,7 +530,7 @@ build plugins\connectivity_plus\install: phony plugins\connectivity_plus\CMakeFi
 # Utility command for install/local
 
 build plugins\connectivity_plus\CMakeFiles\install\local.util: CUSTOM_COMMAND plugins\connectivity_plus\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\connectivity_plus && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -539,7 +539,7 @@ build plugins\connectivity_plus\install\local: phony plugins\connectivity_plus\C
 
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
-# H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/generated_plugins.cmake
+# H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/generated_plugins.cmake
 # =============================================================================
 
 # =============================================================================
@@ -551,37 +551,37 @@ build plugins\connectivity_plus\install\local: phony plugins\connectivity_plus\C
 
 build cmake_object_order_depends_target_url_launcher_windows_plugin: phony || cmake_object_order_depends_target_flutter_wrapper_plugin flutter\flutter_assemble
 
-build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_windows.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\url_launcher_windows.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
+build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_windows.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\url_launcher_windows.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
   DEFINES = -DFLUTTER_PLUGIN_IMPL -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE -Durl_launcher_windows_plugin_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include
   OBJECT_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   OBJECT_FILE_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   TARGET_COMPILE_PDB = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\
   TARGET_PDB = plugins\url_launcher_windows\url_launcher_windows_plugin.pdb
 
-build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\messages.g.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\messages.g.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
+build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\messages.g.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\messages.g.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
   DEFINES = -DFLUTTER_PLUGIN_IMPL -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE -Durl_launcher_windows_plugin_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include
   OBJECT_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   OBJECT_FILE_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   TARGET_COMPILE_PDB = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\
   TARGET_PDB = plugins\url_launcher_windows\url_launcher_windows_plugin.pdb
 
-build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\system_apis.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\system_apis.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
+build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\system_apis.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\system_apis.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
   DEFINES = -DFLUTTER_PLUGIN_IMPL -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE -Durl_launcher_windows_plugin_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include
   OBJECT_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   OBJECT_FILE_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   TARGET_COMPILE_PDB = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\
   TARGET_PDB = plugins\url_launcher_windows\url_launcher_windows_plugin.pdb
 
-build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_plugin.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\url_launcher_plugin.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
+build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_plugin.cpp.obj: CXX_COMPILER__url_launcher_windows_plugin_unscanned_Debug H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\url_launcher_plugin.cpp || cmake_object_order_depends_target_url_launcher_windows_plugin
   DEFINES = -DFLUTTER_PLUGIN_IMPL -DUNICODE -D_DEBUG -D_HAS_EXCEPTIONS=0 -D_UNICODE -Durl_launcher_windows_plugin_EXPORTS
   FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++17 /W4 /WX /wd\"4100\" /EHsc
-  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\cpp_client_wrapper\include
+  INCLUDES = -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral -IH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\cpp_client_wrapper\include
   OBJECT_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   OBJECT_FILE_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   TARGET_COMPILE_PDB = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\
@@ -595,10 +595,10 @@ build plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\ur
 #############################################
 # Link the shared library plugins\url_launcher_windows\url_launcher_windows_plugin.dll
 
-build plugins\url_launcher_windows\url_launcher_windows_plugin.dll plugins\url_launcher_windows\url_launcher_windows_plugin.lib: CXX_SHARED_LIBRARY_LINKER__url_launcher_windows_plugin_Debug plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_windows.cpp.obj plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\messages.g.cpp.obj plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\system_apis.cpp.obj plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_plugin.cpp.obj | flutter\flutter_wrapper_plugin.lib H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll.lib || flutter\flutter_assemble flutter\flutter_wrapper_plugin.lib
+build plugins\url_launcher_windows\url_launcher_windows_plugin.dll plugins\url_launcher_windows\url_launcher_windows_plugin.lib: CXX_SHARED_LIBRARY_LINKER__url_launcher_windows_plugin_Debug plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_windows.cpp.obj plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\messages.g.cpp.obj plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\system_apis.cpp.obj plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir\url_launcher_plugin.cpp.obj | flutter\flutter_wrapper_plugin.lib H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll.lib || flutter\flutter_assemble flutter\flutter_wrapper_plugin.lib
   LANGUAGE_COMPILE_FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL
-  LINK_LIBRARIES = flutter\flutter_wrapper_plugin.lib  shlwapi.lib  H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\flutter_windows.dll.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = flutter\flutter_wrapper_plugin.lib  shlwapi.lib  H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\flutter_windows.dll.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = plugins\url_launcher_windows\CMakeFiles\url_launcher_windows_plugin.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -613,7 +613,7 @@ build plugins\url_launcher_windows\url_launcher_windows_plugin.dll plugins\url_l
 # Utility command for edit_cache
 
 build plugins\url_launcher_windows\CMakeFiles\edit_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -624,7 +624,7 @@ build plugins\url_launcher_windows\edit_cache: phony plugins\url_launcher_window
 # Utility command for rebuild_cache
 
 build plugins\url_launcher_windows\CMakeFiles\rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -642,7 +642,7 @@ build plugins\url_launcher_windows\list_install_components: phony
 # Utility command for install
 
 build plugins\url_launcher_windows\CMakeFiles\install.util: CUSTOM_COMMAND plugins\url_launcher_windows\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -P cmake_install.cmake"
   DESC = Install the project...
   pool = console
   restat = 1
@@ -654,7 +654,7 @@ build plugins\url_launcher_windows\install: phony plugins\url_launcher_windows\C
 # Utility command for install/local
 
 build plugins\url_launcher_windows\CMakeFiles\install\local.util: CUSTOM_COMMAND plugins\url_launcher_windows\all
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D H:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug\plugins\url_launcher_windows && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -668,9 +668,9 @@ build connectivity_plus_plugin: phony plugins\connectivity_plus\connectivity_plu
 
 build connectivity_plus_plugin.dll: phony plugins\connectivity_plus\connectivity_plus_plugin.dll
 
-build excel_editor: phony runner\excel_editor.exe
+build cafe_bda: phony runner\cafe_bda.exe
 
-build excel_editor.exe: phony runner\excel_editor.exe
+build cafe_bda.exe: phony runner\cafe_bda.exe
 
 build flutter_assemble: phony flutter\flutter_assemble
 
@@ -692,37 +692,37 @@ build url_launcher_windows_plugin.dll: phony plugins\url_launcher_windows\url_la
 # =============================================================================
 
 #############################################
-# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug
+# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug
 
 build all: phony flutter\all runner\all plugins\connectivity_plus\all plugins\url_launcher_windows\all
 
 # =============================================================================
 
 #############################################
-# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/flutter
+# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/flutter
 
 build flutter\all: phony flutter\flutter_wrapper_plugin.lib flutter\flutter_wrapper_app.lib
 
 # =============================================================================
 
 #############################################
-# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/plugins/connectivity_plus
+# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/plugins/connectivity_plus
 
 build plugins\connectivity_plus\all: phony plugins\connectivity_plus\connectivity_plus_plugin.dll
 
 # =============================================================================
 
 #############################################
-# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/plugins/url_launcher_windows
+# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/plugins/url_launcher_windows
 
 build plugins\url_launcher_windows\all: phony plugins\url_launcher_windows\url_launcher_windows_plugin.dll
 
 # =============================================================================
 
 #############################################
-# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/runner
+# Folder: H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/runner
 
-build runner\all: phony runner\excel_editor.exe
+build runner\all: phony runner\cafe_bda.exe
 
 # =============================================================================
 # Built-in targets
@@ -731,14 +731,14 @@ build runner\all: phony runner\excel_editor.exe
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | CMakeCache.txt CMakeFiles\3.31.6-msvc6\CMakeCXXCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeRCCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeSystem.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\generated_config.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\generated_plugins.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\CMakeLists.txt H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake
+build build.ninja: RERUN_CMAKE | CMakeCache.txt CMakeFiles\3.31.6-msvc6\CMakeCXXCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeRCCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeSystem.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\generated_config.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\generated_plugins.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\CMakeLists.txt H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build CMakeCache.txt CMakeFiles\3.31.6-msvc6\CMakeCXXCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeRCCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeSystem.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\ephemeral\generated_config.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\flutter\generated_plugins.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\runner\CMakeLists.txt H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake: phony
+build CMakeCache.txt CMakeFiles\3.31.6-msvc6\CMakeCXXCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeRCCompiler.cmake CMakeFiles\3.31.6-msvc6\CMakeSystem.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\connectivity_plus\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\url_launcher_windows\windows\CMakeLists.txt H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\ephemeral\generated_config.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\flutter\generated_plugins.cmake H$:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\runner\CMakeLists.txt H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCXXInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeCommonLanguageInclude.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeGenericSystem.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeInitializeConfigs.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeLanguageInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeRCInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\CMakeSystemSpecificInitialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\CMakeCommonCompilerMacros.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Compiler\MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCXXLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Internal\CMakeCommonLinkerInformation.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Linker\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-Initialize.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC-CXX.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows-MSVC.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\Windows.cmake H$:\CYTECHDATA\apps\Microsoft$ Visual$ Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.31\Modules\Platform\WindowsPaths.cmake: phony
 
 
 #############################################

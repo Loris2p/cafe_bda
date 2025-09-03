@@ -171,11 +171,11 @@
 			[
 				{
 					"backtrace" : 2,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral"
 				},
 				{
 					"backtrace" : 2,
-					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/cpp_client_wrapper/include"
+					"path" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/cpp_client_wrapper/include"
 				}
 			],
 			"language" : "CXX",
@@ -228,7 +228,7 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "H:\\CYTECHDATA\\Documents\\Bda\\Cafe\\excel_editor\\windows\\flutter\\ephemeral\\flutter_windows.dll.lib",
+				"fragment" : "H:\\CYTECHDATA\\Documents\\Bda\\Cafe\\cafe_bda\\windows\\flutter\\ephemeral\\flutter_windows.dll.lib",
 				"role" : "libraries"
 			},
 			{

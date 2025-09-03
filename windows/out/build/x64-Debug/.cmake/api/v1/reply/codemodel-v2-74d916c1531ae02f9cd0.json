@@ -100,7 +100,7 @@
 						0,
 						1
 					],
-					"name" : "excel_editor",
+					"name" : "cafe_bda",
 					"targetIndexes" : 
 					[
 						2,
@@ -156,9 +156,9 @@
 				},
 				{
 					"directoryIndex" : 2,
-					"id" : "excel_editor::@056c4f61b0156d1d9b06",
-					"jsonFile" : "target-excel_editor-Debug-be91e57fc71dcb91aeb5.json",
-					"name" : "excel_editor",
+					"id" : "cafe_bda::@056c4f61b0156d1d9b06",
+					"jsonFile" : "target-cafe_bda-Debug-be91e57fc71dcb91aeb5.json",
+					"name" : "cafe_bda",
 					"projectIndex" : 1
 				},
 				{
@@ -195,8 +195,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug",
-		"source" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows"
+		"build" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug",
+		"source" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows"
 	},
 	"version" : 
 	{

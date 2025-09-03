@@ -39,7 +39,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "h:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug"
+			"value" : "h:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -383,7 +383,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/CMakeFiles/pkgRedirects"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -443,7 +443,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -455,7 +455,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/install/x64-Debug"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/install/x64-Debug"
 		},
 		{
 			"name" : "CMAKE_LINKER",
@@ -639,7 +639,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "excel_editor"
+			"value" : "cafe_bda"
 		},
 		{
 			"name" : "CMAKE_RANLIB",
@@ -991,7 +991,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/plugins/connectivity_plus"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/plugins/connectivity_plus"
 		},
 		{
 			"name" : "connectivity_plus_IS_TOP_LEVEL",
@@ -1015,10 +1015,10 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/.plugin_symlinks/connectivity_plus/windows"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/.plugin_symlinks/connectivity_plus/windows"
 		},
 		{
-			"name" : "excel_editor_BINARY_DIR",
+			"name" : "cafe_bda_BINARY_DIR",
 			"properties" : 
 			[
 				{
@@ -1027,10 +1027,10 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug"
 		},
 		{
-			"name" : "excel_editor_IS_TOP_LEVEL",
+			"name" : "cafe_bda_IS_TOP_LEVEL",
 			"properties" : 
 			[
 				{
@@ -1042,7 +1042,7 @@
 			"value" : "ON"
 		},
 		{
-			"name" : "excel_editor_SOURCE_DIR",
+			"name" : "cafe_bda_SOURCE_DIR",
 			"properties" : 
 			[
 				{
@@ -1051,7 +1051,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows"
 		},
 		{
 			"name" : "runner_BINARY_DIR",
@@ -1063,7 +1063,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/runner"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/runner"
 		},
 		{
 			"name" : "runner_IS_TOP_LEVEL",
@@ -1087,7 +1087,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/runner"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/runner"
 		},
 		{
 			"name" : "url_launcher_windows_BINARY_DIR",
@@ -1099,7 +1099,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/out/build/x64-Debug/plugins/url_launcher_windows"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/out/build/x64-Debug/plugins/url_launcher_windows"
 		},
 		{
 			"name" : "url_launcher_windows_IS_TOP_LEVEL",
@@ -1123,7 +1123,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/excel_editor/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/windows"
+			"value" : "H:/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/windows/flutter/ephemeral/.plugin_symlinks/url_launcher_windows/windows"
 		}
 	],
 	"kind" : "cache",

@@ -6,7 +6,7 @@
 # It is included in the main 'build.ninja'.
 
 # =============================================================================
-# Project: excel_editor
+# Project: cafe_bda
 # Configurations: Debug
 # =============================================================================
 # =============================================================================
@@ -64,7 +64,7 @@ rule CXX_STATIC_LIBRARY_LINKER__flutter_wrapper_app_Debug
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__excel_editor_unscanned_Debug
+rule CXX_COMPILER__cafe_bda_unscanned_Debug
   deps = msvc
   command = ${LAUNCHER}${CODE_CHECK}H:\CYTECH~2\apps\MICROS~2\2022\COMMUN~1\VC\Tools\MSVC\1444~1.352\bin\Hostx64\x64\cl.exe  /nologo /TP $DEFINES $INCLUDES $FLAGS /showIncludes /Fo$out /Fd$TARGET_COMPILE_PDB /FS -c $in
   description = Building CXX object $out
@@ -73,7 +73,7 @@ rule CXX_COMPILER__excel_editor_unscanned_Debug
 #############################################
 # Rule for compiling RC files.
 
-rule RC_COMPILER__excel_editor_unscanned_Debug
+rule RC_COMPILER__cafe_bda_unscanned_Debug
   depfile = $DEP_FILE
   deps = gcc
   command = H:/CYTECH~2/apps/MICROS~2/2022/COMMUN~1/Common7/IDE/COMMON~1/MICROS~1/CMake/CMake/bin/cmcldeps.exe RC $in $DEP_FILE $out "Remarque : inclusion du fichier :  " "H:/CYTECHDATA/apps/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe" ${LAUNCHER}${CODE_CHECK}C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe $DEFINES $INCLUDES $FLAGS /fo $out $in
@@ -83,7 +83,7 @@ rule RC_COMPILER__excel_editor_unscanned_Debug
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__excel_editor_Debug
+rule CXX_EXECUTABLE_LINKER__cafe_bda_Debug
   command = C:\WINDOWS\system32\cmd.exe /C "$PRE_LINK && "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E vs_link_exe --msvc-ver=1944 --intdir=$OBJECT_DIR --rc=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\rc.exe --mt=C:\PROGRA~2\WI3CF2~1\10\bin\100261~1.0\x64\mt.exe --manifests $MANIFESTS -- H:\CYTECH~2\apps\MICROS~2\2022\COMMUN~1\VC\Tools\MSVC\1444~1.352\bin\Hostx64\x64\link.exe /nologo $in  /out:$TARGET_FILE /implib:$TARGET_IMPLIB /pdb:$TARGET_PDB /version:0.0 $LINK_FLAGS $LINK_PATH $LINK_LIBRARIES && $POST_BUILD"
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
@@ -129,7 +129,7 @@ rule CXX_SHARED_LIBRARY_LINKER__url_launcher_windows_plugin_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\excel_editor\windows\out\build\x64-Debug
+  command = "H:\CYTECHDATA\apps\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows -BH:\CYTECHDATA\Documents\Bda\Cafe\cafe_bda\windows\out\build\x64-Debug
   description = Re-running CMake...
   generator = 1
 
