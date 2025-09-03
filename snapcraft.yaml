@@ -1,0 +1,20 @@
+name: cafe-bda
+base: core24
+version: '1.0'
+summary: Une application Flutter pour gérer le café BDA
+description: |
+  Ceci est une application construite avec Flutter pour Linux.
+grade: stable # doit être 'stable' pour publier dans le store
+confinement: strict # utilise le confinement strict par défaut
+
+parts:
+  cafe-bda:
+    plugin: dump
+    source: build/linux/x64/release/bundle/
+    organize:
+      '*': usr/share/cafe-bda/
+
+apps:
+  cafe-bda:
+    command: usr/share/cafe-bda/le_cafe
+    desktop: usr/share/applications/cafe-bda.desktop
