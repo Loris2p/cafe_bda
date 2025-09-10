@@ -17,4 +17,4 @@ parts:
 apps:
   cafe-bda:
     command: usr/share/cafe-bda/cafe_bda
-    desktop: snap/gui/cafe_bda.desktop
+    desktop: cafe_bda.desktop

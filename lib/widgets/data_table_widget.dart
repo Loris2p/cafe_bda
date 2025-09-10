@@ -105,7 +105,7 @@ class DataTableWidget extends StatelessWidget {
                             : cellValue.isEmpty
                             ? 'Vide'
                             : cellValue,
-                        child: Text(
+                        child: SelectableText(
                           isFormula ? 'Calculé' : cellValue,
                           style: TextStyle(
                             fontStyle: isFormula
@@ -120,7 +120,7 @@ class DataTableWidget extends StatelessWidget {
                                 ? FontWeight.bold
                                 : FontWeight.normal,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          // overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
