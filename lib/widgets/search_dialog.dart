@@ -62,7 +62,7 @@ class SearchDialog {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Détails de la ligne'),
+          title: const SelectableText('Détails de la ligne'),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,15 +70,15 @@ class SearchDialog {
                 if (row.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Text('Aucune donnée disponible'),
+                    child: SelectableText('Aucune donnée disponible'),
                   )
                 else ...[
                   for (int i = 0; i < row.length; i++)
                     if (i < columnNames.length)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: RichText(
-                          text: TextSpan(
+                        child: SelectableText.rich(
+                          TextSpan(
                             style: DefaultTextStyle.of(context).style,
                             children: [
                               TextSpan(
