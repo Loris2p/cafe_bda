@@ -1,3 +1,4 @@
+import 'package:cafe_bda/widgets/student_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,12 +22,9 @@ class OrderForm extends StatefulWidget {
 
 class OrderFormState extends State<OrderForm> {
   final _formKey = GlobalKey<FormState>();
-  final _studentIdFocusNode = FocusNode();
-  final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _coffeeCountController = TextEditingController();
 
-  String _selectedStudentId = '';
   Map<String, dynamic> _selectedStudent = {};
   String? _selectedCoffee;
   String? _selectedPaymentMethod;
@@ -46,39 +44,13 @@ class OrderFormState extends State<OrderForm> {
     final now = DateTime.now();
     _dateController.text =
         '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}';
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _studentIdFocusNode.requestFocus();
-    });
   }
 
   @override
   void dispose() {
-    _studentIdFocusNode.dispose();
-    _studentIdController.dispose();
     _dateController.dispose();
     _coffeeCountController.dispose();
     super.dispose();
-  }
-
-  void _findStudent(String studentId) {
-    if (widget.studentsData.isEmpty || widget.studentsData.length < 2) return;
-    final student = widget.studentsData
-        .skip(1)
-        .firstWhere(
-          (row) => row.length > 2 && row[2]?.toString() == studentId,
-          orElse: () => [],
-        );
-    setState(() {
-      _selectedStudentId = student.isNotEmpty ? studentId : '';
-      _selectedStudent = student.isNotEmpty
-          ? {
-              'Numéro étudiant': student[2],
-              'Nom': student[0],
-              'Prenom': student[1],
-              'Classe + Groupe': student[3],
-            }
-          : {};
-    });
   }
 
   List<String> get _availableCoffees {
@@ -94,6 +66,25 @@ class OrderFormState extends State<OrderForm> {
         })
         .map((row) => row[0]?.toString() ?? '')
         .toList();
+  }
+
+  Future<void> _openStudentSearch() async {
+    final student = await showDialog<List<dynamic>>(
+      context: context,
+      builder: (context) =>
+          StudentSearchDialog(students: widget.studentsData),
+    );
+
+    if (student != null) {
+      setState(() {
+        _selectedStudent = {
+          'Numéro étudiant': student[2],
+          'Nom': student[0],
+          'Prenom': student[1],
+          'Classe + Groupe': student[3],
+        };
+      });
+    }
   }
 
   void _submitForm() {
@@ -125,7 +116,7 @@ class OrderFormState extends State<OrderForm> {
         'Moyen Paiement': _selectedPaymentMethod!,
         'Nom de famille': _selectedStudent['Nom'] ?? '',
         'Prénom': _selectedStudent['Prenom'] ?? '',
-        'Numéro étudiant': _selectedStudentId,
+        'Numéro étudiant': _selectedStudent['Numéro étudiant'],
         'Nb de Cafés': int.parse(_coffeeCountController.text),
         'Café pris': _selectedCoffee!,
       };
@@ -162,35 +153,39 @@ class OrderFormState extends State<OrderForm> {
                 },
               ),
               const SizedBox(height: 16),
-              // Numéro étudiant
-              TextFormField(
-                focusNode: _studentIdFocusNode,
-                controller: _studentIdController,
-                decoration: InputDecoration(
-                  labelText: 'Numéro étudiant *',
-                  hintText: 'Ex: 123456',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () => _findStudent(_studentIdController.text),
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  if (_selectedStudentId != value) {
-                    setState(() => _selectedStudent = {});
-                  }
-                },
-                onEditingComplete: () =>
-                    _findStudent(_studentIdController.text),
+              
+              // Student search
+              FormField<Map<String, dynamic>>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Le numéro étudiant est obligatoire';
+                    return 'Veuillez sélectionner un étudiant';
                   }
                   return null;
                 },
+                builder: (FormFieldState<Map<String, dynamic>> state) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _openStudentSearch,
+                        icon: const Icon(Icons.search),
+                        label: const Text('Rechercher un étudiant'),
+                      ),
+                      if (state.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            state.errorText!,
+                            style: const TextStyle(
+                                color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                initialValue: _selectedStudent,
               ),
+
               const SizedBox(height: 16),
               // Informations étudiant
               if (_selectedStudent.isNotEmpty) ...[
