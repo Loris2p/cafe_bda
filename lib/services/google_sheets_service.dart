@@ -1,30 +1,30 @@
 import 'dart:convert';
-// import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/sheets/v4.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth_io;
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // Ajoutez cette ligne
+import 'package:url_launcher/url_launcher.dart';
 
-// Pour mobile seulement - conditionnel
-// import 'package:flutter_web_auth/flutter_web_auth.dart';
-// import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
-
+/// A service class for interacting with the Google Sheets API.
+///
+/// This class handles authentication (OAuth 2.0) and provides methods for
+/// basic CRUD (Create, Read, Update, Delete) operations on a Google Sheet.
+/// It is designed to be a generic service, with all business-specific logic
+/// handled by the [CafeRepository].
 class GoogleSheetsService {
+  // Constants for SharedPreferences keys
   static const _authCredentialsKey = 'google_auth_credentials';
   static const _authClientIdKey = 'google_auth_client_id';
   static const _authClientSecretKey = 'google_auth_client_secret';
+
+  // The authenticated Google Sheets API client.
   SheetsApi? sheetsApi;
   auth_io.AutoRefreshingAuthClient? client;
 
-  // Pour mobile seulement
-  // final String _redirectUriMobile = 'com.cytechdata.exceleditor:/oauth2redirect';
-  // final String _customScheme = 'com.cytechdata.exceleditor';
-
-  // Vérifier les variables d'environnement
+  /// Checks if the required environment variables are set in the .env file.
   String checkEnvVariables() {
     final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
     final clientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
@@ -38,7 +38,8 @@ class GoogleSheetsService {
     return '';
   }
 
-  // Tentative d'authentification automatique au démarrage
+  /// Tries to automatically authenticate the user using stored credentials.
+  /// Returns `true` if successful, `false` otherwise.
   Future<bool> tryAutoAuthenticate() async {
     final prefs = await SharedPreferences.getInstance();
     final storedCredentials = prefs.getString(_authCredentialsKey);
@@ -46,13 +47,16 @@ class GoogleSheetsService {
     final storedClientSecret = prefs.getString(_authClientSecretKey);
     final currentClientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
     final currentClientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
+
     if (storedCredentials != null &&
         storedClientId == currentClientId &&
         storedClientSecret == currentClientSecret) {
       try {
         final credentialsJson = json.decode(storedCredentials);
-        final credentials = auth_io.AccessCredentials.fromJson(credentialsJson);
-        final clientId = auth_io.ClientId(currentClientId, currentClientSecret);
+        final credentials =
+            auth_io.AccessCredentials.fromJson(credentialsJson);
+        final clientId =
+            auth_io.ClientId(currentClientId, currentClientSecret);
         client = await auth_io.autoRefreshingClient(
           clientId,
           credentials,
@@ -68,7 +72,64 @@ class GoogleSheetsService {
     return false;
   }
 
-  // Stocker les credentials
+  /// Authenticates the user based on the platform (mobile or desktop).
+  Future<String?> authenticate() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      return _authenticateMobile();
+    } else {
+      return _authenticateDesktop();
+    }
+  }
+
+  /// Logs the user out, clearing stored credentials and closing the client.
+  Future<void> logout() async {
+    await _clearStoredAuth();
+    client?.close();
+    sheetsApi = null;
+    client = null;
+  }
+
+  /// Reads data from a specified range in the Google Sheet.
+  Future<List<List<dynamic>>?> readTable(String rangeName) async {
+    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
+    if (spreadsheetId.isEmpty || sheetsApi == null) return null;
+    try {
+      final response = await sheetsApi!.spreadsheets.values.get(
+        spreadsheetId,
+        rangeName,
+      );
+      return response.values;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Appends a row of data to a specified table (range).
+  Future<void> appendToTable(
+    String rangeName,
+    List<dynamic> rowData, {
+    bool useFormulas = false,
+  }) async {
+    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
+    if (spreadsheetId.isEmpty || sheetsApi == null) {
+      throw Exception('Spreadsheet ID manquant ou non authentifié');
+    }
+    try {
+      final valueRange = ValueRange()..values = [rowData];
+      await sheetsApi!.spreadsheets.values.append(
+        valueRange,
+        spreadsheetId,
+        rangeName,
+        valueInputOption: useFormulas ? 'USER_ENTERED' : 'RAW',
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+  
+  // Private helper methods
+
+  /// Stores the user's authentication credentials securely.
   Future<void> _storeAuthCredentials(
     auth_io.AccessCredentials credentials,
   ) async {
@@ -87,7 +148,7 @@ class GoogleSheetsService {
     );
   }
 
-  // Effacer les credentials stockés
+  /// Clears the stored authentication credentials.
   Future<void> _clearStoredAuth() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_authCredentialsKey);
@@ -95,14 +156,7 @@ class GoogleSheetsService {
     await prefs.remove(_authClientSecretKey);
   }
 
-  Future<String?> authenticate() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      return _authenticateMobile();
-    } else {
-      return _authenticateDesktop();
-    }
-  }
-
+  /// Handles the authentication flow for desktop platforms.
   Future<String?> _authenticateDesktop() async {
     final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
     final clientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
@@ -137,17 +191,11 @@ class GoogleSheetsService {
     }
   }
 
+  /// Handles the authentication flow for mobile platforms (Android/iOS).
   Future<String?> _authenticateMobile() async {
     try {
       final GoogleSignIn signIn = GoogleSignIn.instance;
-
-      // Initialisation (à faire une fois, peut-être ailleurs dans votre app)
-      // await signIn.initialize(); // Assurez-vous que c'est fait au moment où cette méthode est appelée
-
-      // Déconnexion préalable
       await signIn.signOut();
-
-      // Authentification
       final GoogleSignInAccount? googleUser = await signIn.authenticate(
         scopeHint: [SheetsApi.spreadsheetsScope],
       );
@@ -158,18 +206,16 @@ class GoogleSheetsService {
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-      // Création des credentials à partir de l'access token
       final credentials = auth_io.AccessCredentials(
         auth_io.AccessToken(
           'Bearer',
           googleAuth.idToken!,
           DateTime.now().add(const Duration(hours: 1)),
         ),
-        null, // Pas de refresh token pour ce flux
+        null,
         [SheetsApi.spreadsheetsScope],
       );
 
-      // Initialisation du client
       final clientId = auth_io.ClientId(
         dotenv.env['GOOGLE_ANDROID_CLIENT_ID'] ?? '',
         dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '',
@@ -182,112 +228,14 @@ class GoogleSheetsService {
       );
 
       sheetsApi = SheetsApi(client!);
-
-      // Stockez les informations si nécessaire
       await _storeAuthCredentials(credentials);
       return null;
     } catch (e) {
       return 'Erreur d\'authentification mobile: ${e.toString()}';
     }
   }
-
-  // Déconnexion
-  Future<void> logout() async {
-    await _clearStoredAuth();
-    client?.close();
-    sheetsApi = null;
-    client = null;
-  }
-
-  // Lire les données d'un tableau structuré
-  Future<List<List<dynamic>>?> readTable(String rangeName) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) return null;
-    try {
-      final response = await sheetsApi!.spreadsheets.values.get(
-        spreadsheetId,
-        rangeName,
-      );
-      return response.values;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Obtenir la prochaine ligne dans un tableau nommé
-  Future<int> getNextRowInNamedRange(String rangeName) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      // Lire directement les données du tableau nommé
-      final response = await sheetsApi!.spreadsheets.values.get(
-        spreadsheetId,
-        rangeName,
-      );
-      final currentData = response.values ?? [];
-      return currentData.isEmpty ? 1 : currentData.length + 1;
-    } catch (e) {
-      // Fallback: utiliser une méthode basique
-      final response = await sheetsApi!.spreadsheets.values.get(
-        spreadsheetId,
-        'A:Z',
-      );
-      final currentData = response.values ?? [];
-      return currentData.isEmpty ? 1 : currentData.length + 1;
-    }
-  }
-
-  // Écrire dans un tableau structuré
-  Future<void> appendToTable(
-    String rangeName,
-    List<dynamic> rowData, {
-    bool useFormulas = false,
-  }) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      final valueRange = ValueRange()..values = [rowData];
-      await sheetsApi!.spreadsheets.values.append(
-        valueRange,
-        spreadsheetId,
-        rangeName,
-        valueInputOption: useFormulas ? 'USER_ENTERED' : 'RAW',
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Ajouter un enregistrement de crédit
-  Future<void> addCreditRecord(Map<String, dynamic> creditData) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      // Préparer les données dans l'ordre des colonnes
-      final List<dynamic> rowData = [
-        creditData['Date'],
-        creditData['Responsable'],
-        creditData['Numéro étudiant'],
-        creditData['Nom'],
-        creditData['Prenom'],
-        creditData['Classe + Groupe'],
-        creditData['Valeur (€)'],
-        creditData['Nb de Cafés'],
-        creditData['Moyen Paiement'], // Nouvelle colonne ajoutée
-      ];
-      await appendToTable('Credits', rowData);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Ajouter un étudiant avec formules adaptées
+  
+  /// A method that is not used in the app but is kept for future use.
   Future<void> addStudentWithFormulas(
     Map<String, dynamic> formData,
     int rowNumber,
@@ -320,97 +268,33 @@ class GoogleSheetsService {
       rethrow;
     }
   }
-
-  // Mettre à jour une cellule spécifique
-  Future<void> updateCell(String range, dynamic value) async {
+  
+  /// A method that is not used in the app but is kept for future use.
+  Future<void> addCreditRecord(Map<String, dynamic> creditData) async {
     final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
     if (spreadsheetId.isEmpty || sheetsApi == null) {
       throw Exception('Spreadsheet ID manquant ou non authentifié');
     }
     try {
-      final valueRange = ValueRange()
-        ..values = [
-          [value],
-        ];
-      await sheetsApi!.spreadsheets.values.update(
-        valueRange,
-        spreadsheetId,
-        range,
-        valueInputOption: 'USER_ENTERED',
-      );
+      // Préparer les données dans l'ordre des colonnes
+      final List<dynamic> rowData = [
+        creditData['Date'],
+        creditData['Responsable'],
+        creditData['Numéro étudiant'],
+        creditData['Nom'],
+        creditData['Prenom'],
+        creditData['Classe + Groupe'],
+        creditData['Valeur (€)'],
+        creditData['Nb de Cafés'],
+        creditData['Moyen Paiement'], // Nouvelle colonne ajoutée
+      ];
+      await appendToTable('Credits', rowData);
     } catch (e) {
       rethrow;
     }
   }
 
-  // Obtenir les métadonnées de la feuille
-  Future<Spreadsheet> getSpreadsheet() async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      final response = await sheetsApi!.spreadsheets.get(
-        spreadsheetId,
-        includeGridData: false,
-      );
-      return response;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Méthode pour lire les données brutes d'une plage spécifique
-  Future<List<List<dynamic>>?> getRawData(String range) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) return null;
-    try {
-      final response = await sheetsApi!.spreadsheets.values.get(
-        spreadsheetId,
-        range,
-      );
-      return response.values;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Méthode pour effacer une plage de données
-  Future<void> clearRange(String range) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) return;
-    try {
-      final clearRequest = ClearValuesRequest();
-      await sheetsApi!.spreadsheets.values.clear(
-        clearRequest,
-        spreadsheetId,
-        range,
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Méthode pour mettre à jour plusieurs cellules
-  Future<void> updateCells(String range, List<List<dynamic>> values) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) return;
-    try {
-      final valueRange = ValueRange()
-        ..range = range
-        ..values = values;
-      await sheetsApi!.spreadsheets.values.update(
-        valueRange,
-        spreadsheetId,
-        range,
-        valueInputOption: 'USER_ENTERED',
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  // Ajouter une commande
+  /// A method that is not used in the app but is kept for future use.
   Future<void> addOrderRecord(Map<String, dynamic> orderData) async {
     final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
     if (spreadsheetId.isEmpty || sheetsApi == null) {
@@ -430,6 +314,31 @@ class GoogleSheetsService {
       await appendToTable('Paiements', rowData);
     } catch (e) {
       rethrow;
+    }
+  }
+  
+  /// A method that is not used in the app but is kept for future use.
+  Future<int> getNextRowInNamedRange(String rangeName) async {
+    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
+    if (spreadsheetId.isEmpty || sheetsApi == null) {
+      throw Exception('Spreadsheet ID manquant ou non authentifié');
+    }
+    try {
+      // Lire directement les données du tableau nommé
+      final response = await sheetsApi!.spreadsheets.values.get(
+        spreadsheetId,
+        rangeName,
+      );
+      final currentData = response.values ?? [];
+      return currentData.isEmpty ? 1 : currentData.length + 1;
+    } catch (e) {
+      // Fallback: utiliser une méthode basique
+      final response = await sheetsApi!.spreadsheets.values.get(
+        spreadsheetId,
+        'A:Z',
+      );
+      final currentData = response.values ?? [];
+      return currentData.isEmpty ? 1 : currentData.length + 1;
     }
   }
 }
