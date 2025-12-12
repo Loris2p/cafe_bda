@@ -1,219 +1,102 @@
-import 'dart:io';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
-import '../services/google_sheets_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/sheet_provider.dart';
 import '../widgets/search_dialog.dart';
 import '../widgets/data_table_widget.dart';
 import '../widgets/registration_form.dart';
 import '../widgets/credit_form.dart';
 import '../widgets/order_form.dart';
 
-class GoogleSheetsScreen extends StatefulWidget {
+/// The main screen of the application.
+///
+/// This is a [StatelessWidget] that listens to the [SheetProvider] for state changes
+/// and rebuilds the UI accordingly. All business logic and state management are
+
+class GoogleSheetsScreen extends StatelessWidget {
   const GoogleSheetsScreen({super.key});
 
   @override
-  State<GoogleSheetsScreen> createState() => _GoogleSheetsScreenState();
-}
+  Widget build(BuildContext context) {
+    // Listen to the SheetProvider for state changes.
+    // The UI will rebuild whenever notifyListeners() is called in the provider.
+    final provider = context.watch<SheetProvider>();
+    final searchController = TextEditingController();
 
-class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
-  final GoogleSheetsService _sheetsService = GoogleSheetsService();
-  final TextEditingController _searchController = TextEditingController();
+    // Helper method to show the registration form dialog.
+    void showRegistrationForm() {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return RegistrationForm(
+            onSubmit: (formData) async {
+              Navigator.of(context).pop();
+              final error = await provider.handleRegistrationForm(formData);
+              if (error == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Inscription enregistrée avec succès!')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(error)),
+                );
+              }
+            },
+            onCancel: () => Navigator.of(context).pop(),
+          );
+        },
+      );
+    }
 
-  List<List<dynamic>> sheetData = [];
-  List<List<dynamic>> searchResults = [];
-  List<List<dynamic>> studentsData = []; // Données des étudiants séparées
-  bool isLoading = false;
-  bool isAuthenticating = false;
-  String errorMessage = '';
-  String selectedTable = 'Étudiants'; // Tableau par défaut
-
-  // Noms des tableaux disponibles
-  final List<String> availableTables = [
-    'Étudiants',
-    'Credits',
-    'Paiements',
-    'Stocks',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeApp();
-  }
-
-  void _initializeApp() async {
-    setState(() {
-      errorMessage = _sheetsService.checkEnvVariables();
-    });
-
-    if (errorMessage.isEmpty) {
-      setState(() => isAuthenticating = true);
-      final autoAuthSuccess = await _sheetsService.tryAutoAuthenticate();
-      setState(() => isAuthenticating = false);
-
-      if (autoAuthSuccess && mounted) {
+    // Helper method to show the credit form dialog.
+    void showCreditForm() {
+      if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Authentification automatique réussie!'),
+            content: Text('Veuillez d\'abord charger les données des étudiants'),
           ),
         );
-        // Charger les données du tableau par défaut
-        await _readTable();
-        // Charger aussi les données des étudiants pour la recherche
-        await _loadStudentsData();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  // Charger les données des étudiants pour la recherche
-  Future<void> _loadStudentsData() async {
-    try {
-      final data = await _sheetsService.readTable('Étudiants');
-      setState(() {
-        studentsData = data ?? [];
-      });
-    } catch (e) {
-      print('Erreur chargement données étudiants: $e');
-    }
-  }
-
-  Future<void> _authenticate() async {
-    setState(() {
-      isAuthenticating = true;
-      errorMessage = '';
-    });
-
-    try {
-      // Vérifier la connexion réseau avant de tenter l'authentification
-      final connectivityResult = await (Connectivity().checkConnectivity());
-      if (connectivityResult == ConnectivityResult.none) {
-        throw Exception('Pas de connexion Internet');
+        return;
       }
 
-      final error = await _sheetsService.authenticate();
-      setState(() {
-        isAuthenticating = false;
-        if (error != null) errorMessage = error;
-      });
-
-      if (error == null && mounted) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CreditForm(
+            studentsData: provider.studentsData,
+            onSubmit: (formData) async {
+              Navigator.of(context).pop();
+              final error = await provider.handleCreditSubmission(formData);
+              if (error == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Crédit enregistré avec succès!')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(error)),
+                );
+              }
+            },
+            onCancel: () => Navigator.of(context).pop(),
+          );
+        },
+      );
+    }
+    
+    // Helper method to show the order form dialog.
+    void showOrderForm() async {
+      if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Authentification réussie!')),
+          const SnackBar(
+            content: Text('Veuillez d\'abord charger les données des étudiants'),
+          ),
         );
-        await _readTable();
-        await _loadStudentsData();
+        return;
       }
-    } on SocketException catch (e) {
-      setState(() {
-        isAuthenticating = false;
-        errorMessage =
-            'Erreur réseau: Veuillez vérifier votre connexion Internet.';
-      });
-      print('Erreur SocketException: $e');
-    } catch (e) {
-      setState(() {
-        isAuthenticating = false;
-        errorMessage = 'Erreur lors de l\'authentification: ${e.toString()}';
-      });
-      print('Erreur générale: $e');
-    }
-  }
 
-  Future<void> _logout() async {
-    await _sheetsService.logout();
-    setState(() {
-      sheetData = [];
-      searchResults = [];
-      studentsData = [];
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Déconnexion réussie')));
-    }
-  }
-
-  Future<void> _readTable() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
-
-    try {
-      final data = await _sheetsService.readTable(selectedTable);
-      setState(() {
-        sheetData = data ?? [];
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Erreur de lecture: ${e.toString()}';
-      });
-
-      if (e.toString().contains('authentication') ||
-          e.toString().contains('401') ||
-          e.toString().contains('403')) {
-        await _logout();
-      }
-    }
-  }
-
-  void _showRegistrationForm() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return RegistrationForm(
-          onSubmit: _handleFormSubmission,
-          onCancel: () => Navigator.of(context).pop(),
-        );
-      },
-    );
-  }
-
-  void _showCreditForm() {
-    if (studentsData.isEmpty || studentsData.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez d\'abord charger les données des étudiants'),
-        ),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CreditForm(
-          studentsData:
-              studentsData, // Utiliser studentsData au lieu de sheetData
-          onSubmit: _handleCreditSubmission,
-          onCancel: () => Navigator.of(context).pop(),
-        );
-      },
-    );
-  }
-
-  void _showOrderForm() {
-    if (studentsData.isEmpty || studentsData.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez d\'abord charger les données des étudiants'),
-        ),
-      );
-      return;
-    }
-
-    // Charger les données du stock
-    _loadStockData().then((stockData) {
+      final stockData = await provider.loadStockData();
       if (stockData.isEmpty || stockData.length < 2) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -227,187 +110,80 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
         context: context,
         builder: (BuildContext context) {
           return OrderForm(
-            studentsData:
-                studentsData, // Utiliser studentsData au lieu de sheetData
+            studentsData: provider.studentsData,
             stockData: stockData,
-            onSubmit: _handleOrderSubmission,
+            onSubmit: (formData) async {
+              Navigator.of(context).pop();
+              final error = await provider.handleOrderSubmission(formData);
+              if (error == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Commande enregistrée avec succès!')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(error)),
+                );
+              }
+            },
             onCancel: () => Navigator.of(context).pop(),
           );
         },
       );
-    });
-  }
-
-  // Méthode pour charger les données du stock
-  Future<List<List<dynamic>>> _loadStockData() async {
-    try {
-      return await _sheetsService.readTable('Stocks') ?? [];
-    } catch (e) {
-      return [];
     }
-  }
 
-  Future<void> _handleFormSubmission(Map<String, dynamic> formData) async {
-    Navigator.of(context).pop(); // Fermer le dialogue
-
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
-
-    try {
-      // Obtenir le prochain numéro de ligne dans le tableau
-      final nextRow = await _sheetsService.getNextRowInNamedRange('Étudiants');
-
-      // Utiliser la nouvelle méthode avec formules adaptées
-      await _sheetsService.addStudentWithFormulas(formData, nextRow);
-
-      setState(() => isLoading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Inscription enregistrée avec succès!')),
-      );
-
-      // Recharger les données
-      await _readTable();
-      await _loadStudentsData(); // Recharger aussi les étudiants
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Erreur lors de l\'enregistrement: ${e.toString()}';
-      });
-    }
-  }
-
-  Future<void> _handleCreditSubmission(Map<String, dynamic> formData) async {
-    Navigator.of(context).pop(); // Fermer le dialogue
-
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
-
-    try {
-      await _sheetsService.addCreditRecord(formData);
-
-      setState(() => isLoading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Crédit enregistré avec succès!')),
-      );
-
-      // Recharger les données si on est dans le tableau Credits
-      if (selectedTable == 'Credits') {
-        await _readTable();
+    // Helper method to handle the search logic.
+    void searchRow() async {
+      final searchTerm = searchController.text.trim();
+      if (searchTerm.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Veuillez entrer un terme de recherche')),
+        );
+        return;
       }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Erreur lors de l\'enregistrement: ${e.toString()}';
-      });
-    }
-  }
 
-  Future<void> _handleOrderSubmission(Map<String, dynamic> formData) async {
-    Navigator.of(context).pop(); // Fermer le dialogue
-
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
-
-    try {
-      await _sheetsService.addOrderRecord(formData);
-
-      setState(() => isLoading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Commande enregistrée avec succès!')),
-      );
-
-      // Recharger les données si on est dans le tableau Paiements
-      if (selectedTable == 'Paiements') {
-        await _readTable();
+      final results = await provider.searchStudent(searchTerm);
+      if (results.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Aucun étudiant trouvé pour "$searchTerm"')),
+        );
+      } else {
+        SearchDialog.showSearchResults(
+          context,
+          searchTerm: searchTerm,
+          results: results,
+          fullData: provider.studentsData,
+          onRowSelected: (row) {
+            SearchDialog.showRowDetails(
+              context,
+              row: row,
+              columnNames: provider.studentsData.isNotEmpty
+                  ? provider.studentsData[0]
+                  : [],
+            );
+          },
+        );
       }
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Erreur lors de l\'enregistrement: ${e.toString()}';
-      });
-    }
-  }
-
-  Future<void> _searchRow() async {
-    final searchText = _searchController.text.trim();
-
-    if (searchText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez entrer un terme de recherche')),
-      );
-      return;
     }
 
-    if (studentsData.isEmpty || studentsData.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Aucune donnée d\'étudiants à rechercher. Veuillez d\'abord actualiser.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    setState(() => isLoading = true);
-
-    // Rechercher uniquement dans les données des étudiants
-    final results = studentsData.skip(1).where((row) {
-      return row.any(
-        (cell) =>
-            cell != null &&
-            cell.toString().toLowerCase().contains(searchText.toLowerCase()),
-      );
-    }).toList();
-
-    setState(() {
-      searchResults = results;
-      isLoading = false;
-    });
-
-    if (results.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Aucun étudiant trouvé pour "$searchText"')),
-      );
-    } else {
-      SearchDialog.showSearchResults(
-        context,
-        searchTerm: searchText,
-        results: results,
-        fullData: studentsData, // Utiliser studentsData pour les détails
-        onRowSelected: (row) {
-          SearchDialog.showRowDetails(
-            context,
-            row: row,
-            columnNames: studentsData.isNotEmpty ? studentsData[0] : [],
-          );
-        },
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gestion Café - BDA'),
         actions: [
-          if (_sheetsService.sheetsApi != null)
+          // Show logout button if authenticated
+          if (provider.isAuthenticated)
             IconButton(
               icon: const Icon(Icons.logout),
-              onPressed: _logout,
+              onPressed: () async {
+                await provider.logout();
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Déconnexion réussie')));
+              },
               tooltip: 'Déconnexion',
             ),
-          if (isAuthenticating)
+          // Show loading indicator during authentication
+          if (provider.isAuthenticating)
             const Padding(
               padding: EdgeInsets.all(8.0),
               child: CircularProgressIndicator(color: Colors.white),
@@ -418,7 +194,7 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: <Widget>[
-            // Sélecteur de tableau
+            // UI Section: Table Selector
             Card(
               elevation: 2,
               child: Padding(
@@ -426,27 +202,19 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Tableaux',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const Text('Tableaux',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     DropdownButton<String>(
-                      value: selectedTable,
+                      value: provider.selectedTable,
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          setState(() {
-                            selectedTable = newValue;
-                          });
-                          _readTable();
+                          provider.readTable(tableName: newValue);
                         }
                       },
-                      items: availableTables.map<DropdownMenuItem<String>>((
-                        String value,
-                      ) {
+                      items: provider.availableTables
+                          .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
@@ -458,43 +226,51 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            // Première ligne de boutons (auth/refresh)
+            
+            // UI Section: Action Buttons (Authenticate and Refresh)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: isAuthenticating ? null : _authenticate,
+                  onPressed: provider.isAuthenticating
+                      ? null
+                      : () async {
+                          final error = await provider.authenticate();
+                          if (error == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Authentification réussie!')));
+                          }
+                        },
                   child: const Text('S\'authentifier'),
                 ),
                 ElevatedButton(
-                  onPressed: (isLoading || _sheetsService.sheetsApi == null)
+                  onPressed: (provider.isLoading || !provider.isAuthenticated)
                       ? null
-                      : _readTable,
+                      : provider.readTable,
                   child: const Text('Actualiser'),
                 ),
               ],
             ),
-
-            // Deuxième ligne de boutons - uniquement pour le tableau Étudiants
-            if (selectedTable == 'Étudiants') ...[
+            
+            // UI Section: Student-specific actions
+            if (provider.selectedTable == AppConstants.studentsTable) ...[
               const SizedBox(height: 10),
-              // Conteneur pour centrer la liste horizontale
               Center(
                 child: SizedBox(
-                  height: 50, // Hauteur fixe pour la ligne de boutons
+                  height: 50,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     shrinkWrap: true,
-                    padding:
-                        EdgeInsets.zero, // Suppression du padding par défaut
+                    padding: EdgeInsets.zero,
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: ElevatedButton.icon(
                           onPressed:
-                              (isLoading || _sheetsService.sheetsApi == null)
-                              ? null
-                              : _showRegistrationForm,
+                              (provider.isLoading || !provider.isAuthenticated)
+                                  ? null
+                                  : showRegistrationForm,
                           icon: const Icon(Icons.person_add),
                           label: const Text('Ajouter étudiant'),
                         ),
@@ -502,13 +278,12 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: ElevatedButton.icon(
-                          onPressed:
-                              (isLoading ||
-                                  _sheetsService.sheetsApi == null ||
-                                  studentsData.isEmpty ||
-                                  studentsData.length < 2)
+                          onPressed: (provider.isLoading ||
+                                  !provider.isAuthenticated ||
+                                  provider.studentsData.isEmpty ||
+                                  provider.studentsData.length < 2)
                               ? null
-                              : _showCreditForm,
+                              : showCreditForm,
                           icon: const Icon(Icons.account_balance_wallet),
                           label: const Text('Ajouter crédit'),
                         ),
@@ -516,13 +291,12 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: ElevatedButton.icon(
-                          onPressed:
-                              (isLoading ||
-                                  _sheetsService.sheetsApi == null ||
-                                  studentsData.isEmpty ||
-                                  studentsData.length < 2)
+                          onPressed: (provider.isLoading ||
+                                  !provider.isAuthenticated ||
+                                  provider.studentsData.isEmpty ||
+                                  provider.studentsData.length < 2)
                               ? null
-                              : _showOrderForm,
+                              : showOrderForm,
                           icon: const Icon(Icons.shopping_cart),
                           label: const Text('Nouvelle commande'),
                         ),
@@ -532,10 +306,9 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
                 ),
               ),
             ],
-
             const SizedBox(height: 10),
-
-            // Champ de recherche (toujours affiché)
+            
+            // UI Section: Student Search
             Card(
               elevation: 2,
               child: Padding(
@@ -543,32 +316,27 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Recherche d\'étudiants',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    const Text('Recherche d\'étudiants',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: TextField(
-                            controller: _searchController,
+                            controller: searchController,
                             decoration: const InputDecoration(
                               hintText: "Nom, prénom ou numéro étudiant...",
                               border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
+                              contentPadding:
+                                  EdgeInsets.symmetric(horizontal: 12),
                             ),
-                            onSubmitted: (_) => _searchRow(),
+                            onSubmitted: (_) => searchRow(),
                           ),
                         ),
                         const SizedBox(width: 12),
                         ElevatedButton.icon(
-                          onPressed: _searchRow,
+                          onPressed: searchRow,
                           icon: const Icon(Icons.search),
                           label: const Text("Chercher"),
                         ),
@@ -579,28 +347,34 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            if (errorMessage.isNotEmpty)
+            
+            // UI Section: Error Message Display
+            if (provider.errorMessage.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(12),
                 color: Colors.red[50],
                 child: Text(
-                  errorMessage,
+                  provider.errorMessage,
                   style: const TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
               ),
             const SizedBox(height: 20),
-            if (isLoading) const CircularProgressIndicator(),
+            
+            // UI Section: Loading and Search Results
+            if (provider.isLoading) const CircularProgressIndicator(),
             const SizedBox(height: 20),
-            if (searchResults.isNotEmpty)
+            if (provider.searchResults.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
-                  '${searchResults.length} étudiant(s) trouvé(s)',
+                  '${provider.searchResults.length} étudiant(s) trouvé(s)',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
-            Expanded(child: DataTableWidget(data: sheetData)),
+              
+            // UI Section: Data Table
+            Expanded(child: DataTableWidget(data: provider.sheetData)),
           ],
         ),
       ),
