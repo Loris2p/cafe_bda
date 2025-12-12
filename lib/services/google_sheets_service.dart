@@ -8,6 +8,20 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// Classe pour gérer les en-têtes d'authentification pour les requêtes HTTP
+class GoogleAuthClient extends http.BaseClient {
+  final Map<String, String> _headers;
+  final http.Client _client = http.Client();
+
+  GoogleAuthClient(this._headers);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers.addAll(_headers);
+    return _client.send(request);
+  }
+}
+
 /// A service class for interacting with the Google Sheets API.
 ///
 /// This class handles authentication (OAuth 2.0) and provides methods for
@@ -15,6 +29,10 @@ import 'package:url_launcher/url_launcher.dart';
 /// It is designed to be a generic service, with all business-specific logic
 /// handled by the [CafeRepository].
 class GoogleSheetsService {
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: [
+    SheetsApi.spreadsheetsScope,
+  ]);
+
   // Constants for SharedPreferences keys
   static const _authCredentialsKey = 'google_auth_credentials';
   static const _authClientIdKey = 'google_auth_client_id';
@@ -41,6 +59,23 @@ class GoogleSheetsService {
   /// Tries to automatically authenticate the user using stored credentials.
   /// Returns `true` if successful, `false` otherwise.
   Future<bool> tryAutoAuthenticate() async {
+    // Pour mobile, on tente une connexion silencieuse
+    if (Platform.isAndroid || Platform.isIOS) {
+      try {
+        final account = await _googleSignIn.signInSilently();
+        if (account != null) {
+          final authHeaders = await account.authHeaders;
+          final httpClient = GoogleAuthClient(authHeaders);
+          sheetsApi = SheetsApi(httpClient);
+          return true;
+        }
+        return false;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Logique existante pour le bureau
     final prefs = await SharedPreferences.getInstance();
     final storedCredentials = prefs.getString(_authCredentialsKey);
     final storedClientId = prefs.getString(_authClientIdKey);
@@ -84,6 +119,9 @@ class GoogleSheetsService {
   /// Logs the user out, clearing stored credentials and closing the client.
   Future<void> logout() async {
     await _clearStoredAuth();
+    if (Platform.isAndroid || Platform.isIOS) {
+      await _googleSignIn.signOut();
+    }
     client?.close();
     sheetsApi = null;
     client = null;
@@ -191,44 +229,18 @@ class GoogleSheetsService {
     }
   }
 
-  /// Handles the authentication flow for mobile platforms (Android/iOS).
+  /// Handles the authentication flow for mobile platforms.
   Future<String?> _authenticateMobile() async {
     try {
-      final GoogleSignIn signIn = GoogleSignIn.instance;
-      await signIn.signOut();
-      final GoogleSignInAccount? googleUser = await signIn.authenticate(
-        scopeHint: [SheetsApi.spreadsheetsScope],
-      );
-
-      if (googleUser == null) {
-        return 'Connexion annulée par l\'utilisateur';
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        return 'Connexion annulée';
       }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final credentials = auth_io.AccessCredentials(
-        auth_io.AccessToken(
-          'Bearer',
-          googleAuth.idToken!,
-          DateTime.now().add(const Duration(hours: 1)),
-        ),
-        null,
-        [SheetsApi.spreadsheetsScope],
-      );
-
-      final clientId = auth_io.ClientId(
-        dotenv.env['GOOGLE_ANDROID_CLIENT_ID'] ?? '',
-        dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '',
-      );
-
-      client = await auth_io.autoRefreshingClient(
-        clientId,
-        credentials,
-        http.Client(),
-      );
-
-      sheetsApi = SheetsApi(client!);
-      await _storeAuthCredentials(credentials);
+      final authHeaders = await account.authHeaders;
+      final httpClient = GoogleAuthClient(authHeaders);
+      
+      sheetsApi = SheetsApi(httpClient);
       return null;
     } catch (e) {
       return 'Erreur d\'authentification mobile: ${e.toString()}';
