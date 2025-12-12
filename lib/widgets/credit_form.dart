@@ -1,3 +1,4 @@
+import 'package:cafe_bda/widgets/student_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -20,14 +21,12 @@ class CreditForm extends StatefulWidget {
 class _CreditFormState extends State<CreditForm> {
   final _formKey = GlobalKey<FormState>();
   final _dateFocusNode = FocusNode();
-  final TextEditingController _studentIdController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _responsibleController = TextEditingController();
   final TextEditingController _coffeeCountController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _otherPaymentController = TextEditingController();
 
-  String _selectedStudentId = '';
   Map<String, dynamic> _selectedStudent = {};
   final double _coffeePrice = 0.50;
   final List<String> _paymentMethods = [
@@ -53,34 +52,12 @@ class _CreditFormState extends State<CreditForm> {
   @override
   void dispose() {
     _dateFocusNode.dispose();
-    _studentIdController.dispose();
     _dateController.dispose();
     _responsibleController.dispose();
     _coffeeCountController.dispose();
     _amountController.dispose();
     _otherPaymentController.dispose();
     super.dispose();
-  }
-
-  void _findStudent(String studentId) {
-    if (widget.studentsData.isEmpty || widget.studentsData.length < 2) return;
-    final student = widget.studentsData
-        .skip(1)
-        .firstWhere(
-          (row) => row.length > 2 && row[2]?.toString() == studentId,
-          orElse: () => [],
-        );
-    setState(() {
-      _selectedStudentId = student.isNotEmpty ? studentId : '';
-      _selectedStudent = student.isNotEmpty
-          ? {
-              'Numéro étudiant': student[2],
-              'Nom': student[0],
-              'Prenom': student[1],
-              'Classe + Groupe': student[3],
-            }
-          : {};
-    });
   }
 
   void _calculateAmountFromCoffee() {
@@ -114,8 +91,35 @@ class _CreditFormState extends State<CreditForm> {
     });
   }
 
+  Future<void> _openStudentSearch() async {
+    final student = await showDialog<List<dynamic>>(
+      context: context,
+      builder: (context) =>
+          StudentSearchDialog(students: widget.studentsData),
+    );
+
+    if (student != null) {
+      setState(() {
+        _selectedStudent = {
+          'Numéro étudiant': student[2],
+          'Nom': student[0],
+          'Prenom': student[1],
+          'Classe + Groupe': student[3],
+        };
+      });
+    }
+  }
+
   void _submitForm() {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedStudent.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez sélectionner un étudiant'),
+        ),
+      );
+      return;
+    }
     if (_selectedPaymentMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -142,7 +146,7 @@ class _CreditFormState extends State<CreditForm> {
       final formData = {
         'Date': _dateController.text,
         'Responsable': _responsibleController.text,
-        'Numéro étudiant': _selectedStudentId,
+        'Numéro étudiant': _selectedStudent['Numéro étudiant'],
         'Nom': _selectedStudent['Nom'] ?? '',
         'Prenom': _selectedStudent['Prenom'] ?? '',
         'Classe + Groupe': _selectedStudent['Classe + Groupe'] ?? '',
@@ -219,37 +223,39 @@ class _CreditFormState extends State<CreditForm> {
                 },
               ),
               const SizedBox(height: 16),
-              // Numéro étudiant
-              TextFormField(
-                controller: _studentIdController,
-                decoration: InputDecoration(
-                  labelText: 'Numéro étudiant *',
-                  hintText: 'Ex: 123456',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () => _findStudent(_studentIdController.text),
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  if (_selectedStudentId != value) {
-                    setState(() => _selectedStudent = {});
-                  }
-                },
-                onEditingComplete: () =>
-                    _findStudent(_studentIdController.text),
+
+              // Student search
+              FormField<Map<String, dynamic>>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Le numéro étudiant est obligatoire';
-                  }
-                  if (_selectedStudent.isEmpty) {
-                    return 'Étudiant non trouvé';
+                    return 'Veuillez sélectionner un étudiant';
                   }
                   return null;
                 },
+                builder: (FormFieldState<Map<String, dynamic>> state) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _openStudentSearch,
+                        icon: const Icon(Icons.search),
+                        label: const Text('Rechercher un étudiant'),
+                      ),
+                      if (state.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            state.errorText!,
+                            style: const TextStyle(
+                                color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                initialValue: _selectedStudent,
               ),
+
               const SizedBox(height: 16),
               // Informations étudiant
               if (_selectedStudent.isNotEmpty) ...[
@@ -267,6 +273,7 @@ class _CreditFormState extends State<CreditForm> {
                           ),
                         ),
                         Text('Classe: ${_selectedStudent['Classe + Groupe']}'),
+                        Text('N°: ${_selectedStudent['Numéro étudiant']}'),
                       ],
                     ),
                   ),
