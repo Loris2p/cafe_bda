@@ -506,11 +506,13 @@ class _DataDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<SheetProvider>();
-    return Selector<SheetProvider, (List<List<dynamic>>, String)>(
-      selector: (_, p) => (p.sheetData, p.selectedTable),
-      builder: (context, tableData, _) {
-        final sheetData = tableData.$1;
-        final selectedTable = tableData.$2;
+    return Selector<SheetProvider, (List<List<dynamic>>, String, int?, bool)>(
+      selector: (_, p) => (p.sheetData, p.selectedTable, p.sortColumnIndex, p.sortAscending),
+      builder: (context, data, _) {
+        final sheetData = data.$1;
+        final selectedTable = data.$2;
+        final sortColumnIndex = data.$3;
+        final sortAscending = data.$4;
 
         return Container(
           decoration: BoxDecoration(
@@ -528,6 +530,9 @@ class _DataDisplay extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: DataTableWidget(
               data: sheetData,
+              sortColumnIndex: sortColumnIndex,
+              sortAscending: sortAscending,
+              onSort: (columnIndex) => provider.sortData(columnIndex),
               onCellUpdate: selectedTable == AppConstants.stockTable
                   ? (rowIndex, colIndex, newValue) async {
                       final error = await provider.updateCellValue(rowIndex, colIndex, newValue);
