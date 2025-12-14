@@ -1,4 +1,5 @@
 import 'package:cafe_bda/providers/sheet_provider.dart';
+import 'package:cafe_bda/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -42,10 +43,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Gestion Café BDA',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true, // Active le style Material 3 moderne
-      ),
+      theme: AppTheme.lightTheme, // Application du Design System
       home: const GoogleSheetsScreen(),
       debugShowCheckedModeBanner: false,
     );
