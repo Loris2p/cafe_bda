@@ -35,6 +35,8 @@ class SheetProvider with ChangeNotifier {
   bool _isAuthenticating = false;
   String _errorMessage = '';
   String _selectedTable = AppConstants.studentsTable;
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
 
   final List<String> _availableTables = [
     AppConstants.studentsTable,
@@ -53,6 +55,8 @@ class SheetProvider with ChangeNotifier {
   String get errorMessage => _errorMessage;
   String get selectedTable => _selectedTable;
   List<String> get availableTables => _availableTables;
+  int? get sortColumnIndex => _sortColumnIndex;
+  bool get sortAscending => _sortAscending;
   
   /// Indique si l'utilisateur est connecté à Google Sheets API.
   bool get isAuthenticated => _sheetsService.sheetsApi != null;
@@ -127,6 +131,7 @@ class SheetProvider with ChangeNotifier {
     _sheetData = [];
     _searchResults = [];
     _studentsData = [];
+    _sortColumnIndex = null;
     notifyListeners();
   }
 
@@ -136,8 +141,9 @@ class SheetProvider with ChangeNotifier {
   ///
   /// * [tableName] - Optionnel. Si fourni, change la table active (_selectedTable).
   Future<void> readTable({String? tableName}) async {
-    if (tableName != null) {
+    if (tableName != null && tableName != _selectedTable) {
       _selectedTable = tableName;
+      _sortColumnIndex = null; // Réinitialiser le tri lors du changement de table
     }
     
     await _executeTransaction(() async {
@@ -163,6 +169,54 @@ class SheetProvider with ChangeNotifier {
          if (sData != null) _studentsData = sData;
       }
     });
+  }
+
+  /// Trie les données de la table actuellement affichée.
+  void sortData(int columnIndex) {
+    if (_sortColumnIndex == columnIndex) {
+      _sortAscending = !_sortAscending;
+    } else {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = true;
+    }
+
+    if (_sheetData.length > 1) {
+      final header = _sheetData.first;
+      final rows = _sheetData.sublist(1);
+
+      rows.sort((a, b) {
+        final aValue = a.length > columnIndex ? a[columnIndex] : null;
+        final bValue = b.length > columnIndex ? b[columnIndex] : null;
+
+        // Gestion des valeurs nulles
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return _sortAscending ? -1 : 1;
+        if (bValue == null) return _sortAscending ? 1 : -1;
+        
+        // Gestion des booléens
+        if (aValue is bool && bValue is bool) {
+          final compare = aValue.toString().compareTo(bValue.toString());
+          return _sortAscending ? compare : -compare;
+        }
+        
+        // Tentative de comparaison numérique
+        final aNum = num.tryParse(aValue.toString());
+        final bNum = num.tryParse(bValue.toString());
+
+        int compare;
+        if (aNum != null && bNum != null) {
+          compare = aNum.compareTo(bNum);
+        } else {
+          // Comparaison de chaînes de caractères (insensible à la casse)
+          compare = aValue.toString().toLowerCase().compareTo(bValue.toString().toLowerCase());
+        }
+
+        return _sortAscending ? compare : -compare;
+      });
+
+      _sheetData = [header, ...rows]; // Crée une nouvelle liste pour la notification
+    }
+    notifyListeners();
   }
 
   /// Charge spécifiquement les données de stock pour les formulaires de commande.
