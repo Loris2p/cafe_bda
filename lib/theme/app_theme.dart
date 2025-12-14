@@ -5,9 +5,11 @@ class AppTheme {
   // --- 1. Palette de Couleurs (Color Palette) ---
   
   // Violet Principal (Primary) : Un violet profond et moderne
-  static const Color primary = Color(0xFF6200EE); 
+  // static const Color primary = Color(0xFF6200EE); 
+  static const Color primary = Color(0xFFBB86FC); 
   // Violet Secondaire (Secondary) : Un ton plus clair pour les accents
-  static const Color secondary = Color(0xFFBB86FC);
+  // static const Color secondary = Color(0xFFBB86FC);
+  static const Color secondary = Color(0xFF6200EE);
   // Violet Sombre (Variant) : Pour les éléments de contraste fort
   static const Color primaryVariant = Color(0xFF3700B3);
   
@@ -39,9 +41,9 @@ class AppTheme {
       colorScheme: const ColorScheme(
         brightness: Brightness.light,
         primary: primary,
-        onPrimary: Colors.white,
+        onPrimary: Colors.black,
         secondary: secondary,
-        onSecondary: Colors.black,
+        onSecondary: Colors.white,
         error: error,
         onError: Colors.white,
         surface: surface,
@@ -87,7 +89,7 @@ class AppTheme {
       // 3. Boutons (ElevatedButton)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
+          backgroundColor: secondary,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: spacingL, vertical: spacingM),
@@ -107,7 +109,7 @@ class AppTheme {
       // 5. AppBar
       appBarTheme: const AppBarTheme(
         backgroundColor: primary,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: false,
       ),

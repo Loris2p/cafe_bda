@@ -1,3 +1,5 @@
 {
-    "cmake.sourceDirectory": "/data/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/linux"
+    "files.autoSave": "afterDelay",
+    "dart.flutterHotReloadOnSave": "all",
+    "cmake.sourceDirectory": "/data/CYTECHDATA/Documents/Bda/Cafe/cafe_bda/linux"   
 }
