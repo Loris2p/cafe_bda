@@ -254,4 +254,43 @@ class SheetProvider with ChangeNotifier {
     notifyListeners(); // Met à jour l'UI avec les résultats
     return results;
   }
+
+  /// Met à jour la valeur d'une cellule et gère l'état de l'interface utilisateur.
+  ///
+  /// * [rowIndex] - L'index de la ligne de données (base 0, après l'en-tête).
+  /// * [colIndex] - L'index de la colonne (base 0).
+  /// * [newValue] - La nouvelle valeur.
+  /// * Returns - Un message d'erreur en cas d'échec, sinon null.
+  Future<String?> updateCellValue(int rowIndex, int colIndex, dynamic newValue) async {
+    final tableName = _selectedTable;
+    // L'index de ligne dans _sheetData doit tenir compte de l'en-tête.
+    final dataRowIndex = rowIndex + 1;
+
+    if (dataRowIndex >= _sheetData.length || colIndex >= _sheetData[dataRowIndex].length) {
+      return "Erreur : Index hors limites.";
+    }
+
+    final oldValue = _sheetData[dataRowIndex][colIndex];
+    
+    // Mise à jour optimiste de l'UI : Crée une nouvelle liste pour que le Provider notifie les auditeurs.
+    final newSheetData = _sheetData.map((row) => List<dynamic>.from(row)).toList();
+    newSheetData[dataRowIndex][colIndex] = newValue;
+    _sheetData = newSheetData;
+    notifyListeners();
+    
+    try {
+      await _cafeRepository.updateCellValue(tableName, rowIndex, colIndex, newValue);
+      // Le cache pour 'Stock' n'est pas géré agressivement, donc pas besoin d'invalider.
+      return null;
+    } catch (e) {
+      // Annuler en cas d'échec
+      final revertedSheetData = _sheetData.map((row) => List<dynamic>.from(row)).toList();
+      revertedSheetData[dataRowIndex][colIndex] = oldValue;
+      _sheetData = revertedSheetData;
+
+      _errorMessage = "La mise à jour a échoué: ${e.toString()}";
+      notifyListeners();
+      return _errorMessage;
+    }
+  }
 }

@@ -34,6 +34,10 @@ class DataTableWidget extends StatelessWidget {
   /// Rayon des coins du tableau.
   final double borderRadius;
 
+  /// Callback pour la mise à jour d'une cellule.
+  /// Passe (rowIndex, colIndex, newValue).
+  final Function(int rowIndex, int colIndex, dynamic newValue)? onCellUpdate;
+
   const DataTableWidget({
     super.key,
     required this.data,
@@ -44,6 +48,7 @@ class DataTableWidget extends StatelessWidget {
     this.headerTextColor = Colors.white,
     this.borderColor,
     this.borderRadius = 12.0,
+    this.onCellUpdate,
   });
 
   @override
@@ -99,16 +104,44 @@ class DataTableWidget extends StatelessWidget {
                     : rowColor2 ?? theme.colorScheme.surfaceContainerHighest.withOpacity(0.3);
               }),
               cells: row.asMap().entries.map((cellEntry) {
-                final cellValue = cellEntry.value?.toString() ?? '';
+                final dynamic cellValue = cellEntry.value;
+                final String cellString = cellValue?.toString() ?? '';
+                final int colIndex = cellEntry.key;
                 
-                // Détection basique du type de contenu
-                final isFormula = cellValue.startsWith('=');
+                // Détection améliorée du type de contenu
+                final isFormula = cellString.startsWith('=');
                 final isNumeric =
-                    double.tryParse(cellValue) != null && !isFormula;
-                final isBoolean =
-                    cellValue.toLowerCase() == 'true' ||
-                    cellValue.toLowerCase() == 'false' && !isFormula;
+                    double.tryParse(cellString) != null && !isFormula;
 
+                bool isBoolean = false;
+                bool? boolValue;
+
+                if (cellValue is bool) {
+                  isBoolean = true;
+                  boolValue = cellValue;
+                } else if ((cellString.toLowerCase() == 'true' || cellString.toLowerCase() == 'false') && !isFormula) {
+                  isBoolean = true;
+                  boolValue = cellString.toLowerCase() == 'true';
+                }
+
+                // --- Cellule éditable pour les booléens ---
+                if (isBoolean && onCellUpdate != null && boolValue != null) {
+                  return DataCell(
+                    Center(
+                      child: Checkbox(
+                        value: boolValue,
+                        onChanged: (bool? newValue) {
+                          if (newValue != null) {
+                            onCellUpdate!(rowIndex, colIndex, newValue);
+                          }
+                        },
+                      ),
+                    ),
+                    // placeholder: true, // Décommentez si vous voulez un indicateur de chargement
+                  );
+                }
+                
+                // --- Affichage standard pour les autres types ---
                 return DataCell(
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -122,12 +155,12 @@ class DataTableWidget extends StatelessWidget {
                           : Alignment.centerLeft,
                       child: Tooltip(
                         message: isFormula
-                            ? 'Formule: $cellValue'
-                            : cellValue.isEmpty
+                            ? 'Formule: $cellString'
+                            : cellString.isEmpty
                             ? 'Vide'
-                            : cellValue,
+                            : cellString,
                         child: SelectableText(
-                          isFormula ? 'Calculé' : cellValue,
+                          isFormula ? 'Calculé' : cellString,
                           style: TextStyle(
                             fontStyle: isFormula
                                 ? FontStyle.italic
@@ -135,9 +168,9 @@ class DataTableWidget extends StatelessWidget {
                             color: isFormula
                                 ? theme.colorScheme.secondary
                                 : isBoolean
-                                ? Colors.green.shade700
-                                : theme.textTheme.bodyMedium?.color,
-                            fontWeight: cellValue == 'N/A'
+                                    ? Colors.green.shade700 // Afficher le texte si non modifiable
+                                    : theme.textTheme.bodyMedium?.color,
+                            fontWeight: cellString == 'N/A'
                                 ? FontWeight.bold
                                 : FontWeight.normal,
                           ),
@@ -151,29 +184,32 @@ class DataTableWidget extends StatelessWidget {
           }).toList()
         : <DataRow>[];
 
+
     // Structure scrollable double (Vertical + Horizontal)
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: borderColor ?? defaultBorderColor),
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(borderRadius),
-            child: DataTable(
-              columnSpacing: 16.0,
-              horizontalMargin: 0,
-              headingRowHeight: 50.0,
-              dataRowHeight: 48.0,
-              headingRowColor: WidgetStateProperty.all(
-                headerColor ?? defaultHeaderColor,
+      child: Center(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: borderColor ?? defaultBorderColor),
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius),
+              child: DataTable(
+                columnSpacing: 16.0,
+                horizontalMargin: 0,
+                headingRowHeight: 50.0,
+                dataRowHeight: 48.0,
+                headingRowColor: WidgetStateProperty.all(
+                  headerColor ?? defaultHeaderColor,
+                ),
+                dividerThickness: 1.0,
+                columns: columns,
+                rows: rows,
               ),
-              dividerThickness: 1.0,
-              columns: columns,
-              rows: rows,
             ),
           ),
         ),

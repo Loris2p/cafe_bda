@@ -149,4 +149,14 @@ class CafeRepository {
   Future<List<List<dynamic>>?> getGenericTable(String tableName) async {
     return await _sheetsService.readTable(tableName);
   }
+
+  /// Met à jour la valeur d'une cellule spécifique.
+  ///
+  /// * [tableName] - Le nom de la table à mettre à jour.
+  /// * [rowIndex] - L'index de la ligne de données (base 0, après l'en-tête).
+  /// * [colIndex] - L'index de la colonne (base 0).
+  /// * [newValue] - La nouvelle valeur.
+  Future<void> updateCellValue(String tableName, int rowIndex, int colIndex, dynamic newValue) async {
+    await _sheetsService.updateCell(tableName, rowIndex, colIndex, newValue);
+  }
 }

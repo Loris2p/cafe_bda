@@ -505,17 +505,20 @@ class _DataDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<SheetProvider, List<List<dynamic>>>(
-      selector: (_, p) => p.sheetData,
-      builder: (context, sheetData, _) {
-        // Envelopper le tableau dans un conteneur stylisé si nécessaire
+    final provider = context.read<SheetProvider>();
+    return Selector<SheetProvider, (List<List<dynamic>>, String)>(
+      selector: (_, p) => (p.sheetData, p.selectedTable),
+      builder: (context, tableData, _) {
+        final sheetData = tableData.$1;
+        final selectedTable = tableData.$2;
+
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )
@@ -523,7 +526,22 @@ class _DataDisplay extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: DataTableWidget(data: sheetData),
+            child: DataTableWidget(
+              data: sheetData,
+              onCellUpdate: selectedTable == AppConstants.stockTable
+                  ? (rowIndex, colIndex, newValue) async {
+                      final error = await provider.updateCellValue(rowIndex, colIndex, newValue);
+                      if (error != null && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(error),
+                            backgroundColor: Theme.of(context).colorScheme.error,
+                          ),
+                        );
+                      }
+                    }
+                  : null,
+            ),
           ),
         );
       },
