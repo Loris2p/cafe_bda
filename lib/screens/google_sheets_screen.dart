@@ -9,21 +9,12 @@ import '../widgets/credit_form.dart';
 import '../widgets/order_form.dart';
 import 'dart:developer' as developer;
 
-/// L'écran principal de l'application.
-///
-/// Cette classe structure l'interface utilisateur et orchestre les interactions.
-///
-/// **Optimisation des Performances** :
-/// Au lieu d'écouter tout le [SheetProvider] à la racine (ce qui causerait un rebuild total
-/// à chaque changement), cet écran est découpé en composants plus petits ([_TableSelector],
-/// [_DataDisplay], etc.) qui utilisent [Selector] ou [Consumer] pour n'écouter que
-/// les parties de l'état qui les concernent.
 class GoogleSheetsScreen extends StatelessWidget {
   const GoogleSheetsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Benchmark : Début du chronométrage du temps de build
+    // Benchmark : Log build start
     final stopwatch = Stopwatch()..start();
     
     // On accède au provider sans écouter (listen: false) pour les appels de méthodes
@@ -31,9 +22,25 @@ class GoogleSheetsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestion Café - BDA'),
+        title: const Text('Gestion Café - BDA', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          // Affiche le bouton déconnexion uniquement si authentifié
+          // Refresh Button (moved to AppBar)
+          Selector<SheetProvider, (bool, bool)>(
+            selector: (_, p) => (p.isLoading, p.isAuthenticated),
+            builder: (context, data, _) {
+              final isLoading = data.$1;
+              final isAuthenticated = data.$2;
+              if (!isAuthenticated) return const SizedBox.shrink();
+              return IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Actualiser',
+                onPressed: isLoading
+                    ? null
+                    : () => context.read<SheetProvider>().readTable(),
+              );
+            },
+          ),
+          // Logout Button
           Selector<SheetProvider, bool>(
             selector: (_, p) => p.isAuthenticated,
             builder: (_, isAuthenticated, __) {
@@ -51,83 +58,107 @@ class GoogleSheetsScreen extends StatelessWidget {
               );
             },
           ),
-          // Affiche un spinner dans l'AppBar si une auth est en cours
           Selector<SheetProvider, bool>(
             selector: (_, p) => p.isAuthenticating,
             builder: (_, isAuthenticating, __) {
                return isAuthenticating 
                 ? const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(color: Colors.white),
+                    padding: EdgeInsets.all(12.0),
+                    child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
                   )
                 : const SizedBox.shrink();
             },
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            const _TableSelector(),
-            const SizedBox(height: 10),
-            const _AuthAndRefreshButtons(),
-            const _StudentActionsSection(),
-            const SizedBox(height: 10),
-            const _SearchSection(),
-            const SizedBox(height: 20),
-            const _StatusAndErrorSection(),
-            const SizedBox(height: 20),
-            Expanded(child: Builder(
-              builder: (context) {
-                // Benchmark : Fin du chronométrage après le rendu de la frame
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  stopwatch.stop();
-                  developer.log('GoogleSheetsScreen build time: ${stopwatch.elapsedMilliseconds}ms');
-                });
-                return const _DataDisplay();
-              }
-            )),
-          ],
-        ),
+      body: Selector<SheetProvider, bool>(
+        selector: (_, p) => p.isAuthenticated,
+        builder: (context, isAuthenticated, _) {
+          if (!isAuthenticated) {
+            return const _WelcomePage();
+          }
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                // Top Section: Table Selector
+                const _HeaderControls(),
+                const SizedBox(height: 16),
+                
+                // Unified Toolbar (Search + Actions)
+                const _UnifiedToolbar(),
+                const SizedBox(height: 20),
+                
+                // Status Messages (Errors, Loading)
+                const _StatusAndErrorSection(),
+                
+                // Data Table
+                Expanded(child: Builder(
+                  builder: (context) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      stopwatch.stop();
+                      developer.log('GoogleSheetsScreen build time: ${stopwatch.elapsedMilliseconds}ms');
+                    });
+                    return const _DataDisplay();
+                  }
+                )),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-/// Widget affichant le sélecteur de table (Dropdown).
-class _TableSelector extends StatelessWidget {
-  const _TableSelector();
+class _WelcomePage extends StatelessWidget {
+  const _WelcomePage();
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(32.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Tableaux',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            // Rebuild uniquement si la table sélectionnée ou la liste change
-            Consumer<SheetProvider>(
-              builder: (context, provider, _) {
-                return DropdownButton<String>(
-                  value: provider.selectedTable,
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      provider.readTable(tableName: newValue);
+            Icon(Icons.coffee, size: 80, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 24),
+            Text(
+              'Bienvenue sur Gestion Café',
+              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Connectez-vous pour accéder à la base de données.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 48),
+            Selector<SheetProvider, bool>(
+              selector: (_, p) => p.isAuthenticating,
+              builder: (context, isAuthenticating, _) {
+                if (isAuthenticating) {
+                  return const CircularProgressIndicator();
+                }
+                return ElevatedButton.icon(
+                  onPressed: () async {
+                    final provider = context.read<SheetProvider>();
+                    final error = await provider.authenticate();
+                    if (context.mounted && error == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Authentification réussie!')));
                     }
                   },
-                  items: provider.availableTables
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
+                  icon: const Icon(Icons.login),
+                  label: const Text('Se connecter avec Google'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    textStyle: const TextStyle(fontSize: 18),
+                  ),
                 );
               },
             ),
@@ -138,135 +169,148 @@ class _TableSelector extends StatelessWidget {
   }
 }
 
-/// Widget contenant les boutons d'authentification et d'actualisation manuelle.
-class _AuthAndRefreshButtons extends StatelessWidget {
-  const _AuthAndRefreshButtons();
+class _HeaderControls extends StatelessWidget {
+  const _HeaderControls();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // Bouton Auth : s'active/désactive selon l'état isAuthenticating
-        Selector<SheetProvider, bool>(
-          selector: (_, p) => p.isAuthenticating,
-          builder: (context, isAuthenticating, _) {
-            return ElevatedButton(
-              onPressed: isAuthenticating
-                  ? null
-                  : () async {
-                      final provider = context.read<SheetProvider>();
-                      final error = await provider.authenticate();
-                      if (context.mounted && error == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Authentification réussie!')));
-                      }
-                    },
-              child: const Text('S\'authentifier'),
-            );
-          },
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tableau Actif', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[600])),
+            const SizedBox(height: 8),
+            Consumer<SheetProvider>(
+              builder: (context, provider, _) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: provider.selectedTable,
+                      isExpanded: true,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          provider.readTable(tableName: newValue);
+                        }
+                      },
+                      items: provider.availableTables
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-        // Bouton Refresh : s'active uniquement si auth et pas loading
-        Selector<SheetProvider, (bool, bool)>(
-          selector: (_, p) => (p.isLoading, p.isAuthenticated),
-          builder: (context, data, _) {
-            final isLoading = data.$1;
-            final isAuthenticated = data.$2;
-            return ElevatedButton(
-              onPressed: (isLoading || !isAuthenticated)
-                  ? null
-                  : () => context.read<SheetProvider>().readTable(),
-              child: const Text('Actualiser'),
-            );
-          },
-        ),
-      ],
+      ),
     );
   }
 }
 
-/// Widget affichant les boutons d'actions spécifiques aux étudiants (Ajout, Crédit, Commande).
-///
-/// Ne s'affiche que si la table "Étudiants" est sélectionnée.
-class _StudentActionsSection extends StatelessWidget {
-  const _StudentActionsSection();
+/// Barre d'outils unifiée combinant Recherche et Actions.
+/// S'adapte à la largeur de l'écran.
+class _UnifiedToolbar extends StatelessWidget {
+  const _UnifiedToolbar();
 
-  // --- Helpers pour afficher les Dialogues ---
+  @override
+  Widget build(BuildContext context) {
+    return Selector<SheetProvider, String>(
+      selector: (_, p) => p.selectedTable,
+      builder: (context, selectedTable, _) {
+        if (selectedTable != AppConstants.studentsTable) return const SizedBox.shrink();
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Seuil desktop/mobile (800px)
+            final isWide = constraints.maxWidth > 800;
+
+            if (isWide) {
+              // Mode Desktop : Recherche à gauche, Actions à droite sur la même ligne
+              return const Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(child: _SearchSection()),
+                  SizedBox(width: 16),
+                  _ActionButtonsGroup(),
+                ],
+              );
+            } else {
+              // Mode Mobile : Recherche en haut, Actions en bas (scrollable horizontalement)
+              return const Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _SearchSection(),
+                  SizedBox(height: 12),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _ActionButtonsGroup(),
+                  ),
+                ],
+              );
+            }
+          },
+        );
+      },
+    );
+  }
+}
+
+/// Groupe de boutons d'action (Étudiant, Crédit, Commande)
+class _ActionButtonsGroup extends StatelessWidget {
+  const _ActionButtonsGroup();
 
   void _showRegistrationForm(BuildContext context) {
     final provider = context.read<SheetProvider>();
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return RegistrationForm(
-          onSubmit: (formData) async {
-            Navigator.of(context).pop();
-            final error = await provider.handleRegistrationForm(formData);
-            if (context.mounted) {
-              if (error == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Inscription enregistrée avec succès!')));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
-              }
-            }
-          },
-          onCancel: () => Navigator.of(context).pop(),
-        );
-      },
+      builder: (BuildContext context) => RegistrationForm(
+        onSubmit: (formData) async {
+          Navigator.of(context).pop();
+          final error = await provider.handleRegistrationForm(formData);
+          if (context.mounted) _showSnack(context, error, 'Inscription enregistrée!');
+        },
+        onCancel: () => Navigator.of(context).pop(),
+      ),
     );
   }
 
   void _showCreditForm(BuildContext context) {
     final provider = context.read<SheetProvider>();
-    // Validation pré-dialogue
-    if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez d\'abord charger les données des étudiants')),
-      );
-      return;
-    }
+    if (!_checkDataLoaded(context, provider)) return;
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return CreditForm(
-          studentsData: provider.studentsData,
-          onSubmit: (formData) async {
-            Navigator.of(context).pop();
-            final error = await provider.handleCreditSubmission(formData);
-            if (context.mounted) {
-              if (error == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Crédit enregistré avec succès!')));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
-              }
-            }
-          },
-          onCancel: () => Navigator.of(context).pop(),
-        );
-      },
+      builder: (BuildContext context) => CreditForm(
+        studentsData: provider.studentsData,
+        onSubmit: (formData) async {
+          Navigator.of(context).pop();
+          final error = await provider.handleCreditSubmission(formData);
+          if (context.mounted) _showSnack(context, error, 'Crédit enregistré!');
+        },
+        onCancel: () => Navigator.of(context).pop(),
+      ),
     );
   }
 
   void _showOrderForm(BuildContext context) async {
     final provider = context.read<SheetProvider>();
-    if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez d\'abord charger les données des étudiants')),
-      );
-      return;
-    }
+    if (!_checkDataLoaded(context, provider)) return;
 
-    // Chargement dynamique des stocks avant d'ouvrir le formulaire
     final stockData = await provider.loadStockData();
     if (stockData.isEmpty || stockData.length < 2) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de charger les données du stock')),
-        );
-      }
+      if (context.mounted) _showSnack(context, 'Erreur stock', null);
       return;
     }
 
@@ -274,94 +318,81 @@ class _StudentActionsSection extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return OrderForm(
-          studentsData: provider.studentsData,
-          stockData: stockData,
-          onSubmit: (formData) async {
-            Navigator.of(context).pop();
-            final error = await provider.handleOrderSubmission(formData);
-            if (context.mounted) {
-              if (error == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Commande enregistrée avec succès!')));
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
-              }
-            }
-          },
-          onCancel: () => Navigator.of(context).pop(),
-        );
-      },
+      builder: (BuildContext context) => OrderForm(
+        studentsData: provider.studentsData,
+        stockData: stockData,
+        onSubmit: (formData) async {
+          Navigator.of(context).pop();
+          final error = await provider.handleOrderSubmission(formData);
+          if (context.mounted) _showSnack(context, error, 'Commande enregistrée!');
+        },
+        onCancel: () => Navigator.of(context).pop(),
+      ),
     );
+  }
+
+  bool _checkDataLoaded(BuildContext context, SheetProvider provider) {
+    if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez d\'abord charger les données des étudiants')),
+      );
+      return false;
+    }
+    return true;
+  }
+
+  void _showSnack(BuildContext context, String? error, String? successMsg) {
+    if (error == null) {
+      if (successMsg != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMsg)));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Theme.of(context).colorScheme.error));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Écoute uniquement le changement de table sélectionnée pour afficher/masquer ce bloc
-    return Selector<SheetProvider, String>(
-      selector: (_, p) => p.selectedTable,
-      builder: (context, selectedTable, _) {
-        if (selectedTable != AppConstants.studentsTable) return const SizedBox.shrink();
+    return Consumer<SheetProvider>(
+      builder: (context, provider, _) {
+         final canAct = !provider.isLoading && provider.isAuthenticated;
+         final hasData = provider.studentsData.length >= 2;
+         
+         // Style commun pour les boutons d'action (Couleur Tertiaire)
+         final buttonStyle = ElevatedButton.styleFrom(
+           backgroundColor: Theme.of(context).colorScheme.tertiary,
+           foregroundColor: Theme.of(context).colorScheme.onTertiary,
+         );
 
-        return Column(
+         return Row(
           children: [
-            const SizedBox(height: 10),
-            Center(
-              child: SizedBox(
-                height: 50,
-                child: Consumer<SheetProvider>(
-                  builder: (context, provider, _) {
-                     final canAct = !provider.isLoading && provider.isAuthenticated;
-                     // Vérifie s'il y a assez de données (au moins header + 1 ligne)
-                     final hasData = provider.studentsData.length >= 2;
-                     
-                     return ListView(
-                      scrollDirection: Axis.horizontal,
-                      shrinkWrap: true,
-                      padding: EdgeInsets.zero,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: ElevatedButton.icon(
-                            onPressed: canAct ? () => _showRegistrationForm(context) : null,
-                            icon: const Icon(Icons.person_add),
-                            label: const Text('Ajouter étudiant'),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: ElevatedButton.icon(
-                            onPressed: (canAct && hasData) ? () => _showCreditForm(context) : null,
-                            icon: const Icon(Icons.account_balance_wallet),
-                            label: const Text('Ajouter crédit'),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: ElevatedButton.icon(
-                            onPressed: (canAct && hasData) ? () => _showOrderForm(context) : null,
-                            icon: const Icon(Icons.shopping_cart),
-                            label: const Text('Nouvelle commande'),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                ),
-              ),
+            ElevatedButton.icon(
+              style: buttonStyle,
+              onPressed: canAct ? () => _showRegistrationForm(context) : null,
+              icon: const Icon(Icons.person_add),
+              label: const Text('Étudiant'),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+              style: buttonStyle,
+              onPressed: (canAct && hasData) ? () => _showCreditForm(context) : null,
+              icon: const Icon(Icons.account_balance_wallet),
+              label: const Text('Crédit'),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+              style: buttonStyle,
+              onPressed: (canAct && hasData) ? () => _showOrderForm(context) : null,
+              icon: const Icon(Icons.shopping_cart),
+              label: const Text('Commande'),
             ),
           ],
         );
-      },
+      }
     );
   }
 }
 
-/// Widget gérant la barre de recherche d'étudiants.
-///
-/// Dispose de son propre état local ([_SearchSectionState]) pour gérer le champ texte
-/// sans provoquer de rebuilds inutiles du parent.
 class _SearchSection extends StatefulWidget {
   const _SearchSection();
 
@@ -374,12 +405,7 @@ class _SearchSectionState extends State<_SearchSection> {
 
   void _searchRow() async {
     final searchTerm = _searchController.text.trim();
-    if (searchTerm.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez entrer un terme de recherche')),
-      );
-      return;
-    }
+    if (searchTerm.isEmpty) return;
 
     final provider = context.read<SheetProvider>();
     final results = await provider.searchStudent(searchTerm);
@@ -388,7 +414,7 @@ class _SearchSectionState extends State<_SearchSection> {
 
     if (results.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Aucun étudiant trouvé pour "$searchTerm"')),
+        SnackBar(content: Text('Aucun résultat pour "$searchTerm"')),
       );
     } else {
       SearchDialog.showSearchResults(
@@ -417,45 +443,21 @@ class _SearchSectionState extends State<_SearchSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Recherche d\'étudiants',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: "Nom, prénom ou numéro étudiant...",
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                    ),
-                    onSubmitted: (_) => _searchRow(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: _searchRow,
-                  icon: const Icon(Icons.search),
-                  label: const Text("Chercher"),
-                ),
-              ],
-            ),
-          ],
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: "Rechercher (Nom, Prénom, N°)...",
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.arrow_forward),
+          onPressed: _searchRow,
         ),
       ),
+      onSubmitted: (_) => _searchRow(),
     );
   }
 }
 
-/// Affiche les messages d'état (Erreurs, Chargement, Résultats de recherche).
 class _StatusAndErrorSection extends StatelessWidget {
   const _StatusAndErrorSection();
 
@@ -465,44 +467,65 @@ class _StatusAndErrorSection extends StatelessWidget {
       builder: (context, provider, _) {
         if (provider.errorMessage.isNotEmpty) {
           return Container(
+            margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(12),
-            color: Colors.red[50],
-            child: Text(
-              provider.errorMessage,
-              style: const TextStyle(color: Colors.red),
-              textAlign: TextAlign.center,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline, color: Theme.of(context).colorScheme.onErrorContainer),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    provider.errorMessage,
+                    style: TextStyle(color: Theme.of(context).colorScheme.onErrorContainer),
+                  ),
+                ),
+              ],
             ),
           );
         }
         if (provider.isLoading) {
-           return const Center(child: CircularProgressIndicator());
+           return const Padding(
+             padding: EdgeInsets.all(20.0),
+             child: Center(child: CircularProgressIndicator()),
+           );
         }
-        if (provider.searchResults.isNotEmpty) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              '${provider.searchResults.length} étudiant(s) trouvé(s)',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          );
-        }
+        // Compteur de résultats supprimé ici (déplacé dans la popup)
         return const SizedBox.shrink();
       },
     );
   }
 }
 
-/// Affiche le tableau de données principal.
 class _DataDisplay extends StatelessWidget {
   const _DataDisplay();
 
   @override
   Widget build(BuildContext context) {
-    // Écoute uniquement les changements dans sheetData
     return Selector<SheetProvider, List<List<dynamic>>>(
       selector: (_, p) => p.sheetData,
       builder: (context, sheetData, _) {
-        return DataTableWidget(data: sheetData);
+        // Envelopper le tableau dans un conteneur stylisé si nécessaire
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: DataTableWidget(data: sheetData),
+          ),
+        );
       },
     );
   }
