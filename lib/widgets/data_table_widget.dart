@@ -57,8 +57,9 @@ class DataTableWidget extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final defaultHeaderColor = theme.colorScheme.primary;
-    final defaultBorderColor = theme.dividerColor;
+    // Utilisation de primaryContainer pour un look moins agressif que le primary pur
+    final defaultHeaderColor = theme.colorScheme.primary; 
+    final defaultBorderColor = theme.colorScheme.outlineVariant;
 
     // Création des colonnes à partir de la première ligne de données (Headers)
     final columns = data[0].asMap().entries.map((entry) {
@@ -66,26 +67,16 @@ class DataTableWidget extends StatelessWidget {
           data[0][entry.key]?.toString() ?? 'Colonne ${entry.key + 1}';
 
       return DataColumn(
-        label: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: headerColor ?? defaultHeaderColor,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(entry.key == 0 ? borderRadius : 0),
-              bottom: Radius.circular(
-                entry.key == data[0].length - 1 ? borderRadius : 0,
-              ),
-            ),
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
+        label: Expanded( // Expanded pour remplir l'espace de l'en-tête
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            alignment: Alignment.centerLeft, // Alignement cohérent
             child: Text(
               headerText,
               style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: headerTextColor ?? Colors.white,
+                fontWeight: FontWeight.bold,
+                color: headerTextColor ?? theme.colorScheme.onPrimary,
                 fontSize: 14,
-                letterSpacing: 0.5,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -102,9 +93,10 @@ class DataTableWidget extends StatelessWidget {
             return DataRow(
               color: WidgetStateProperty.resolveWith<Color?>((states) {
                 if (!showZebraStriping) return null;
+                // Alternance subtile basée sur la couleur primaire
                 return rowIndex % 2 == 0
-                    ? rowColor1 ?? theme.cardColor
-                    : rowColor2 ?? theme.canvasColor;
+                    ? rowColor1 ?? theme.colorScheme.surface
+                    : rowColor2 ?? theme.colorScheme.surfaceContainerHighest.withOpacity(0.3);
               }),
               cells: row.asMap().entries.map((cellEntry) {
                 final cellValue = cellEntry.value?.toString() ?? '';

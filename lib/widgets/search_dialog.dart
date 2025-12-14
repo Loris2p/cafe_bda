@@ -21,7 +21,19 @@ class SearchDialog {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Résultats pour "$searchTerm"'),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text('Résultats pour "$searchTerm"')),
+              Text(
+                '${results.length} résultats',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ],
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: results.isEmpty
