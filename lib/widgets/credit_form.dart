@@ -18,11 +18,15 @@ class CreditForm extends StatefulWidget {
   /// Callback appelé lors de l'annulation.
   final Function() onCancel;
 
+  /// Le nom initial à pré-remplir pour le champ "Responsable".
+  final String? initialResponsableName;
+
   const CreditForm({
     super.key,
     required this.studentsData,
     required this.onSubmit,
     required this.onCancel,
+    this.initialResponsableName,
   });
 
   @override
@@ -58,9 +62,10 @@ class _CreditFormState extends State<CreditForm> {
   @override
   void initState() {
     super.initState();
-    // Pré-remplissage avec la date du jour
+    // Pré-remplissage avec la date du jour et le nom du responsable
     final now = DateTime.now();
     _dateController.text = '${now.day}/${now.month}/${now.year}';
+    _responsibleController.text = widget.initialResponsableName ?? '';
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _dateFocusNode.requestFocus();

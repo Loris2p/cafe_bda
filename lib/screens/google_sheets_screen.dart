@@ -1,7 +1,9 @@
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/sheet_provider.dart';
+import '../widgets/app_settings_dialog.dart';
 import '../widgets/search_dialog.dart';
 import '../widgets/data_table_widget.dart';
 import '../widgets/registration_form.dart';
@@ -11,6 +13,39 @@ import 'dart:developer' as developer;
 
 class GoogleSheetsScreen extends StatelessWidget {
   const GoogleSheetsScreen({super.key});
+
+  void _showAppSettingsDialog(BuildContext context) {
+    final provider = context.read<SheetProvider>();
+    final sheetData = provider.sheetData;
+    
+    // Ne pas ouvrir si les colonnes ne sont pas chargées
+    if (sheetData.isEmpty || sheetData.first.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chargez des données avant de configurer les colonnes.')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => Consumer<SheetProvider>(
+        builder: (context, provider, child) {
+          final visibility = provider.columnVisibility[provider.selectedTable] ?? [];
+          return AppSettingsDialog(
+            columnNames: sheetData.first,
+            visibility: visibility,
+            responsableName: provider.responsableName,
+            onVisibilityChanged: (index, isVisible) {
+              provider.setColumnVisibility(index, isVisible);
+            },
+            onResponsableNameSaved: (name) {
+              provider.saveResponsableName(name);
+            },
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +59,14 @@ class GoogleSheetsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Gestion Café - BDA', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          // Settings Button
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Paramètres',
+            onPressed: () => _showAppSettingsDialog(context),
+          ),
+          const SizedBox(width: 8),
+
           // Refresh Button (moved to AppBar)
           Selector<SheetProvider, (bool, bool)>(
             selector: (_, p) => (p.isLoading, p.isAuthenticated),
@@ -36,7 +79,7 @@ class GoogleSheetsScreen extends StatelessWidget {
                 tooltip: 'Actualiser',
                 onPressed: isLoading
                     ? null
-                    : () => context.read<SheetProvider>().readTable(),
+                    : () => context.read<SheetProvider>().readTable(forceRefresh: true),
               );
             },
           ),
@@ -71,11 +114,14 @@ class GoogleSheetsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Selector<SheetProvider, bool>(
-        selector: (_, p) => p.isAuthenticated,
-        builder: (context, isAuthenticated, _) {
-          if (!isAuthenticated) {
+      body: Consumer<SheetProvider>(
+        builder: (context, provider, _) {
+          if (!provider.isAuthenticated) {
             return const _WelcomePage();
+          }
+
+          if (provider.errorMessage == 'PERMISSION_DENIED') {
+            return const _AccessDeniedPage();
           }
 
           return Padding(
@@ -108,6 +154,75 @@ class GoogleSheetsScreen extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _AccessDeniedPage extends StatelessWidget {
+  const _AccessDeniedPage();
+
+  Future<void> _launchEmailToRequestAccess(BuildContext context) async {
+    final email = Uri(
+      scheme: 'mailto',
+      path: 'bdapaucytech@gmail.com',
+      query: 'subject=Demande d\'accès au tableur du Café BDA',
+    );
+
+    try {
+      if (await canLaunchUrl(email)) {
+        await launchUrl(email);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible d\'ouvrir l\'application de messagerie.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<SheetProvider>();
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lock, size: 80, color: Theme.of(context).colorScheme.error),
+            const SizedBox(height: 24),
+            Text(
+              'Accès non autorisé',
+              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Votre compte Google (${provider.sheetsService.currentUser?.email}) n\'a pas les permissions pour accéder à la feuille de calcul.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Veuillez contacter le support pour obtenir l\'accès :',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () => _launchEmailToRequestAccess(context),
+              icon: const Icon(Icons.email),
+              label: const Text('Contacter bdapaucytech@gmail.com'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -247,15 +362,17 @@ class _UnifiedToolbar extends StatelessWidget {
                 ],
               );
             } else {
-              // Mode Mobile : Recherche en haut, Actions en bas (scrollable horizontalement)
+              // Mode Mobile : Recherche en haut, Actions en bas (scrollable horizontalement et centré)
               return const Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _SearchSection(),
                   SizedBox(height: 12),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: _ActionButtonsGroup(),
+                  Center( // Center pour le groupe de boutons scrollable
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: _ActionButtonsGroup(),
+                    ),
                   ),
                 ],
               );
@@ -294,6 +411,7 @@ class _ActionButtonsGroup extends StatelessWidget {
       context: context,
       builder: (BuildContext context) => CreditForm(
         studentsData: provider.studentsData,
+        initialResponsableName: provider.responsableName,
         onSubmit: (formData) async {
           Navigator.of(context).pop();
           final error = await provider.handleCreditSubmission(formData);
@@ -366,11 +484,12 @@ class _ActionButtonsGroup extends StatelessWidget {
 
          return Row(
           children: [
+            
             ElevatedButton.icon(
               style: buttonStyle,
-              onPressed: canAct ? () => _showRegistrationForm(context) : null,
-              icon: const Icon(Icons.person_add),
-              label: const Text('Étudiant'),
+              onPressed: (canAct && hasData) ? () => _showOrderForm(context) : null,
+              icon: const Icon(Icons.shopping_cart),
+              label: const Text('Commande'),
             ),
             const SizedBox(width: 12),
             ElevatedButton.icon(
@@ -382,9 +501,9 @@ class _ActionButtonsGroup extends StatelessWidget {
             const SizedBox(width: 12),
             ElevatedButton.icon(
               style: buttonStyle,
-              onPressed: (canAct && hasData) ? () => _showOrderForm(context) : null,
-              icon: const Icon(Icons.shopping_cart),
-              label: const Text('Commande'),
+              onPressed: canAct ? () => _showRegistrationForm(context) : null,
+              icon: const Icon(Icons.person_add),
+              label: const Text('Étudiant'),
             ),
           ],
         );
@@ -506,13 +625,53 @@ class _DataDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<SheetProvider>();
-    return Selector<SheetProvider, (List<List<dynamic>>, String, int?, bool)>(
-      selector: (_, p) => (p.sheetData, p.selectedTable, p.sortColumnIndex, p.sortAscending),
+    return Selector<SheetProvider, (List<List<dynamic>>, String, int?, bool, Map<String, List<bool>>)>(
+      selector: (_, p) => (p.sheetData, p.selectedTable, p.sortColumnIndex, p.sortAscending, p.columnVisibility),
       builder: (context, data, _) {
         final sheetData = data.$1;
         final selectedTable = data.$2;
         final sortColumnIndex = data.$3;
         final sortAscending = data.$4;
+        final columnVisibility = data.$5;
+
+        if (sheetData.isEmpty) {
+          return const Center(child: Text("Pas de données à afficher."));
+        }
+
+        // --- Logique de filtrage et de mappage d'index ---
+        final visibilityList = columnVisibility[selectedTable] ?? [];
+        
+        final List<int> visibleOriginalIndices = [];
+        if (visibilityList.isNotEmpty) {
+          for (int i = 0; i < visibilityList.length; i++) {
+            if (visibilityList[i]) {
+              visibleOriginalIndices.add(i);
+            }
+          }
+        } else if (sheetData.isNotEmpty) {
+          // Fallback si la visibilité n'est pas encore définie: tout afficher
+          visibleOriginalIndices.addAll(List.generate(sheetData.first.length, (i) => i));
+        }
+
+        if (visibleOriginalIndices.isEmpty) {
+          return const Center(child: Text("Toutes les colonnes sont masquées."));
+        }
+
+        final visibleData = sheetData.map((row) {
+          // Assure que la ligne a assez d'éléments pour éviter une erreur de plage
+          return visibleOriginalIndices.map((originalIndex) => originalIndex < row.length ? row[originalIndex] : null).toList();
+        }).toList();
+
+        int? visibleSortColumnIndex;
+        if (sortColumnIndex != null) {
+          visibleSortColumnIndex = visibleOriginalIndices.indexOf(sortColumnIndex);
+          if (visibleSortColumnIndex == -1) {
+            visibleSortColumnIndex = null; // La colonne triée est masquée
+          }
+        }
+
+        final bool isStockTable = selectedTable == AppConstants.stockTable;
+        // --- Fin de la logique ---
 
         return Container(
           decoration: BoxDecoration(
@@ -529,13 +688,17 @@ class _DataDisplay extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: DataTableWidget(
-              data: sheetData,
-              sortColumnIndex: sortColumnIndex,
+              data: visibleData,
+              sortColumnIndex: visibleSortColumnIndex,
               sortAscending: sortAscending,
-              onSort: (columnIndex) => provider.sortData(columnIndex),
-              onCellUpdate: selectedTable == AppConstants.stockTable
-                  ? (rowIndex, colIndex, newValue) async {
-                      final error = await provider.updateCellValue(rowIndex, colIndex, newValue);
+              onSort: (visibleIndex) {
+                final originalIndex = visibleOriginalIndices[visibleIndex];
+                provider.sortData(originalIndex);
+              },
+              onCellUpdate: isStockTable
+                  ? (rowIndex, visibleIndex, newValue) async {
+                      final originalIndex = visibleOriginalIndices[visibleIndex];
+                      final error = await provider.updateCellValue(rowIndex, originalIndex, newValue);
                       if (error != null && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
