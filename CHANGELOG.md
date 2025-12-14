@@ -26,3 +26,6 @@
 - **Mise à Jour de l'UI**: Correction de plusieurs problèmes où l'interface utilisateur ne se mettait pas à jour instantanément après une action (ex: changement de visibilité d'une colonne, case à cocher du stock).
 - **Erreurs de Layout**: Correction d'une erreur `RenderFlex overflow` survenant sur les écrans de petite taille.
 - **Avertissements d'Analyse Statique**: Correction de plusieurs avertissements, incluant l'utilisation de membres dépréciés (`withOpacity`, `dataRowHeight`) et des importations inutilisées.
+
+### Bugs
+- **Barres de défilement**: les barres de défilement on un comportement étrange
