@@ -50,6 +50,9 @@ class GoogleSheetsService {
   /// Le client HTTP authentifié (pour le Desktop).
   auth_io.AutoRefreshingAuthClient? client;
 
+  /// L'utilisateur Google actuellement connecté.
+  GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
+
   /// Vérifie si les variables d'environnement requises sont présentes.
   ///
   /// Retourne un message d'erreur listant les variables manquantes, ou une chaîne vide si tout est OK.

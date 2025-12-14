@@ -68,21 +68,26 @@ class OrderFormState extends State<OrderForm> {
     super.dispose();
   }
 
-  /// Filtre les stocks pour ne proposer que les cafés dont la quantité est > 0.
+  /// Filtre les stocks pour ne proposer que les cafés disponibles.
   List<String> get _availableCoffees {
     if (widget.stockData.isEmpty || widget.stockData.length < 2) return [];
     
-    // On suppose que la colonne 0 est le nom, et la colonne 1 est la quantité
+    // On suppose que la colonne 0 est le nom et la colonne 1 la disponibilité (booléen).
     return widget.stockData
         .skip(1)
         .where((row) {
           if (row.length >= 2) {
-            final quantity = int.tryParse(row[1]?.toString() ?? '0') ?? 0;
-            return quantity > 0;
+            final dynamic stockValue = row[1];
+            // Gère à la fois les vrais booléens et les chaînes "true"
+            if (stockValue is bool) {
+              return stockValue;
+            }
+            return stockValue?.toString().toLowerCase() == 'true';
           }
           return false;
         })
         .map((row) => row[0]?.toString() ?? '')
+        .where((name) => name.isNotEmpty) // Exclure les cafés sans nom
         .toList();
   }
 

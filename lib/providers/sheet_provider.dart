@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:googleapis/sheets/v4.dart';
 
 import 'package:cafe_bda/repositories/cafe_repository.dart';
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/google_sheets_service.dart';
 
 /// Gère l'état global et la logique métier de l'application (Pattern Provider).
@@ -37,6 +40,8 @@ class SheetProvider with ChangeNotifier {
   String _selectedTable = AppConstants.studentsTable;
   int? _sortColumnIndex;
   bool _sortAscending = true;
+  Map<String, List<bool>> _columnVisibility = {};
+  String? _responsableName;
 
   final List<String> _availableTables = [
     AppConstants.studentsTable,
@@ -57,6 +62,11 @@ class SheetProvider with ChangeNotifier {
   List<String> get availableTables => _availableTables;
   int? get sortColumnIndex => _sortColumnIndex;
   bool get sortAscending => _sortAscending;
+  Map<String, List<bool>> get columnVisibility => _columnVisibility;
+  String? get responsableName => _responsableName;
+  
+  /// Le service sous-jacent pour les interactions avec Google Sheets.
+  GoogleSheetsService get sheetsService => _sheetsService;
   
   /// Indique si l'utilisateur est connecté à Google Sheets API.
   bool get isAuthenticated => _sheetsService.sheetsApi != null;
@@ -82,7 +92,9 @@ class SheetProvider with ChangeNotifier {
     
     _isAuthenticating = false;
     if (autoAuthSuccess) {
-      // Charge les données initiales si connecté
+      // Charge les paramètres et les données initiales si connecté
+      await _loadColumnVisibility();
+      await _loadResponsableName();
       await readTable();
     }
     notifyListeners();
@@ -114,6 +126,9 @@ class SheetProvider with ChangeNotifier {
         return error;
       }
 
+      // Charge les paramètres et les données après une connexion réussie
+      await _loadColumnVisibility();
+      await _loadResponsableName();
       await readTable();
       notifyListeners();
       return null;
@@ -132,6 +147,8 @@ class SheetProvider with ChangeNotifier {
     _searchResults = [];
     _studentsData = [];
     _sortColumnIndex = null;
+    _columnVisibility = {}; // Réinitialise les paramètres de visibilité
+    _responsableName = null;
     notifyListeners();
   }
 
@@ -140,10 +157,15 @@ class SheetProvider with ChangeNotifier {
   /// Utilise le cache du Repository pour la table Étudiants afin d'optimiser les performances.
   ///
   /// * [tableName] - Optionnel. Si fourni, change la table active (_selectedTable).
-  Future<void> readTable({String? tableName}) async {
+  /// * [forceRefresh] - Si `true`, ignore le cache et force une nouvelle lecture depuis la source.
+  Future<void> readTable({String? tableName, bool forceRefresh = false}) async {
     if (tableName != null && tableName != _selectedTable) {
       _selectedTable = tableName;
       _sortColumnIndex = null; // Réinitialiser le tri lors du changement de table
+    }
+
+    if (forceRefresh) {
+      _cafeRepository.invalidateCache();
     }
     
     await _executeTransaction(() async {
@@ -151,21 +173,26 @@ class SheetProvider with ChangeNotifier {
       
       if (_selectedTable == AppConstants.studentsTable) {
         // Utilise le cache intelligent pour les étudiants
-        data = await _cafeRepository.getStudentsTable();
+        data = await _cafeRepository.getStudentsTable(forceRefresh: forceRefresh);
         if (data != null) {
           _studentsData = data;
         }
       } else {
-        // Lecture standard pour les autres tables
+        // Lecture standard pour les autres tables (pas de cache ici)
         data = await _cafeRepository.getGenericTable(_selectedTable);
       }
       
       _sheetData = data ?? [];
+
+      // Initialise les paramètres de visibilité si non existants
+      if (_sheetData.isNotEmpty && (_columnVisibility[_selectedTable] == null || _columnVisibility[_selectedTable]!.length != _sheetData[0].length)) {
+        _columnVisibility[_selectedTable] = List.generate(_sheetData[0].length, (_) => true);
+        await _saveColumnVisibility();
+      }
       
-      // S'assure que les données étudiants sont chargées en arrière-plan même si on est sur un autre onglet
-      // (Nécessaire pour les formulaires de commande/crédit qui nécessitent la liste des étudiants)
-      if (_studentsData.isEmpty && _selectedTable != AppConstants.studentsTable) {
-         final sData = await _cafeRepository.getStudentsTable();
+      // S'assure que les données étudiants (pour les formulaires) sont à jour si on force le rafraîchissement
+      if ((_studentsData.isEmpty || forceRefresh) && _selectedTable != AppConstants.studentsTable) {
+         final sData = await _cafeRepository.getStudentsTable(forceRefresh: forceRefresh);
          if (sData != null) _studentsData = sData;
       }
     });
@@ -218,12 +245,99 @@ class SheetProvider with ChangeNotifier {
     }
     notifyListeners();
   }
-
+  
   /// Charge spécifiquement les données de stock pour les formulaires de commande.
   ///
   /// * Returns - La liste des stocks.
   Future<List<List<dynamic>>> loadStockData() async {
     return await _cafeRepository.getGenericTable(AppConstants.stockTable) ?? [];
+  }
+
+  // --- Gestion de la visibilité des colonnes ---
+
+  /// Sauvegarde le nom du responsable pour l'utilisateur actuel.
+  Future<void> saveResponsableName(String name) async {
+    final userId = _sheetsService.currentUser?.id;
+    if (userId == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'responsable_name_$userId';
+    await prefs.setString(key, name);
+    _responsableName = name;
+    notifyListeners();
+  }
+
+  /// Charge le nom du responsable pour l'utilisateur actuel.
+  Future<void> _loadResponsableName() async {
+    final userId = _sheetsService.currentUser?.id;
+    if (userId == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'responsable_name_$userId';
+    _responsableName = prefs.getString(key);
+    notifyListeners();
+  }
+
+  /// Met à jour la visibilité d'une colonne et sauvegarde les préférences.
+  void setColumnVisibility(int columnIndex, bool isVisible) {
+    if (_columnVisibility[_selectedTable] != null &&
+        columnIndex < _columnVisibility[_selectedTable]!.length) {
+      
+      // Crée de nouvelles copies de la liste et de la map pour assurer la détection du changement d'état.
+      final newVisibilityList = List<bool>.from(_columnVisibility[_selectedTable]!);
+      newVisibilityList[columnIndex] = isVisible;
+      
+      final newVisibilityMap = Map<String, List<bool>>.from(_columnVisibility);
+      newVisibilityMap[_selectedTable] = newVisibilityList;
+      
+      _columnVisibility = newVisibilityMap;
+      
+      // Notifie l'UI immédiatement pour une réactivité maximale.
+      notifyListeners();
+
+      // Sauvegarde les préférences en arrière-plan sans bloquer l'UI.
+      _saveColumnVisibility();
+    }
+  }
+
+  /// Charge les préférences de visibilité des colonnes pour l'utilisateur actuel.
+  Future<void> _loadColumnVisibility() async {
+    final userId = _sheetsService.currentUser?.id;
+    if (userId == null) {
+      _columnVisibility = {}; // Pas d'utilisateur, pas de paramètres
+      return;
+    }
+    
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'column_visibility_$userId';
+    final jsonString = prefs.getString(key);
+    
+    if (jsonString != null) {
+      try {
+        final Map<String, dynamic> decodedMap = json.decode(jsonString);
+        _columnVisibility = decodedMap.map(
+          (key, value) => MapEntry(key, List<bool>.from(value)),
+        );
+      } catch(e) {
+        _columnVisibility = {};
+        await prefs.remove(key);
+      }
+    }
+    else {
+      _columnVisibility = {};
+    }
+    notifyListeners();
+  }
+
+  /// Sauvegarde les préférences de visibilité pour l'utilisateur actuel.
+  Future<void> _saveColumnVisibility() async {
+    final userId = _sheetsService.currentUser?.id;
+    if (userId == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'column_visibility_$userId';
+    final jsonString = json.encode(_columnVisibility);
+    await prefs.setString(key, jsonString);
   }
 
   /// Helper générique pour exécuter des transactions asynchrones (DRY).
@@ -244,8 +358,12 @@ class SheetProvider with ChangeNotifier {
       await action();
       return null;
     } catch (e) {
-      _errorMessage = e.toString();
-      return _errorMessage;
+        if (e is DetailedApiRequestError && e.status == 403) {
+          _errorMessage = 'PERMISSION_DENIED';
+        } else {
+          _errorMessage = e.toString();
+        }
+        return _errorMessage;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -257,7 +375,7 @@ class SheetProvider with ChangeNotifier {
     return _executeTransaction(() async {
       await _cafeRepository.addStudent(formData);
       // Rafraîchir la vue pour montrer le nouvel étudiant
-      await readTable();
+      await readTable(forceRefresh: true);
     });
   }
   
@@ -265,9 +383,10 @@ class SheetProvider with ChangeNotifier {
   Future<String?> handleCreditSubmission(Map<String, dynamic> formData) async {
     return _executeTransaction(() async {
       await _cafeRepository.addCreditRecord(formData);
-      // Si on visionne les crédits, on rafraîchit la table
-      if (_selectedTable == AppConstants.creditsTable) {
-        await readTable();
+      _cafeRepository.invalidateCache();
+      // Si on visionne les crédits ou les étudiants, on rafraîchit la table
+      if (_selectedTable == AppConstants.creditsTable || _selectedTable == AppConstants.studentsTable) {
+        await readTable(forceRefresh: true);
       }
     });
   }
@@ -276,9 +395,10 @@ class SheetProvider with ChangeNotifier {
   Future<String?> handleOrderSubmission(Map<String, dynamic> formData) async {
     return _executeTransaction(() async {
       await _cafeRepository.addOrderRecord(formData);
-      // Si on visionne les paiements, on rafraîchit la table
-      if (_selectedTable == AppConstants.paymentsTable) {
-        await readTable();
+      _cafeRepository.invalidateCache();
+      // Si on visionne les paiements ou les étudiants, on rafraîchit la table
+      if (_selectedTable == AppConstants.paymentsTable || _selectedTable == AppConstants.studentsTable) {
+        await readTable(forceRefresh: true);
       }
     });
   }
