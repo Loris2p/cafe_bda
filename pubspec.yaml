@@ -50,17 +50,17 @@ dependencies:
 
 
 flutter_launcher_icons:
-  image_path: "assets/icon/red.png"  # PNG au lieu de JPG
+  image_path: "assets/icon/logo-bda.png"  # PNG au lieu de JPG
   android: true
   ios: true
   windows:
-    image_path: "assets/icon/green.png"
+    image_path: "assets/icon/logo-bda.png"
     generate: true  # Obligatoire pour la v0.14.4+
   linux:
-    image_path: "assets/icon/green.png"
+    image_path: "assets/icon/logo-bda.png"
     generate: true
   macos:
-    image_path: "assets/icon/blue.png"
+    image_path: "assets/icon/logo-bda.png"
     generate: true
 
 dev_dependencies:
