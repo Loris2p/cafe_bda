@@ -1,13 +1,37 @@
 import 'package:flutter/material.dart';
 
+/// Un widget réutilisable pour afficher des données sous forme de tableau dynamique.
+///
+/// Ce widget prend une liste de listes (Matrix) en entrée et génère un [DataTable]
+/// scrollable horizontalement et verticalement.
+///
+/// Fonctionnalités :
+/// * Style zébré optionnel pour la lisibilité.
+/// * Détection automatique des types (Numérique, Formule, Booléen) pour l'alignement.
+/// * Tooltips sur les en-têtes et cellules.
 class DataTableWidget extends StatelessWidget {
+  /// Les données brutes à afficher. La première ligne est considérée comme l'en-tête.
   final List<List<dynamic>> data;
+  
+  /// Active ou désactive l'alternance de couleurs des lignes (Zebra striping).
   final bool showZebraStriping;
+  
+  /// Couleur de fond de l'en-tête.
   final Color? headerColor;
+  
+  /// Couleur des lignes paires (si [showZebraStriping] est true).
   final Color? rowColor1;
+  
+  /// Couleur des lignes impaires (si [showZebraStriping] est true).
   final Color? rowColor2;
+  
+  /// Couleur du texte de l'en-tête.
   final Color? headerTextColor;
+  
+  /// Couleur de la bordure du tableau.
   final Color? borderColor;
+  
+  /// Rayon des coins du tableau.
   final double borderRadius;
 
   const DataTableWidget({
@@ -36,7 +60,7 @@ class DataTableWidget extends StatelessWidget {
     final defaultHeaderColor = theme.colorScheme.primary;
     final defaultBorderColor = theme.dividerColor;
 
-    // Créer les colonnes avec un style moderne
+    // Création des colonnes à partir de la première ligne de données (Headers)
     final columns = data[0].asMap().entries.map((entry) {
       final headerText =
           data[0][entry.key]?.toString() ?? 'Colonne ${entry.key + 1}';
@@ -71,6 +95,8 @@ class DataTableWidget extends StatelessWidget {
       );
     }).toList();
 
+    // Création des lignes de données (Rows)
+    // On ignore la première ligne car elle a servi pour les en-têtes
     final rows = data.length > 1
         ? data.skip(1).mapIndexed((rowIndex, row) {
             return DataRow(
@@ -82,6 +108,8 @@ class DataTableWidget extends StatelessWidget {
               }),
               cells: row.asMap().entries.map((cellEntry) {
                 final cellValue = cellEntry.value?.toString() ?? '';
+                
+                // Détection basique du type de contenu
                 final isFormula = cellValue.startsWith('=');
                 final isNumeric =
                     double.tryParse(cellValue) != null && !isFormula;
@@ -96,6 +124,7 @@ class DataTableWidget extends StatelessWidget {
                       horizontal: 12,
                     ),
                     child: Align(
+                      // Alignement à droite pour les nombres
                       alignment: isNumeric
                           ? Alignment.centerRight
                           : Alignment.centerLeft,
@@ -120,7 +149,6 @@ class DataTableWidget extends StatelessWidget {
                                 ? FontWeight.bold
                                 : FontWeight.normal,
                           ),
-                          // overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -131,6 +159,7 @@ class DataTableWidget extends StatelessWidget {
           }).toList()
         : <DataRow>[];
 
+    // Structure scrollable double (Vertical + Horizontal)
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: SingleChildScrollView(
@@ -161,7 +190,7 @@ class DataTableWidget extends StatelessWidget {
   }
 }
 
-// Extension pour mapIndexed
+/// Extension utilitaire pour obtenir l'index dans un map() sur un itérable.
 extension IndexedIterable<E> on Iterable<E> {
   Iterable<T> mapIndexed<T>(T Function(int index, E element) f) {
     var index = 0;

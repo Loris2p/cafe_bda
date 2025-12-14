@@ -7,29 +7,36 @@ import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/google_sheets_service.dart';
 
-/// Manages the application's state and business logic.
+/// Gère l'état global et la logique métier de l'application (Pattern Provider).
 ///
-/// This class acts as a central hub for all user interactions and data manipulations.
-/// It uses a [GoogleSheetsService] to interact with the Google Sheets API and a
-/// [CafeRepository] to encapsulate the business logic.
+/// Cette classe centralise :
+/// * L'état de l'authentification.
+/// * Les données chargées depuis Google Sheets (Etudiants, Stocks...).
+/// * Les états de chargement (loading spinners) et les messages d'erreur.
+/// * Les résultats de recherche locale.
 ///
-/// It extends [ChangeNotifier] to notify its listeners when the state changes.
+/// Elle notifie les widgets abonnés via [notifyListeners] lors des changements d'état.
 class SheetProvider with ChangeNotifier {
-  // Service for interacting with the Google Sheets API.
   final GoogleSheetsService _sheetsService = GoogleSheetsService();
-  // Repository for handling business logic.
   late final CafeRepository _cafeRepository;
 
-  // Private state variables
+  // --- États Privés ---
+  
+  /// Les données actuellement affichées dans le tableau principal.
   List<List<dynamic>> _sheetData = [];
+  
+  /// Les résultats de la recherche d'étudiants courante.
   List<List<dynamic>> _searchResults = [];
+  
+  /// Copie locale de la table "Étudiants" pour permettre la recherche rapide et les listes déroulantes
+  /// sans avoir à recharger l'onglet principal.
   List<List<dynamic>> _studentsData = [];
+  
   bool _isLoading = false;
   bool _isAuthenticating = false;
   String _errorMessage = '';
   String _selectedTable = AppConstants.studentsTable;
 
-  // Available tables in the Google Sheet.
   final List<String> _availableTables = [
     AppConstants.studentsTable,
     AppConstants.creditsTable,
@@ -37,7 +44,8 @@ class SheetProvider with ChangeNotifier {
     AppConstants.stockTable,
   ];
 
-  // Public getters for the state
+  // --- Getters Publics ---
+  
   List<List<dynamic>> get sheetData => _sheetData;
   List<List<dynamic>> get searchResults => _searchResults;
   List<List<dynamic>> get studentsData => _studentsData;
@@ -46,15 +54,17 @@ class SheetProvider with ChangeNotifier {
   String get errorMessage => _errorMessage;
   String get selectedTable => _selectedTable;
   List<String> get availableTables => _availableTables;
+  
+  /// Indique si l'utilisateur est connecté à Google Sheets API.
   bool get isAuthenticated => _sheetsService.sheetsApi != null;
 
-  /// Initializes the provider by setting up the repository and attempting to auto-authenticate.
+  /// Initialise le Provider, configure le Repository et tente l'auto-connexion.
   SheetProvider() {
     _cafeRepository = CafeRepository(_sheetsService);
     _initializeApp();
   }
 
-  /// Initializes the application by checking environment variables and attempting to auto-authenticate.
+  /// Vérifie l'environnement et tente de restaurer une session précédente au démarrage.
   Future<void> _initializeApp() async {
     _errorMessage = _sheetsService.checkEnvVariables();
     if (_errorMessage.isNotEmpty) {
@@ -69,13 +79,18 @@ class SheetProvider with ChangeNotifier {
     
     _isAuthenticating = false;
     if (autoAuthSuccess) {
+      // Charge les données initiales si connecté
       await readTable();
-      await _loadStudentsData();
     }
     notifyListeners();
   }
 
-  /// Authenticates the user with Google and loads the initial data.
+  /// Lance le processus d'authentification complet (avec interaction utilisateur si nécessaire).
+  ///
+  /// * Vérifie d'abord la connectivité internet.
+  /// * Gère les erreurs réseaux et d'API.
+  /// 
+  /// * Returns - Un message d'erreur [String] si échec, ou `null` si succès.
   Future<String?> authenticate() async {
     _isAuthenticating = true;
     _errorMessage = '';
@@ -97,23 +112,17 @@ class SheetProvider with ChangeNotifier {
       }
 
       await readTable();
-      await _loadStudentsData();
       notifyListeners();
       return null;
-    } on SocketException {
-      _isAuthenticating = false;
-      _errorMessage = 'Erreur réseau: Veuillez vérifier votre connexion Internet.';
-      notifyListeners();
-      return _errorMessage;
     } catch (e) {
       _isAuthenticating = false;
-      _errorMessage = 'Erreur lors de l\'authentification: ${e.toString()}';
+      _errorMessage = 'Erreur Auth: ${e.toString()}';
       notifyListeners();
       return _errorMessage;
     }
   }
 
-  /// Logs the user out and clears all data.
+  /// Déconnecte l'utilisateur et vide toutes les données locales en mémoire.
   Future<void> logout() async {
     await _sheetsService.logout();
     _sheetData = [];
@@ -122,125 +131,117 @@ class SheetProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Reads the data from the selected table in the Google Sheet.
+  /// Charge les données de la table sélectionnée ou demandée.
+  ///
+  /// Utilise le cache du Repository pour la table Étudiants afin d'optimiser les performances.
+  ///
+  /// * [tableName] - Optionnel. Si fourni, change la table active (_selectedTable).
   Future<void> readTable({String? tableName}) async {
-    _isLoading = true;
-    _errorMessage = '';
-    if(tableName != null){
+    if (tableName != null) {
       _selectedTable = tableName;
     }
-    notifyListeners();
-
-    try {
-      final data = await _sheetsService.readTable(_selectedTable);
-      _sheetData = data ?? [];
-    } catch (e) {
-      _errorMessage = 'Erreur de lecture: ${e.toString()}';
-      if (e.toString().contains('authentication') ||
-          e.toString().contains('401') ||
-          e.toString().contains('403')) {
-        await logout();
+    
+    await _executeTransaction(() async {
+      List<List<dynamic>>? data;
+      
+      if (_selectedTable == AppConstants.studentsTable) {
+        // Utilise le cache intelligent pour les étudiants
+        data = await _cafeRepository.getStudentsTable();
+        if (data != null) {
+          _studentsData = data;
+        }
+      } else {
+        // Lecture standard pour les autres tables
+        data = await _cafeRepository.getGenericTable(_selectedTable);
       }
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+      
+      _sheetData = data ?? [];
+      
+      // S'assure que les données étudiants sont chargées en arrière-plan même si on est sur un autre onglet
+      // (Nécessaire pour les formulaires de commande/crédit qui nécessitent la liste des étudiants)
+      if (_studentsData.isEmpty && _selectedTable != AppConstants.studentsTable) {
+         final sData = await _cafeRepository.getStudentsTable();
+         if (sData != null) _studentsData = sData;
+      }
+    });
   }
 
-  /// Loads the data for the 'Étudiants' table.
-  Future<void> _loadStudentsData() async {
-    try {
-      final data = await _sheetsService.readTable(AppConstants.studentsTable);
-      _studentsData = data ?? [];
-      notifyListeners();
-    } catch (e) {
-      print('Erreur chargement données étudiants: $e');
-    }
-  }
-
-  /// Loads the data for the 'Stocks' table.
+  /// Charge spécifiquement les données de stock pour les formulaires de commande.
+  ///
+  /// * Returns - La liste des stocks.
   Future<List<List<dynamic>>> loadStockData() async {
-    try {
-      return await _sheetsService.readTable(AppConstants.stockTable) ?? [];
-    } catch (e) {
-      return [];
-    }
+    return await _cafeRepository.getGenericTable(AppConstants.stockTable) ?? [];
   }
 
-  /// Handles the submission of the registration form.
-  Future<String?> handleRegistrationForm(Map<String, dynamic> formData) async {
+  /// Helper générique pour exécuter des transactions asynchrones (DRY).
+  ///
+  /// Gère automatiquement :
+  /// * L'état `isLoading` (true au début, false à la fin).
+  /// * La capture des erreurs (`try/catch`).
+  /// * La notification de l'UI.
+  ///
+  /// * [action] - La fonction asynchrone à exécuter.
+  /// * Returns - Un message d'erreur ou null.
+  Future<String?> _executeTransaction(Future<void> Function() action) async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
 
     try {
-      await _cafeRepository.addStudent(formData);
-      
-      await readTable();
-      await _loadStudentsData();
+      await action();
       return null;
     } catch (e) {
-      _errorMessage = 'Erreur lors de l\'enregistrement: ${e.toString()}';
+      _errorMessage = e.toString();
       return _errorMessage;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
+
+  /// Traite la soumission du formulaire d'inscription étudiant.
+  Future<String?> handleRegistrationForm(Map<String, dynamic> formData) async {
+    return _executeTransaction(() async {
+      await _cafeRepository.addStudent(formData);
+      // Rafraîchir la vue pour montrer le nouvel étudiant
+      await readTable();
+    });
+  }
   
-  /// Handles the submission of the credit form.
+  /// Traite la soumission d'un ajout de crédit.
   Future<String?> handleCreditSubmission(Map<String, dynamic> formData) async {
-    _isLoading = true;
-    _errorMessage = '';
-    notifyListeners();
-
-    try {
+    return _executeTransaction(() async {
       await _cafeRepository.addCreditRecord(formData);
-
+      // Si on visionne les crédits, on rafraîchit la table
       if (_selectedTable == AppConstants.creditsTable) {
         await readTable();
       }
-      return null;
-    } catch (e) {
-      _errorMessage = 'Erreur lors de l\'enregistrement: ${e.toString()}';
-      return _errorMessage;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
 
-  /// Handles the submission of the order form.
+  /// Traite la soumission d'une nouvelle commande.
   Future<String?> handleOrderSubmission(Map<String, dynamic> formData) async {
-    _isLoading = true;
-    _errorMessage = '';
-    notifyListeners();
-
-    try {
+    return _executeTransaction(() async {
       await _cafeRepository.addOrderRecord(formData);
-
+      // Si on visionne les paiements, on rafraîchit la table
       if (_selectedTable == AppConstants.paymentsTable) {
         await readTable();
       }
-      return null;
-    } catch (e) {
-      _errorMessage = 'Erreur lors de l\'enregistrement: ${e.toString()}';
-      return _errorMessage;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    });
   }
   
-  /// Searches for a student in the loaded student data.
+  /// Effectue une recherche locale (filtrage) dans la liste des étudiants chargés.
+  ///
+  /// * [searchTerm] - Le texte à chercher (Nom, prénom, num étudiant...).
+  /// * Returns - La liste des lignes correspondantes.
   Future<List<List<dynamic>>> searchStudent(String searchTerm) async {
     if (searchTerm.isEmpty) {
       _searchResults = [];
       return [];
     }
 
-    _isLoading = true;
-    notifyListeners();
+    // Note d'optimisation : On ne déclenche pas le spinner (_isLoading) pour une recherche locale rapide
+    // afin d'éviter un scintillement de l'interface.
 
     final results = _studentsData.skip(1).where((row) {
       return row.any(
@@ -251,8 +252,7 @@ class SheetProvider with ChangeNotifier {
     }).toList();
 
     _searchResults = results;
-    _isLoading = false;
-    notifyListeners();
+    notifyListeners(); // Met à jour l'UI avec les résultats
     return results;
   }
 }

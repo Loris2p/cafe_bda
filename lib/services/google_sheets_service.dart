@@ -8,13 +8,19 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// Classe pour gérer les en-têtes d'authentification pour les requêtes HTTP
+/// Un client HTTP personnalisé qui injecte les en-têtes d'authentification dans chaque requête.
+///
+/// Cette classe est utilisée pour passer les credentials OAuth aux APIs Google.
 class GoogleAuthClient extends http.BaseClient {
   final Map<String, String> _headers;
   final http.Client _client = http.Client();
 
+  /// Crée une instance de [GoogleAuthClient].
+  ///
+  /// * [_headers] : Les en-têtes HTTP (contenant le token Bearer).
   GoogleAuthClient(this._headers);
 
+  /// Envoie une requête HTTP avec les en-têtes d'authentification ajoutés.
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     request.headers.addAll(_headers);
@@ -22,42 +28,52 @@ class GoogleAuthClient extends http.BaseClient {
   }
 }
 
-/// A service class for interacting with the Google Sheets API.
+/// Service responsable de l'authentification et des interactions brutes avec l'API Google Sheets.
 ///
-/// This class handles authentication (OAuth 2.0) and provides methods for
-/// basic CRUD (Create, Read, Update, Delete) operations on a Google Sheet.
-/// It is designed to be a generic service, with all business-specific logic
-/// handled by the [CafeRepository].
+/// Ce service gère le flux OAuth 2.0 (Mobile et Desktop) et expose les méthodes CRUD génériques
+/// (Lecture, Ajout). Il ne contient **aucune** logique métier spécifique à l'application Café BDA.
+///
+/// Voir [CafeRepository] pour la logique métier.
 class GoogleSheetsService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: [
     SheetsApi.spreadsheetsScope,
   ]);
 
-  // Constants for SharedPreferences keys
+  // Clés pour le stockage sécurisé des credentials
   static const _authCredentialsKey = 'google_auth_credentials';
   static const _authClientIdKey = 'google_auth_client_id';
   static const _authClientSecretKey = 'google_auth_client_secret';
 
-  // The authenticated Google Sheets API client.
+  /// L'instance de l'API Google Sheets authentifiée.
   SheetsApi? sheetsApi;
+  
+  /// Le client HTTP authentifié (pour le Desktop).
   auth_io.AutoRefreshingAuthClient? client;
 
-  /// Checks if the required environment variables are set in the .env file.
+  /// Vérifie si les variables d'environnement requises sont présentes.
+  ///
+  /// Retourne un message d'erreur listant les variables manquantes, ou une chaîne vide si tout est OK.
+  ///
+  /// * Returns - String (Message d'erreur ou vide).
   String checkEnvVariables() {
     final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
     final clientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
     final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
     if (clientId.isEmpty || clientSecret.isEmpty || spreadsheetId.isEmpty) {
-      return 'Variables manquantes dans .env:\n'
-          'GOOGLE_CLIENT_ID: ${clientId.isEmpty ? "MANQUANT" : "OK"}\n'
-          'GOOGLE_CLIENT_SECRET: ${clientSecret.isEmpty ? "MANQUANT" : "OK"}\n'
+      return 'Variables manquantes dans .env:\n' 
+          'GOOGLE_CLIENT_ID: ${clientId.isEmpty ? "MANQUANT" : "OK"}\n' 
+          'GOOGLE_CLIENT_SECRET: ${clientSecret.isEmpty ? "MANQUANT" : "OK"}\n' 
           'GOOGLE_SPREADSHEET_ID: ${spreadsheetId.isEmpty ? "MANQUANT" : "OK"}';
     }
     return '';
   }
 
-  /// Tries to automatically authenticate the user using stored credentials.
-  /// Returns `true` if successful, `false` otherwise.
+  /// Tente d'authentifier l'utilisateur automatiquement avec les credentials stockés.
+  ///
+  /// * Sur Mobile : Tente un `signInSilently`.
+  /// * Sur Desktop : Vérifie les `SharedPreferences` pour retrouver les tokens d'accès.
+  ///
+  /// * Returns - `true` si l'authentification silencieuse réussit, `false` sinon.
   Future<bool> tryAutoAuthenticate() async {
     // Pour mobile, on tente une connexion silencieuse
     if (Platform.isAndroid || Platform.isIOS) {
@@ -107,7 +123,12 @@ class GoogleSheetsService {
     return false;
   }
 
-  /// Authenticates the user based on the platform (mobile or desktop).
+  /// Authentifie l'utilisateur via le flux OAuth approprié à la plateforme.
+  ///
+  /// * Sur Mobile : Ouvre la pop-up Google Sign-In native.
+  /// * Sur Desktop : Ouvre le navigateur par défaut pour l'autorisation.
+  ///
+  /// * Returns - `null` si succès, ou un message d'erreur [String] en cas d'échec.
   Future<String?> authenticate() async {
     if (Platform.isAndroid || Platform.isIOS) {
       return _authenticateMobile();
@@ -116,7 +137,11 @@ class GoogleSheetsService {
     }
   }
 
-  /// Logs the user out, clearing stored credentials and closing the client.
+  /// Déconnecte l'utilisateur et efface les données de session.
+  ///
+  /// * Supprime les credentials stockés localement.
+  /// * Révoque l'accès Google Sign-In (sur mobile).
+  /// * Ferme le client HTTP.
   Future<void> logout() async {
     await _clearStoredAuth();
     if (Platform.isAndroid || Platform.isIOS) {
@@ -127,7 +152,11 @@ class GoogleSheetsService {
     client = null;
   }
 
-  /// Reads data from a specified range in the Google Sheet.
+  /// Lit les données brutes d'une plage (Range) dans le Google Sheet.
+  ///
+  /// * [rangeName] - Le nom de la feuille ou de la plage nommée (ex: 'Étudiants', 'A1:B10').
+  /// * Returns - Une liste de lignes `List<List<dynamic>>`, ou `null` si erreur/vide.
+  /// * Throws - Exception si l'API échoue.
   Future<List<List<dynamic>>?> readTable(String rangeName) async {
     final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
     if (spreadsheetId.isEmpty || sheetsApi == null) return null;
@@ -142,12 +171,19 @@ class GoogleSheetsService {
     }
   }
 
-  /// Appends a row of data to a specified table (range).
+  /// Ajoute une ligne de données à la fin d'une table existante.
+  ///
+  /// * [rangeName] - La table cible (ex: 'Paiements').
+  /// * [rowData] - La liste des valeurs à insérer.
+  /// * [useFormulas] - Si `true`, les chaînes commençant par `=` sont interprétées comme des formules Excel.
+  ///
+  /// * Throws - [Exception] si non authentifié ou erreur API.
   Future<void> appendToTable(
     String rangeName,
-    List<dynamic> rowData, {
+    List<dynamic> rowData,
+    {
     bool useFormulas = false,
-  }) async {
+  } ) async {
     final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
     if (spreadsheetId.isEmpty || sheetsApi == null) {
       throw Exception('Spreadsheet ID manquant ou non authentifié');
@@ -165,9 +201,9 @@ class GoogleSheetsService {
     }
   }
   
-  // Private helper methods
+  // --- Méthodes privées d'aide ---
 
-  /// Stores the user's authentication credentials securely.
+  /// Stocke les credentials OAuth dans les SharedPreferences.
   Future<void> _storeAuthCredentials(
     auth_io.AccessCredentials credentials,
   ) async {
@@ -186,7 +222,7 @@ class GoogleSheetsService {
     );
   }
 
-  /// Clears the stored authentication credentials.
+  /// Efface les credentials OAuth stockés.
   Future<void> _clearStoredAuth() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_authCredentialsKey);
@@ -194,7 +230,7 @@ class GoogleSheetsService {
     await prefs.remove(_authClientSecretKey);
   }
 
-  /// Handles the authentication flow for desktop platforms.
+  /// Gère le flux d'authentification Desktop (via navigateur externe).
   Future<String?> _authenticateDesktop() async {
     final clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? '';
     final clientSecret = dotenv.env['GOOGLE_CLIENT_SECRET'] ?? '';
@@ -229,7 +265,7 @@ class GoogleSheetsService {
     }
   }
 
-  /// Handles the authentication flow for mobile platforms.
+  /// Gère le flux d'authentification Mobile (via le plugin google_sign_in).
   Future<String?> _authenticateMobile() async {
     try {
       final account = await _googleSignIn.signIn();
@@ -244,113 +280,6 @@ class GoogleSheetsService {
       return null;
     } catch (e) {
       return 'Erreur d\'authentification mobile: ${e.toString()}';
-    }
-  }
-  
-  /// A method that is not used in the app but is kept for future use.
-  Future<void> addStudentWithFormulas(
-    Map<String, dynamic> formData,
-    int rowNumber,
-  ) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      // Préparer les données avec les formules adaptées au numéro de ligne
-      final List<dynamic> rowData = [
-        formData['Nom'],
-        formData['Prenom'],
-        formData['Num etudiant'],
-        formData['Cycle + groupe'],
-        '=F$rowNumber-G$rowNumber+I$rowNumber', // Nb Cafés Restants
-        '=SIERREUR(SOMME.SI(Credit[Numéro étudiant];C$rowNumber; Credit[Nb de Cafés]); 0)', // Nb Cafés Crédités
-        '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$rowNumber; Paiements[Moyen Paiement]; "Crédit");0)', // Nb Cafés Pris SUR crédit
-        '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$rowNumber; Paiements[Moyen Paiement]; "<>Crédit"); 0)', // Nb Cafés Payés HORS crédit
-        '=ENT((G$rowNumber+H$rowNumber)/10)', // Nb cafés Fidélité Obtenus
-      ];
-      final valueRange = ValueRange()..values = [rowData];
-      await sheetsApi!.spreadsheets.values.append(
-        valueRange,
-        spreadsheetId,
-        'Étudiants',
-        valueInputOption: 'USER_ENTERED',
-      );
-    } catch (e) {
-      rethrow;
-    }
-  }
-  
-  /// A method that is not used in the app but is kept for future use.
-  Future<void> addCreditRecord(Map<String, dynamic> creditData) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      // Préparer les données dans l'ordre des colonnes
-      final List<dynamic> rowData = [
-        creditData['Date'],
-        creditData['Responsable'],
-        creditData['Numéro étudiant'],
-        creditData['Nom'],
-        creditData['Prenom'],
-        creditData['Classe + Groupe'],
-        creditData['Valeur (€)'],
-        creditData['Nb de Cafés'],
-        creditData['Moyen Paiement'], // Nouvelle colonne ajoutée
-      ];
-      await appendToTable('Credits', rowData);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// A method that is not used in the app but is kept for future use.
-  Future<void> addOrderRecord(Map<String, dynamic> orderData) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      // Préparer les données dans l'ordre des colonnes du tableau Paiements
-      final List<dynamic> rowData = [
-        orderData['Date'],
-        orderData['Moyen Paiement'],
-        orderData['Nom de famille'],
-        orderData['Prénom'],
-        orderData['Numéro étudiant'],
-        orderData['Nb de Cafés'],
-        orderData['Café pris'],
-      ];
-      await appendToTable('Paiements', rowData);
-    } catch (e) {
-      rethrow;
-    }
-  }
-  
-  /// A method that is not used in the app but is kept for future use.
-  Future<int> getNextRowInNamedRange(String rangeName) async {
-    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
-    if (spreadsheetId.isEmpty || sheetsApi == null) {
-      throw Exception('Spreadsheet ID manquant ou non authentifié');
-    }
-    try {
-      // Lire directement les données du tableau nommé
-      final response = await sheetsApi!.spreadsheets.values.get(
-        spreadsheetId,
-        rangeName,
-      );
-      final currentData = response.values ?? [];
-      return currentData.isEmpty ? 1 : currentData.length + 1;
-    } catch (e) {
-      // Fallback: utiliser une méthode basique
-      final response = await sheetsApi!.spreadsheets.values.get(
-        spreadsheetId,
-        'A:Z',
-      );
-      final currentData = response.values ?? [];
-      return currentData.isEmpty ? 1 : currentData.length + 1;
     }
   }
 }
