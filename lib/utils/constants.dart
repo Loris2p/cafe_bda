@@ -1,20 +1,24 @@
-/// Contains constant values used throughout the application.
+/// Contient les valeurs constantes utilisées dans toute l'application.
 ///
-/// Using constants helps to avoid typos and makes the code more maintainable.
+/// L'utilisation de constantes centralisées permet d'éviter les fautes de frappe ("Magic Strings")
+/// et facilite la maintenance si le nom d'une table ou d'un champ venait à changer.
 class AppConstants {
-  // Table names
+  // --- Noms des Feuilles (Onglets) Google Sheets ---
+  
   static const String studentsTable = 'Étudiants';
   static const String creditsTable = 'Credits';
   static const String paymentsTable = 'Paiements';
   static const String stockTable = 'Stocks';
 
-  // Form field keys for registration
+  // --- Clés des champs du formulaire d'inscription ---
+  
   static const String regFormName = 'Nom';
   static const String regFormFirstName = 'Prenom';
   static const String regFormStudentId = 'Num etudiant';
   static const String regFormClass = 'Cycle + groupe';
 
-  // Form field keys for credit
+  // --- Clés des champs du formulaire de crédit ---
+  
   static const String creditFormDate = 'Date';
   static const String creditFormManager = 'Responsable';
   static const String creditFormStudentId = 'Numéro étudiant';
@@ -25,7 +29,8 @@ class AppConstants {
   static const String creditFormCoffees = 'Nb de Cafés';
   static const String creditFormPaymentMethod = 'Moyen Paiement';
 
-  // Form field keys for order
+  // --- Clés des champs du formulaire de commande ---
+  
   static const String orderFormDate = 'Date';
   static const String orderFormPaymentMethod = 'Moyen Paiement';
   static const String orderFormLastName = 'Nom de famille';

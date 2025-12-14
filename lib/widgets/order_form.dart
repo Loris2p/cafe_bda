@@ -2,10 +2,24 @@ import 'package:cafe_bda/widgets/student_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Formulaire pour saisir une nouvelle commande de café.
+///
+/// Ce widget permet de :
+/// * Sélectionner un étudiant.
+/// * Choisir un café parmi les stocks disponibles (filtrés dynamiquement).
+/// * Définir la quantité (max 10).
+/// * Choisir le moyen de paiement (y compris Crédit).
 class OrderForm extends StatefulWidget {
+  /// Données étudiants pour la recherche.
   final List<List<dynamic>> studentsData;
+  
+  /// Données de stock pour lister les cafés disponibles.
   final List<List<dynamic>> stockData;
+  
+  /// Callback de soumission.
   final Function(Map<String, dynamic>) onSubmit;
+  
+  /// Callback d'annulation.
   final Function() onCancel;
 
   const OrderForm({
@@ -41,6 +55,7 @@ class OrderFormState extends State<OrderForm> {
   @override
   void initState() {
     super.initState();
+    // Initialise avec la date et l'heure actuelles
     final now = DateTime.now();
     _dateController.text =
         '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}';
@@ -53,8 +68,11 @@ class OrderFormState extends State<OrderForm> {
     super.dispose();
   }
 
+  /// Filtre les stocks pour ne proposer que les cafés dont la quantité est > 0.
   List<String> get _availableCoffees {
     if (widget.stockData.isEmpty || widget.stockData.length < 2) return [];
+    
+    // On suppose que la colonne 0 est le nom, et la colonne 1 est la quantité
     return widget.stockData
         .skip(1)
         .where((row) {
@@ -68,6 +86,7 @@ class OrderFormState extends State<OrderForm> {
         .toList();
   }
 
+  /// Ouvre le dialogue de recherche d'étudiant.
   Future<void> _openStudentSearch() async {
     final student = await showDialog<List<dynamic>>(
       context: context,
@@ -87,8 +106,11 @@ class OrderFormState extends State<OrderForm> {
     }
   }
 
+  /// Valide et soumet la commande.
   void _submitForm() {
     if (!_formKey.currentState!.validate()) return;
+    
+    // Validations manuelles
     if (_selectedStudent.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez sélectionner un étudiant')),
@@ -138,7 +160,7 @@ class OrderFormState extends State<OrderForm> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Date et heure
+              // Champ Date (lecture seule recommandée, mais ici éditable)
               TextFormField(
                 controller: _dateController,
                 decoration: const InputDecoration(
@@ -154,7 +176,7 @@ class OrderFormState extends State<OrderForm> {
               ),
               const SizedBox(height: 16),
               
-              // Student search
+              // Sélecteur d'étudiant
               FormField<Map<String, dynamic>>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -187,7 +209,8 @@ class OrderFormState extends State<OrderForm> {
               ),
 
               const SizedBox(height: 16),
-              // Informations étudiant
+              
+              // Infos étudiant
               if (_selectedStudent.isNotEmpty) ...[
                 Card(
                   child: Padding(
@@ -210,7 +233,8 @@ class OrderFormState extends State<OrderForm> {
                 ),
                 const SizedBox(height: 16),
               ],
-              // Sélection du café
+              
+              // Sélecteur Café (dynamique selon Stock)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Column(
@@ -254,7 +278,8 @@ class OrderFormState extends State<OrderForm> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Nombre de cafés
+              
+              // Champ Quantité
               TextFormField(
                 controller: _coffeeCountController,
                 decoration: const InputDecoration(
@@ -280,7 +305,8 @@ class OrderFormState extends State<OrderForm> {
                 },
               ),
               const SizedBox(height: 16),
-              // Moyen de paiement
+              
+              // Sélecteur Moyen de paiement
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

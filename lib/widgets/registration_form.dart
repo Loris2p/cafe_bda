@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Formulaire d'inscription d'un nouvel étudiant.
+///
+/// Ce widget affiche un dialogue avec les champs nécessaires :
+/// * Nom
+/// * Prénom
+/// * Numéro étudiant (avec validation numérique)
+/// * Cycle/Classe (via des ChoiceChips)
+///
+/// Retourne les données saisies via le callback [onSubmit].
 class RegistrationForm extends StatefulWidget {
+  /// Fonction appelée lorsque le formulaire est valide et soumis.
   final Function(Map<String, dynamic>) onSubmit;
+  
+  /// Fonction appelée lors de l'annulation.
   final Function() onCancel;
+  
+  /// Données initiales optionnelles pour pré-remplir le formulaire.
   final Map<String, dynamic>? initialData;
 
   const RegistrationForm({
@@ -20,13 +34,18 @@ class RegistrationForm extends StatefulWidget {
 class _RegistrationFormState extends State<RegistrationForm> {
   final _formKey = GlobalKey<FormState>();
   final _nomFocusNode = FocusNode();
+  
+  // Stockage local des données du formulaire
   final Map<String, dynamic> _formData = {
     'Nom': '',
     'Prenom': '',
     'Num etudiant': '',
     'Cycle + groupe': '',
   };
+  
   String? _selectedClass;
+  
+  // Liste des classes disponibles (hardcodée pour l'instant)
   final List<String> _primaryClasses = [
     'PréIng 1',
     'Pré Ing 2',
@@ -38,10 +57,12 @@ class _RegistrationFormState extends State<RegistrationForm> {
   @override
   void initState() {
     super.initState();
+    // Pré-remplissage si modification
     if (widget.initialData != null) {
       _formData.addAll(widget.initialData!);
       _selectedClass = widget.initialData!['Cycle + groupe'];
     }
+    // Focus automatique sur le premier champ
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _nomFocusNode.requestFocus();
     });
@@ -53,9 +74,10 @@ class _RegistrationFormState extends State<RegistrationForm> {
     super.dispose();
   }
 
+  /// Construit la liste des champs de formulaire.
   List<Widget> _buildFormFields() {
     return [
-      // Nom
+      // Champ Nom
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
         child: TextFormField(
@@ -74,7 +96,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
           onSaved: (value) => _formData['Nom'] = value?.trim() ?? '',
         ),
       ),
-      // Prénom
+      // Champ Prénom
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
         child: TextFormField(
@@ -92,7 +114,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
           onSaved: (value) => _formData['Prenom'] = value?.trim() ?? '',
         ),
       ),
-      // Numéro étudiant
+      // Champ Numéro étudiant
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
         child: TextFormField(
@@ -115,7 +137,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
           onSaved: (value) => _formData['Num etudiant'] = value ?? '',
         ),
       ),
-      // Cycle + groupe
+      // Sélecteur Cycle + groupe (Chips)
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Column(
@@ -159,6 +181,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
     ];
   }
 
+  /// Valide et soumet le formulaire.
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       if (_selectedClass == null) {
@@ -169,10 +192,13 @@ class _RegistrationFormState extends State<RegistrationForm> {
       }
       _formKey.currentState!.save();
       final processedData = Map<String, dynamic>.from(_formData);
+      
+      // Conversion type sécurisée
       processedData['Num etudiant'] = int.parse(
         _formData['Num etudiant'].toString(),
       );
       processedData['Cycle + groupe'] = _selectedClass!;
+      
       widget.onSubmit(processedData);
     }
   }

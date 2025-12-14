@@ -1,37 +1,152 @@
 import '../services/google_sheets_service.dart';
 import '../utils/constants.dart';
 
-/// The CafeRepository class is responsible for handling the business logic of the application.
+/// La classe CafeRepository est responsable de la logique métier de l'application.
 ///
-/// It interacts with the [GoogleSheetsService] to perform CRUD operations on the Google Sheets document.
-/// This separation of concerns makes the code more modular, easier to test, and easier to understand.
+/// Elle agit comme une couche d'abstraction entre l'interface utilisateur (via le Provider)
+/// et le service de données brut ([GoogleSheetsService]).
+///
+/// Ses responsabilités incluent :
+/// * La mise en forme des données avant envoi (ordre des colonnes, formules Excel).
+/// * La gestion du cache pour optimiser les performances de lecture.
+/// * Le calcul des indices de ligne pour les insertions.
 class CafeRepository {
   final GoogleSheetsService _sheetsService;
 
+  // Cache en mémoire pour réduire les appels API redondants
+  List<List<dynamic>>? _cachedStudents;
+  DateTime? _lastFetchTime;
+  
+  // Durée de validité du cache (5 minutes par défaut)
+  static const Duration _cacheDuration = Duration(minutes: 5);
+
+  /// Crée une instance de [CafeRepository] avec le service injecté.
   CafeRepository(this._sheetsService);
 
-  /// Adds a new student to the 'Étudiants' sheet.
+  /// Vérifie si le cache local des étudiants est toujours valide.
   ///
-  /// The [formData] is a map containing the student's information.
-  /// This method calculates the next available row and then calls the [GoogleSheetsService]
-  /// to add the student with the appropriate formulas.
+  /// * Returns - `true` si les données sont présentes et fraîches (< 5 min).
+  bool get _isCacheValid {
+    return _cachedStudents != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration;
+  }
+
+  /// Invalide le cache local.
+  ///
+  /// Doit être appelé après toute opération d'écriture (Ajout d'étudiant) pour forcer
+  /// un rafraîchissement des données lors de la prochaine lecture.
+  void invalidateCache() {
+    _cachedStudents = null;
+    _lastFetchTime = null;
+  }
+
+  /// Récupère la liste des étudiants, en utilisant le cache si possible.
+  ///
+  /// * [forceRefresh] - Si `true`, ignore le cache et force un appel API.
+  /// * Returns - Une liste de lignes (chaque ligne étant une liste de cellules).
+  Future<List<List<dynamic>>?> getStudentsTable({bool forceRefresh = false}) async {
+    if (!forceRefresh && _isCacheValid) {
+      return _cachedStudents;
+    }
+
+    final data = await _sheetsService.readTable(AppConstants.studentsTable);
+    if (data != null) {
+      _cachedStudents = data;
+      _lastFetchTime = DateTime.now();
+    }
+    return data;
+  }
+
+  /// Ajoute un nouvel étudiant à la feuille 'Étudiants'.
+  ///
+  /// Cette méthode complexe gère :
+  /// 1. Le calcul du numéro de la prochaine ligne disponible (basé sur le cache ou un fetch).
+  /// 2. La construction de la ligne avec les formules Excel dynamiques (Calcul solde, fidélité...).
+  /// 3. L'invalidation du cache après insertion.
+  ///
+  /// * [formData] - Map contenant les clés 'Nom', 'Prenom', 'Num etudiant', etc.
   Future<void> addStudent(Map<String, dynamic> formData) async {
-    final nextRow =
-        await _sheetsService.getNextRowInNamedRange(AppConstants.studentsTable);
-    await _sheetsService.addStudentWithFormulas(formData, nextRow);
+    // Déterminer le numéro de ligne pour les formules
+    int nextRow = 1;
+    final currentData = await getStudentsTable();
+    if (currentData != null && currentData.isNotEmpty) {
+       // +1 pour l'index 0-based, +1 pour la nouvelle ligne
+       // On suppose que la plage nommée inclut les en-têtes.
+       nextRow = currentData.length + 1; 
+    } else {
+       // Fallback : on assume ligne 2 (la ligne 1 étant l'en-tête)
+       nextRow = 2;
+    }
+
+    // Préparation des données avec injection des formules Excel
+    // Les formules font référence à la ligne courante (nextRow)
+    final List<dynamic> rowData = [
+      formData['Nom'],
+      formData['Prenom'],
+      formData['Num etudiant'],
+      formData['Cycle + groupe'],
+      '=F$nextRow-G$nextRow+I$nextRow', // Solde Restant (Crédit - Dépense + Bonus)
+      '=SIERREUR(SOMME.SI(Credit[Numéro étudiant];C$nextRow; Credit[Nb de Cafés]); 0)', // Total Crédité
+      '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$nextRow; Paiements[Moyen Paiement]; "Crédit");0)', // Total Consommé sur Crédit
+      '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$nextRow; Paiements[Moyen Paiement]; "<>Crédit"); 0)', // Total Payé Cash
+      '=ENT((G$nextRow+H$nextRow)/10)', // Fidélité (1 café offert tous les 10)
+    ];
+
+    await _sheetsService.appendToTable(
+      AppConstants.studentsTable, 
+      rowData, 
+      useFormulas: true
+    );
+    
+    // Le cache est obsolète car une ligne a été ajoutée
+    invalidateCache();
   }
 
-  /// Adds a credit record to the 'Credits' sheet.
+  /// Ajoute une transaction de crédit (rechargement) dans la feuille 'Credits'.
   ///
-  /// The [formData] is a map containing the credit information.
+  /// * [formData] - Map contenant les infos du crédit (Montant, date, responsable...).
   Future<void> addCreditRecord(Map<String, dynamic> formData) async {
-    await _sheetsService.addCreditRecord(formData);
+     // Mappe les données du formulaire vers l'ordre exact des colonnes du Google Sheet
+    final List<dynamic> rowData = [
+      formData['Date'],
+      formData['Responsable'],
+      formData['Numéro étudiant'],
+      formData['Nom'],
+      formData['Prenom'],
+      formData['Classe + Groupe'],
+      formData['Valeur (€)'],
+      formData['Nb de Cafés'],
+      formData['Moyen Paiement'],
+    ];
+
+    await _sheetsService.appendToTable(AppConstants.creditsTable, rowData);
   }
 
-  /// Adds an order record to the 'Paiements' sheet.
+  /// Ajoute une commande (consommation) dans la feuille 'Paiements'.
   ///
-  /// The [formData] is a map containing the order information.
+  /// * [formData] - Map contenant les infos de la commande (Café pris, quantité, étudiant...).
   Future<void> addOrderRecord(Map<String, dynamic> formData) async {
-    await _sheetsService.addOrderRecord(formData);
+    // Mappe les données vers l'ordre des colonnes de la table Paiements
+    final List<dynamic> rowData = [
+      formData['Date'],
+      formData['Moyen Paiement'],
+      formData['Nom de famille'],
+      formData['Prénom'],
+      formData['Numéro étudiant'],
+      formData['Nb de Cafés'],
+      formData['Café pris'],
+    ];
+    await _sheetsService.appendToTable(AppConstants.paymentsTable, rowData);
+  }
+
+  /// Méthode générique pour lire n'importe quelle table sans logique métier spécifique.
+  ///
+  /// Utilisée pour charger les stocks, l'historique des paiements, etc.
+  ///
+  /// * [tableName] - Le nom de la table ou plage nommée.
+  /// * Returns - Les données brutes ou null.
+  Future<List<List<dynamic>>?> getGenericTable(String tableName) async {
+    return await _sheetsService.readTable(tableName);
   }
 }

@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 
+/// Une classe utilitaire fournissant des méthodes statiques pour afficher les dialogues de recherche.
 class SearchDialog {
+  
+  /// Affiche une boîte de dialogue listant les résultats de recherche.
+  ///
+  /// * [context] - Le contexte de build.
+  /// * [searchTerm] - Le terme recherché (pour l'afficher dans le titre).
+  /// * [results] - La liste des lignes trouvées.
+  /// * [fullData] - La liste complète des données (pour retrouver l'index réel de la ligne).
+  /// * [onRowSelected] - Callback déclenché lorsqu'un utilisateur tape sur un résultat.
   static void showSearchResults(
     BuildContext context, {
     required String searchTerm,
@@ -53,6 +62,10 @@ class SearchDialog {
     );
   }
 
+  /// Affiche une boîte de dialogue avec le détail complet d'une ligne.
+  ///
+  /// * [row] - La ligne de données à afficher.
+  /// * [columnNames] - Les noms des colonnes pour étiqueter chaque valeur.
   static void showRowDetails(
     BuildContext context, {
     required List<dynamic> row,

@@ -2,9 +2,20 @@ import 'package:cafe_bda/widgets/student_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+/// Formulaire pour créditer le compte d'un étudiant (Rechargement).
+///
+/// Permet de :
+/// * Rechercher et sélectionner un étudiant.
+/// * Saisir un montant ou un nombre de cafés (conversion automatique).
+/// * Choisir le moyen de paiement (Lydia, Espèce, etc.).
 class CreditForm extends StatefulWidget {
+  /// La liste complète des étudiants pour la recherche.
   final List<List<dynamic>> studentsData;
+  
+  /// Callback appelé lors de la soumission valide.
   final Function(Map<String, dynamic>) onSubmit;
+  
+  /// Callback appelé lors de l'annulation.
   final Function() onCancel;
 
   const CreditForm({
@@ -21,6 +32,8 @@ class CreditForm extends StatefulWidget {
 class _CreditFormState extends State<CreditForm> {
   final _formKey = GlobalKey<FormState>();
   final _dateFocusNode = FocusNode();
+  
+  // Contrôleurs pour les champs de texte
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _responsibleController = TextEditingController();
   final TextEditingController _coffeeCountController = TextEditingController();
@@ -28,7 +41,10 @@ class _CreditFormState extends State<CreditForm> {
   final TextEditingController _otherPaymentController = TextEditingController();
 
   Map<String, dynamic> _selectedStudent = {};
+  
+  // Prix unitaire du café (pour conversion automatique)
   final double _coffeePrice = 0.50;
+  
   final List<String> _paymentMethods = [
     'Lydia',
     'Échange',
@@ -42,8 +58,10 @@ class _CreditFormState extends State<CreditForm> {
   @override
   void initState() {
     super.initState();
+    // Pré-remplissage avec la date du jour
     final now = DateTime.now();
     _dateController.text = '${now.day}/${now.month}/${now.year}';
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _dateFocusNode.requestFocus();
     });
@@ -60,6 +78,7 @@ class _CreditFormState extends State<CreditForm> {
     super.dispose();
   }
 
+  /// Calcule le montant en € en fonction du nombre de cafés saisis.
   void _calculateAmountFromCoffee() {
     try {
       final coffeeCount = double.tryParse(_coffeeCountController.text) ?? 0;
@@ -70,6 +89,7 @@ class _CreditFormState extends State<CreditForm> {
     }
   }
 
+  /// Calcule le nombre de cafés en fonction du montant en € saisi.
   void _calculateCoffeeFromAmount() {
     try {
       final amount = double.tryParse(_amountController.text) ?? 0;
@@ -91,6 +111,7 @@ class _CreditFormState extends State<CreditForm> {
     });
   }
 
+  /// Ouvre la boîte de dialogue de recherche d'étudiant.
   Future<void> _openStudentSearch() async {
     final student = await showDialog<List<dynamic>>(
       context: context,
@@ -110,8 +131,11 @@ class _CreditFormState extends State<CreditForm> {
     }
   }
 
+  /// Valide et soumet le formulaire.
   void _submitForm() {
     if (!_formKey.currentState!.validate()) return;
+    
+    // Validations manuelles supplémentaires
     if (_selectedStudent.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -172,7 +196,7 @@ class _CreditFormState extends State<CreditForm> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Date
+              // Champ Date
               TextFormField(
                 focusNode: _dateFocusNode,
                 controller: _dateController,
@@ -185,6 +209,7 @@ class _CreditFormState extends State<CreditForm> {
                   if (value == null || value.isEmpty) {
                     return 'La date est obligatoire';
                   }
+                  // Validation basique du format date
                   final parts = value.split('/');
                   if (parts.length != 3) {
                     return 'Format invalide (JJ/MM/AAAA)';
@@ -207,7 +232,8 @@ class _CreditFormState extends State<CreditForm> {
                 },
               ),
               const SizedBox(height: 16),
-              // Responsable
+              
+              // Champ Responsable
               TextFormField(
                 controller: _responsibleController,
                 decoration: const InputDecoration(
@@ -224,7 +250,7 @@ class _CreditFormState extends State<CreditForm> {
               ),
               const SizedBox(height: 16),
 
-              // Student search
+              // Sélecteur d'étudiant
               FormField<Map<String, dynamic>>(
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -257,7 +283,8 @@ class _CreditFormState extends State<CreditForm> {
               ),
 
               const SizedBox(height: 16),
-              // Informations étudiant
+              
+              // Affichage des infos de l'étudiant sélectionné
               if (_selectedStudent.isNotEmpty) ...[
                 Card(
                   child: Padding(
@@ -279,7 +306,8 @@ class _CreditFormState extends State<CreditForm> {
                   ),
                 ),
               ],
-              // Nombre de cafés
+              
+              // Champ Nombre de cafés
               TextFormField(
                 controller: _coffeeCountController,
                 decoration: const InputDecoration(
@@ -303,7 +331,8 @@ class _CreditFormState extends State<CreditForm> {
                 },
               ),
               const SizedBox(height: 16),
-              // Montant
+              
+              // Champ Montant
               TextFormField(
                 controller: _amountController,
                 decoration: const InputDecoration(
@@ -331,7 +360,8 @@ class _CreditFormState extends State<CreditForm> {
                 },
               ),
               const SizedBox(height: 16),
-              // Moyen de règlement
+              
+              // Sélecteur Moyen de règlement
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -366,7 +396,8 @@ class _CreditFormState extends State<CreditForm> {
                     ),
                 ],
               ),
-              // Champ "Autre"
+              
+              // Champ "Autre" dynamique
               if (_showOtherPaymentField) ...[
                 const SizedBox(height: 8),
                 TextFormField(
