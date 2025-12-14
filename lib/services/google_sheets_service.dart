@@ -201,6 +201,50 @@ class GoogleSheetsService {
     }
   }
   
+  /// Met à jour une cellule spécifique dans le Google Sheet.
+  ///
+  /// * [rangeName] - Le nom de la feuille (ex: 'Stock').
+  /// * [rowIndex] - L'index de la ligne de donnée (base 0, sans l'en-tête).
+  /// * [colIndex] - L'index de la colonne (base 0).
+  /// * [newValue] - La nouvelle valeur pour la cellule.
+  Future<void> updateCell(String rangeName, int rowIndex, int colIndex, dynamic newValue) async {
+    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
+    if (spreadsheetId.isEmpty || sheetsApi == null) {
+      throw Exception('Spreadsheet ID manquant ou non authentifié');
+    }
+
+    // rowIndex est en base 0 et exclut l'en-tête.
+    // Les lignes de la feuille de calcul sont en base 1. L'en-tête est la ligne 1.
+    // Donc, la ligne de données réelle est rowIndex + 2.
+    final sheetRow = rowIndex + 2;
+    final sheetCol = _columnIntToLetter(colIndex);
+    final range = '$rangeName!$sheetCol$sheetRow';
+
+    try {
+      final valueRange = ValueRange()..values = [[newValue]];
+      await sheetsApi!.spreadsheets.values.update(
+        valueRange,
+        spreadsheetId,
+        range,
+        valueInputOption: 'RAW',
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Convertit un index de colonne entier (base 0) en sa lettre correspondante (A, B, C...).
+  String _columnIntToLetter(int column) {
+    String result = "";
+    int dividend = column + 1;
+    while (dividend > 0) {
+      int modulo = (dividend - 1) % 26;
+      result = String.fromCharCode('A'.codeUnitAt(0) + modulo) + result;
+      dividend = ((dividend - modulo) / 26).floor();
+    }
+    return result;
+  }
+  
   // --- Méthodes privées d'aide ---
 
   /// Stocke les credentials OAuth dans les SharedPreferences.
