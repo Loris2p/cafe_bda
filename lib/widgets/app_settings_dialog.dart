@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Un dialogue pour configurer les paramètres généraux de l'application.
-class AppSettingsDialog extends StatefulWidget {
+/// Un widget pour configurer les paramètres généraux de l'application.
+class AppSettingsWidget extends StatefulWidget {
   /// La liste des noms de colonnes.
   final List<dynamic> columnNames;
 
@@ -17,7 +17,7 @@ class AppSettingsDialog extends StatefulWidget {
   /// Callback appelé lors de la sauvegarde du nom du responsable.
   final Function(String) onResponsableNameSaved;
 
-  const AppSettingsDialog({
+  const AppSettingsWidget({
     super.key,
     required this.columnNames,
     required this.visibility,
@@ -27,10 +27,10 @@ class AppSettingsDialog extends StatefulWidget {
   });
 
   @override
-  State<AppSettingsDialog> createState() => _AppSettingsDialogState();
+  State<AppSettingsWidget> createState() => _AppSettingsWidgetState();
 }
 
-class _AppSettingsDialogState extends State<AppSettingsDialog> {
+class _AppSettingsWidgetState extends State<AppSettingsWidget> {
   late final TextEditingController _responsableController;
 
   @override
@@ -55,64 +55,56 @@ class _AppSettingsDialogState extends State<AppSettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Paramètres'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Section Nom du Responsable
-              Text('Responsable par défaut', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _responsableController,
-                decoration: const InputDecoration(
-                  labelText: 'Votre nom',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: _saveResponsableName,
-                  child: const Text('Enregistrer'),
-                ),
-              ),
-              const Divider(height: 32),
-
-              // Section Visibilité des colonnes
-              Text('Visibilité des colonnes', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(), // Le parent est déjà scrollable
-                itemCount: widget.columnNames.length,
-                itemBuilder: (context, index) {
-                  return SwitchListTile(
-                    title: Text(widget.columnNames[index]?.toString() ?? 'Colonne ${index + 1}'),
-                    value: widget.visibility.length > index ? widget.visibility[index] : true,
-                    onChanged: (bool value) {
-                      widget.onVisibilityChanged(index, value);
-                    },
-                  );
-                },
-              ),
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Paramètres de l\'application', style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 20),
+          
+          // Section Nom du Responsable
+          Text('Responsable par défaut', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _responsableController,
+            decoration: const InputDecoration(
+              labelText: 'Votre nom',
+              border: OutlineInputBorder(),
+            ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton(
+              onPressed: _saveResponsableName,
+              child: const Text('Enregistrer le nom'),
+            ),
+          ),
+          const Divider(height: 32),
+
+          // Section Visibilité des colonnes
+          Text('Visibilité des colonnes', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          if (widget.columnNames.isEmpty)
+             const Text('Aucune colonne à configurer.'),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(), // Le parent est déjà scrollable
+            itemCount: widget.columnNames.length,
+            itemBuilder: (context, index) {
+              return SwitchListTile(
+                title: Text(widget.columnNames[index]?.toString() ?? 'Colonne ${index + 1}'),
+                value: widget.visibility.length > index ? widget.visibility[index] : true,
+                onChanged: (bool value) {
+                  widget.onVisibilityChanged(index, value);
+                },
+              );
+            },
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          child: const Text('Fermer'),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
     );
   }
 }

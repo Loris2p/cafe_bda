@@ -16,18 +16,14 @@ class OrderForm extends StatefulWidget {
   /// Données de stock pour lister les cafés disponibles.
   final List<List<dynamic>> stockData;
   
-  /// Callback de soumission.
-  final Function(Map<String, dynamic>) onSubmit;
-  
-  /// Callback d'annulation.
-  final Function() onCancel;
+  /// Callback de soumission. Retourne null si succès, ou un message d'erreur.
+  final Future<String?> Function(Map<String, dynamic>) onSubmit;
 
   const OrderForm({
     super.key,
     required this.studentsData,
     required this.stockData,
     required this.onSubmit,
-    required this.onCancel,
   });
 
   @override
@@ -42,6 +38,7 @@ class OrderFormState extends State<OrderForm> {
   Map<String, dynamic> _selectedStudent = {};
   String? _selectedCoffee;
   String? _selectedPaymentMethod;
+  bool _isLoading = false;
 
   final List<String> _paymentMethods = [
     'Crédit',
@@ -113,7 +110,7 @@ class OrderFormState extends State<OrderForm> {
   }
 
   /// Valide et soumet la commande.
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     
     // Validations manuelles
@@ -138,6 +135,10 @@ class OrderFormState extends State<OrderForm> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final formData = {
         'Date': _dateController.text,
@@ -148,221 +149,372 @@ class OrderFormState extends State<OrderForm> {
         'Nb de Cafés': int.parse(_coffeeCountController.text),
         'Café pris': _selectedCoffee!,
       };
-      widget.onSubmit(formData);
+      
+      final error = await widget.onSubmit(formData);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (error == null) {
+          // Succès
+          await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Succès'),
+              content: const Text('La commande a bien été enregistrée.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('OK'),
+                )
+              ],
+            ),
+          );
+
+          // Reset form fields but keep date updated
+          setState(() {
+            _selectedStudent = {};
+            _selectedCoffee = null;
+            _selectedPaymentMethod = null;
+            _coffeeCountController.text = '1';
+            final now = DateTime.now();
+            _dateController.text = '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+          });
+        } else {
+          // Erreur retournée par le provider
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: Theme.of(context).colorScheme.error),
+          );
+        }
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de soumission: ${e.toString()}')),
-      );
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de soumission: ${e.toString()}')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Nouvelle commande'),
-      content: SingleChildScrollView(
-        child: Form(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth > 800;
+        final content = Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Champ Date (lecture seule recommandée, mais ici éditable)
-              TextFormField(
-                controller: _dateController,
-                decoration: const InputDecoration(
-                  labelText: 'Date et heure *',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'La date et heure sont obligatoires';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              // Sélecteur d'étudiant
-              FormField<Map<String, dynamic>>(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez sélectionner un étudiant';
-                  }
-                  return null;
-                },
-                builder: (FormFieldState<Map<String, dynamic>> state) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _openStudentSearch,
-                        icon: const Icon(Icons.search),
-                        label: const Text('Rechercher un étudiant'),
-                      ),
-                      if (state.hasError)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            state.errorText!,
-                            style: const TextStyle(
-                                color: Colors.red, fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-                initialValue: _selectedStudent,
-              ),
+          child: isDesktop
+              ? _buildDesktopLayout()
+              : _buildMobileLayout(),
+        );
 
-              const SizedBox(height: 16),
-              
-              // Infos étudiant
-              if (_selectedStudent.isNotEmpty) ...[
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_selectedStudent['Nom']} ${_selectedStudent['Prenom']}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text('Classe: ${_selectedStudent['Classe + Groupe']}'),
-                        Text('Numéro: ${_selectedStudent['Numéro étudiant']}'),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              
-              // Sélecteur Café (dynamique selon Stock)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Café choisi *',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (_availableCoffees.isEmpty)
-                      const Text(
-                        'Aucun café en stock',
-                        style: TextStyle(color: Colors.red),
-                      )
-                    else
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedCoffee,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                        ),
-                        items: _availableCoffees.map((String coffee) {
-                          return DropdownMenuItem<String>(
-                            value: coffee,
-                            child: Text(coffee),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedCoffee = newValue;
-                          });
-                        },
-                        validator: (value) => value == null
-                            ? 'Veuillez sélectionner un café'
-                            : null,
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Champ Quantité
-              TextFormField(
-                controller: _coffeeCountController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre de cafés *',
-                  hintText: 'Ex: 2',
-                  border: OutlineInputBorder(),
-                  suffixText: 'cafés',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Le nombre de cafés est obligatoire';
-                  }
-                  final count = int.tryParse(value);
-                  if (count == null || count <= 0) {
-                    return 'Veuillez saisir un nombre valide (> 0)';
-                  }
-                  if (count > 10) {
-                    return 'Le nombre maximum est 10';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              // Sélecteur Moyen de paiement
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: isDesktop ? 1000 : double.infinity),
+              child: content,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Nouvelle commande', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 20),
+        _buildDateSection(),
+        const SizedBox(height: 16),
+        _buildStudentSection(),
+        const SizedBox(height: 16),
+        _buildStudentInfo(),
+        const SizedBox(height: 16),
+        _buildCoffeeSection(),
+        const SizedBox(height: 16),
+        _buildQuantitySection(),
+        const SizedBox(height: 16),
+        _buildPaymentSection(),
+        const SizedBox(height: 24),
+        _buildSubmitButton(),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Nouvelle commande', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 32),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Colonne Gauche : Infos Étudiant
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Moyen de paiement *',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6.0,
-                    runSpacing: 4.0,
-                    children: _paymentMethods.map((method) {
-                      return FilterChip(
-                        label: Text(method),
-                        selected: _selectedPaymentMethod == method,
-                        onSelected: (selected) => setState(
-                          () =>
-                              _selectedPaymentMethod = selected ? method : null,
-                        ),
-                        selectedColor: Colors.blue,
-                        checkmarkColor: Colors.white,
-                        showCheckmark: false,
-                        labelStyle: TextStyle(
-                          color: _selectedPaymentMethod == method ? Colors.white : Colors.black,
-                          fontWeight: _selectedPaymentMethod == method ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  if (_selectedPaymentMethod == null)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        'Ce champ est obligatoire',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
+                  _buildDateSection(),
+                  const SizedBox(height: 24),
+                  _buildStudentSection(),
+                  const SizedBox(height: 24),
+                  _buildStudentInfo(),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: widget.onCancel, child: const Text('Annuler')),
-        ElevatedButton(
-          onPressed: _submitForm,
-          child: const Text('Enregistrer'),
+            ),
+            const SizedBox(width: 48),
+            // Colonne Droite : Commande
+            Expanded(
+              flex: 5,
+              child: Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Détails de la commande', style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 24),
+                      _buildCoffeeSection(),
+                      const SizedBox(height: 16),
+                      _buildQuantitySection(),
+                      const SizedBox(height: 24),
+                      _buildPaymentSection(),
+                      const SizedBox(height: 32),
+                      _buildSubmitButton(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
+  }
+
+  Widget _buildDateSection() {
+    return TextFormField(
+      controller: _dateController,
+      decoration: const InputDecoration(
+        labelText: 'Date et heure *',
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.calendar_today),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'La date et heure sont obligatoires';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildStudentSection() {
+    return FormField<Map<String, dynamic>>(
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Veuillez sélectionner un étudiant';
+        }
+        return null;
+      },
+      builder: (FormFieldState<Map<String, dynamic>> state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton.icon(
+              onPressed: _isLoading ? null : _openStudentSearch,
+              icon: const Icon(Icons.search),
+              label: const Text('Rechercher un étudiant'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+              ),
+            ),
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  state.errorText!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+          ],
+        );
+      },
+      initialValue: _selectedStudent,
+    );
+  }
+
+  Widget _buildStudentInfo() {
+    if (_selectedStudent.isEmpty) return const SizedBox.shrink();
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 48, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '${_selectedStudent['Nom']} ${_selectedStudent['Prenom']}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text('Classe: ${_selectedStudent['Classe + Groupe']}', style: Theme.of(context).textTheme.bodyLarge),
+                Text('Numéro: ${_selectedStudent['Numéro étudiant']}', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+          Positioned(
+             top: 0,
+             right: 0,
+             child: IconButton(
+               icon: const Icon(Icons.close),
+               onPressed: _isLoading ? null : () => setState(() => _selectedStudent = {}),
+             ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoffeeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Café choisi *',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (_availableCoffees.isEmpty)
+          const Text(
+            'Aucun café en stock',
+            style: TextStyle(color: Colors.red),
+          )
+        else
+          DropdownButtonFormField<String>(
+            value: _selectedCoffee,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              prefixIcon: Icon(Icons.coffee),
+            ),
+            items: _availableCoffees.map((String coffee) {
+              return DropdownMenuItem<String>(
+                value: coffee,
+                child: Text(coffee),
+              );
+            }).toList(),
+            onChanged: _isLoading ? null : (String? newValue) {
+              setState(() {
+                _selectedCoffee = newValue;
+              });
+            },
+            validator: (value) => value == null
+                ? 'Veuillez sélectionner un café'
+                : null,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildQuantitySection() {
+    return TextFormField(
+      controller: _coffeeCountController,
+      decoration: const InputDecoration(
+        labelText: 'Nombre de cafés *',
+        hintText: 'Ex: 2',
+        border: OutlineInputBorder(),
+        suffixText: 'cafés',
+        prefixIcon: Icon(Icons.numbers),
+      ),
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      enabled: !_isLoading,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Le nombre de cafés est obligatoire';
+        }
+        final count = int.tryParse(value);
+        if (count == null || count <= 0) {
+          return 'Veuillez saisir un nombre valide (> 0)';
+        }
+        if (count > 10) {
+          return 'Le nombre maximum est 10';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPaymentSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Moyen de paiement *',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: _paymentMethods.map((method) {
+            return FilterChip(
+              label: Text(method),
+              selected: _selectedPaymentMethod == method,
+              onSelected: _isLoading ? null : (selected) => setState(
+                () =>
+                    _selectedPaymentMethod = selected ? method : null,
+              ),
+              selectedColor: Theme.of(context).colorScheme.primaryContainer,
+              checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+              showCheckmark: true,
+            );
+          }).toList(),
+        ),
+        if (_selectedPaymentMethod == null)
+          const Padding(
+            padding: EdgeInsets.only(top: 4.0),
+            child: Text(
+              'Ce champ est obligatoire',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return _isLoading 
+      ? const Center(child: CircularProgressIndicator())
+      : SizedBox(
+          height: 50,
+          child: ElevatedButton.icon(
+            onPressed: _submitForm,
+            icon: const Icon(Icons.check),
+            label: const Text('Enregistrer la commande'),
+            style: ElevatedButton.styleFrom(
+              textStyle: const TextStyle(fontSize: 18),
+            ),
+          ),
+        );
   }
 }

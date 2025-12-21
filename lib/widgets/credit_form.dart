@@ -12,11 +12,8 @@ class CreditForm extends StatefulWidget {
   /// La liste complète des étudiants pour la recherche.
   final List<List<dynamic>> studentsData;
   
-  /// Callback appelé lors de la soumission valide.
-  final Function(Map<String, dynamic>) onSubmit;
-  
-  /// Callback appelé lors de l'annulation.
-  final Function() onCancel;
+  /// Callback appelé lors de la soumission valide. Retourne null si succès.
+  final Future<String?> Function(Map<String, dynamic>) onSubmit;
 
   /// Le nom initial à pré-remplir pour le champ "Responsable".
   final String? initialResponsableName;
@@ -25,7 +22,6 @@ class CreditForm extends StatefulWidget {
     super.key,
     required this.studentsData,
     required this.onSubmit,
-    required this.onCancel,
     this.initialResponsableName,
   });
 
@@ -35,7 +31,6 @@ class CreditForm extends StatefulWidget {
 
 class _CreditFormState extends State<CreditForm> {
   final _formKey = GlobalKey<FormState>();
-  final _dateFocusNode = FocusNode();
   
   // Contrôleurs pour les champs de texte
   final TextEditingController _dateController = TextEditingController();
@@ -45,6 +40,7 @@ class _CreditFormState extends State<CreditForm> {
   final TextEditingController _otherPaymentController = TextEditingController();
 
   Map<String, dynamic> _selectedStudent = {};
+  bool _isLoading = false;
   
   // Prix unitaire du café (pour conversion automatique)
   final double _coffeePrice = 0.50;
@@ -66,15 +62,10 @@ class _CreditFormState extends State<CreditForm> {
     final now = DateTime.now();
     _dateController.text = '${now.day}/${now.month}/${now.year}';
     _responsibleController.text = widget.initialResponsableName ?? '';
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _dateFocusNode.requestFocus();
-    });
   }
 
   @override
   void dispose() {
-    _dateFocusNode.dispose();
     _dateController.dispose();
     _responsibleController.dispose();
     _coffeeCountController.dispose();
@@ -137,7 +128,7 @@ class _CreditFormState extends State<CreditForm> {
   }
 
   /// Valide et soumet le formulaire.
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     
     // Validations manuelles supplémentaires
@@ -167,6 +158,8 @@ class _CreditFormState extends State<CreditForm> {
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
       final paymentMethod = _selectedPaymentMethod == 'Autre'
           ? _otherPaymentController.text
@@ -183,265 +176,403 @@ class _CreditFormState extends State<CreditForm> {
         'Nb de Cafés': int.parse(_coffeeCountController.text),
         'Moyen Paiement': paymentMethod,
       };
-      widget.onSubmit(formData);
+      
+      final error = await widget.onSubmit(formData);
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+
+        if (error == null) {
+          await showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Succès'),
+              content: const Text('Le crédit a bien été ajouté.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('OK'),
+                )
+              ],
+            ),
+          );
+
+          // Reset form
+          setState(() {
+             _selectedStudent = {};
+             _coffeeCountController.clear();
+             _amountController.clear();
+             _selectedPaymentMethod = null;
+             _otherPaymentController.clear();
+             _showOtherPaymentField = false;
+             // Keep Date and Responsable
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: Theme.of(context).colorScheme.error),
+          );
+        }
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de soumission: ${e.toString()}')),
-      );
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur de soumission: ${e.toString()}')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Créditer un étudiant'),
-      content: SingleChildScrollView(
-        child: Form(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth > 800;
+        final content = Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Champ Date
-              TextFormField(
-                focusNode: _dateFocusNode,
-                controller: _dateController,
-                decoration: const InputDecoration(
-                  labelText: 'Date (JJ/MM/AAAA) *',
-                  hintText: 'Ex: 21/08/2025',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'La date est obligatoire';
-                  }
-                  // Validation basique du format date
-                  final parts = value.split('/');
-                  if (parts.length != 3) {
-                    return 'Format invalide (JJ/MM/AAAA)';
-                  }
-                  final day = int.tryParse(parts[0]);
-                  final month = int.tryParse(parts[1]);
-                  final year = int.tryParse(parts[2]);
-                  if (day == null || month == null || year == null) {
-                    return 'Format invalide (JJ/MM/AAAA)';
-                  }
-                  if (day < 1 ||
-                      day > 31 ||
-                      month < 1 ||
-                      month > 12 ||
-                      year < 2000 ||
-                      year > 2100) {
-                    return 'Date invalide';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              // Champ Responsable
-              TextFormField(
-                controller: _responsibleController,
-                decoration: const InputDecoration(
-                  labelText: 'Responsable *',
-                  hintText: 'Ex: Dupont',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Le responsable est obligatoire';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+          child: isDesktop
+              ? _buildDesktopLayout()
+              : _buildMobileLayout(),
+        );
 
-              // Sélecteur d'étudiant
-              FormField<Map<String, dynamic>>(
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez sélectionner un étudiant';
-                  }
-                  return null;
-                },
-                builder: (FormFieldState<Map<String, dynamic>> state) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _openStudentSearch,
-                        icon: const Icon(Icons.search),
-                        label: const Text('Rechercher un étudiant'),
-                      ),
-                      if (state.hasError)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            state.errorText!,
-                            style: const TextStyle(
-                                color: Colors.red, fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-                initialValue: _selectedStudent,
-              ),
-
-              const SizedBox(height: 16),
-              
-              // Affichage des infos de l'étudiant sélectionné
-              if (_selectedStudent.isNotEmpty) ...[
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_selectedStudent['Nom']} ${_selectedStudent['Prenom']}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text('Classe: ${_selectedStudent['Classe + Groupe']}'),
-                        Text('N°: ${_selectedStudent['Numéro étudiant']}'),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              
-              // Champ Nombre de cafés
-              TextFormField(
-                controller: _coffeeCountController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre de cafés *',
-                  hintText: 'Ex: 10',
-                  border: OutlineInputBorder(),
-                  suffixText: 'cafés',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) => _calculateAmountFromCoffee(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Le nombre de cafés est obligatoire';
-                  }
-                  final count = int.tryParse(value);
-                  if (count == null || count <= 0) {
-                    return 'Veuillez saisir un nombre valide (> 0)';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              // Champ Montant
-              TextFormField(
-                controller: _amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Montant (€) *',
-                  hintText: 'Ex: 5.00',
-                  border: OutlineInputBorder(),
-                  suffixText: '€',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                ],
-                onChanged: (value) => _calculateCoffeeFromAmount(),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Le montant est obligatoire';
-                  }
-                  final amount = double.tryParse(value);
-                  if (amount == null || amount <= 0) {
-                    return 'Veuillez saisir un montant valide (> 0)';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              
-              // Sélecteur Moyen de règlement
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Moyen de règlement *',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6.0,
-                    runSpacing: 4.0,
-                    children: _paymentMethods.map((method) {
-                      return FilterChip(
-                        label: Text(method),
-                        selected: _selectedPaymentMethod == method,
-                        onSelected: (selected) => _handlePaymentMethodChange(
-                          selected ? method : null,
-                        ),
-                        selectedColor: Colors.blue,
-                        checkmarkColor: Colors.white,
-                        showCheckmark: false,
-                        labelStyle: TextStyle(
-                          color: _selectedPaymentMethod == method ? Colors.white : Colors.black,
-                          fontWeight: _selectedPaymentMethod == method ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  if (_selectedPaymentMethod == null)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        'Ce champ est obligatoire',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    ),
-                ],
-              ),
-              
-              // Champ "Autre" dynamique
-              if (_showOtherPaymentField) ...[
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _otherPaymentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Précisez le moyen de règlement *',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (_selectedPaymentMethod == 'Autre' &&
-                        (value == null || value.isEmpty)) {
-                      return 'Veuillez préciser le moyen de règlement';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-              const Padding(
-                padding: EdgeInsets.only(top: 8.0),
-                child: Text(
-                  '1 café = 0,50 €',
-                  style: TextStyle(fontStyle: FontStyle.italic),
-                ),
-              ),
-            ],
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: isDesktop ? 1000 : double.infinity),
+              child: content,
+            ),
           ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: widget.onCancel, child: const Text('Annuler')),
-        ElevatedButton(
-          onPressed: _submitForm,
-          child: const Text('Enregistrer'),
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Créditer un étudiant', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 20),
+        _buildDateSection(),
+        const SizedBox(height: 16),
+        _buildResponsibleSection(),
+        const SizedBox(height: 16),
+        _buildStudentSection(),
+        const SizedBox(height: 16),
+        _buildStudentInfo(),
+        const SizedBox(height: 16),
+        _buildCreditDetailsSection(),
+        const SizedBox(height: 16),
+        _buildPaymentSection(),
+        const SizedBox(height: 24),
+        _buildSubmitButton(),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Créditer un étudiant', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 32),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Colonne Gauche : Infos
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                   _buildDateSection(),
+                   const SizedBox(height: 24),
+                   _buildResponsibleSection(),
+                   const SizedBox(height: 24),
+                   _buildStudentSection(),
+                   const SizedBox(height: 24),
+                   _buildStudentInfo(),
+                ],
+              ),
+            ),
+            const SizedBox(width: 48),
+            // Colonne Droite : Crédit
+            Expanded(
+              flex: 5,
+              child: Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Détails du rechargement', style: Theme.of(context).textTheme.titleLarge),
+                      const SizedBox(height: 24),
+                      _buildCreditDetailsSection(),
+                      const SizedBox(height: 24),
+                      _buildPaymentSection(),
+                      const SizedBox(height: 32),
+                      _buildSubmitButton(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
+  }
+
+  Widget _buildDateSection() {
+    return TextFormField(
+      controller: _dateController,
+      decoration: const InputDecoration(
+        labelText: 'Date (JJ/MM/AAAA) *',
+        hintText: 'Ex: 21/08/2025',
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.calendar_today),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'La date est obligatoire';
+        }
+        // Validation basique du format date
+        final parts = value.split('/');
+        if (parts.length != 3) {
+          return 'Format invalide (JJ/MM/AAAA)';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildResponsibleSection() {
+    return TextFormField(
+      controller: _responsibleController,
+      decoration: const InputDecoration(
+        labelText: 'Responsable *',
+        hintText: 'Ex: Dupont',
+        border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.person),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Le responsable est obligatoire';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildStudentSection() {
+    return FormField<Map<String, dynamic>>(
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Veuillez sélectionner un étudiant';
+        }
+        return null;
+      },
+      builder: (FormFieldState<Map<String, dynamic>> state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton.icon(
+              onPressed: _isLoading ? null : _openStudentSearch,
+              icon: const Icon(Icons.search),
+              label: const Text('Rechercher un étudiant'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+              ),
+            ),
+            if (state.hasError)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  state.errorText!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              ),
+          ],
+        );
+      },
+      initialValue: _selectedStudent,
+    );
+  }
+
+  Widget _buildStudentInfo() {
+    if (_selectedStudent.isEmpty) return const SizedBox.shrink();
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 48, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  '${_selectedStudent['Nom']} ${_selectedStudent['Prenom']}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text('Classe: ${_selectedStudent['Classe + Groupe']}', style: Theme.of(context).textTheme.bodyLarge),
+                Text('N°: ${_selectedStudent['Numéro étudiant']}', style: Theme.of(context).textTheme.bodyMedium),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: _isLoading ? null : () => setState(() => _selectedStudent = {}),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreditDetailsSection() {
+    return Column(
+      children: [
+        TextFormField(
+          controller: _coffeeCountController,
+          decoration: const InputDecoration(
+            labelText: 'Nombre de cafés *',
+            hintText: 'Ex: 10',
+            border: OutlineInputBorder(),
+            suffixText: 'cafés',
+            prefixIcon: Icon(Icons.coffee),
+          ),
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          enabled: !_isLoading,
+          onChanged: (value) => _calculateAmountFromCoffee(),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Le nombre de cafés est obligatoire';
+            }
+            final count = int.tryParse(value);
+            if (count == null || count <= 0) {
+              return 'Veuillez saisir un nombre valide (> 0)';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _amountController,
+          decoration: const InputDecoration(
+            labelText: 'Montant (€) *',
+            hintText: 'Ex: 5.00',
+            border: OutlineInputBorder(),
+            suffixText: '€',
+            prefixIcon: Icon(Icons.euro),
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+          ],
+          enabled: !_isLoading,
+          onChanged: (value) => _calculateCoffeeFromAmount(),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Le montant est obligatoire';
+            }
+            final amount = double.tryParse(value);
+            if (amount == null || amount <= 0) {
+              return 'Veuillez saisir un montant valide (> 0)';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPaymentSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Moyen de règlement *',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: _paymentMethods.map((method) {
+            return FilterChip(
+              label: Text(method),
+              selected: _selectedPaymentMethod == method,
+              onSelected: _isLoading ? null : (selected) => _handlePaymentMethodChange(
+                selected ? method : null,
+              ),
+              selectedColor: Theme.of(context).colorScheme.primaryContainer,
+              checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
+              showCheckmark: true,
+            );
+          }).toList(),
+        ),
+        if (_selectedPaymentMethod == null)
+          const Padding(
+            padding: EdgeInsets.only(top: 4.0),
+            child: Text(
+              'Ce champ est obligatoire',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+        
+        // Champ "Autre" dynamique
+        if (_showOtherPaymentField) ...[
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _otherPaymentController,
+            decoration: const InputDecoration(
+              labelText: 'Précisez le moyen de règlement *',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (_selectedPaymentMethod == 'Autre' &&
+                  (value == null || value.isEmpty)) {
+                return 'Veuillez préciser le moyen de règlement';
+              }
+              return null;
+            },
+          ),
+        ],
+        const Padding(
+          padding: EdgeInsets.only(top: 8.0),
+          child: Text(
+            '1 café = 0,50 €',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : SizedBox(
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: _submitForm,
+              icon: const Icon(Icons.save),
+              label: const Text('Enregistrer le crédit'),
+              style: ElevatedButton.styleFrom(
+                textStyle: const TextStyle(fontSize: 18),
+              ),
+            ),
+          );
   }
 }
