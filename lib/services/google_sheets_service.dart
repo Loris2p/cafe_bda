@@ -155,6 +155,25 @@ class GoogleSheetsService {
     client = null;
   }
 
+  /// Vérifie si l'utilisateur authentifié a bien les droits de lecture sur le fichier.
+  ///
+  /// Effectue une lecture minimale (A1) pour valider l'accès.
+  ///
+  /// * Returns - `true` si l'accès est confirmé, `false` sinon.
+  Future<bool> checkSpreadsheetAccess() async {
+    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
+    if (spreadsheetId.isEmpty || sheetsApi == null) return false;
+    
+    try {
+      // Tente de lire une seule cellule pour vérifier les droits
+      await sheetsApi!.spreadsheets.values.get(spreadsheetId, 'A1');
+      return true;
+    } catch (e) {
+      // Si erreur 403 ou autre, on considère que l'accès est refusé
+      return false;
+    }
+  }
+
   /// Lit les données brutes d'une plage (Range) dans le Google Sheet.
   ///
   /// * [rangeName] - Le nom de la feuille ou de la plage nommée (ex: 'Étudiants', 'A1:B10').
