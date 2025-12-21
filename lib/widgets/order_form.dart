@@ -260,7 +260,7 @@ class OrderFormState extends State<OrderForm> {
                       )
                     else
                       DropdownButtonFormField<String>(
-                        value: _selectedCoffee,
+                        initialValue: _selectedCoffee,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                         ),
