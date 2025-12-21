@@ -38,8 +38,6 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
       appBar: AppBar(
         title: const Text('Gestion Café - BDA', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: const [
-          _SettingsButton(),
-          SizedBox(width: 8),
           _RefreshButton(),
           _LogoutButton(),
           _AuthLoadingIndicator(),
@@ -61,21 +59,23 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
           
           // Une fois authentifié, on s'assure que les données sont chargées
           // On utilise un Builder pour éviter de déclencher l'initData à chaque rebuild de AuthProvider
-          return const _AuthenticatedContent();
+          return const MainScaffold();
         },
       ),
     );
   }
 }
 
-class _AuthenticatedContent extends StatefulWidget {
-  const _AuthenticatedContent();
+class MainScaffold extends StatefulWidget {
+  const MainScaffold({super.key});
 
   @override
-  State<_AuthenticatedContent> createState() => _AuthenticatedContentState();
+  State<MainScaffold> createState() => _MainScaffoldState();
 }
 
-class _AuthenticatedContentState extends State<_AuthenticatedContent> {
+class _MainScaffoldState extends State<MainScaffold> {
+  int _selectedIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +84,101 @@ class _AuthenticatedContentState extends State<_AuthenticatedContent> {
       context.read<CafeDataProvider>().initData();
     });
   }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final destinations = <NavigationDestination>[
+      const NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home),
+        label: 'Accueil',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.shopping_cart_outlined),
+        selectedIcon: Icon(Icons.shopping_cart),
+        label: 'Commandes',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.account_balance_wallet_outlined),
+        selectedIcon: Icon(Icons.account_balance_wallet),
+        label: 'Crédits',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.settings_outlined),
+        selectedIcon: Icon(Icons.settings),
+        label: 'Paramètres',
+      ),
+    ];
+
+    final railDestinations = destinations.map((d) {
+      return NavigationRailDestination(
+        icon: d.icon,
+        selectedIcon: d.selectedIcon,
+        label: Text(d.label),
+      );
+    }).toList();
+
+    final pages = [
+      const _HomeTab(),
+      const _OrderTab(),
+      const _CreditTab(),
+      const _SettingsTab(),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth > 800) {
+          // Desktop Layout
+          return Scaffold(
+            body: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _selectedIndex,
+                  onDestinationSelected: _onItemTapped,
+                  labelType: NavigationRailLabelType.all,
+                  destinations: railDestinations,
+                  // Use a trailing widget for logout/refresh on desktop rail? 
+                  // For now, keep it simple, actions are in AppBar.
+                ),
+                const VerticalDivider(thickness: 1, width: 1),
+                Expanded(
+                  child: IndexedStack(
+                    index: _selectedIndex,
+                    children: pages,
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          // Mobile Layout
+          return Scaffold(
+            body: IndexedStack(
+              index: _selectedIndex,
+              children: pages,
+            ),
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onItemTapped,
+              destinations: destinations,
+            ),
+          );
+        }
+      },
+    );
+  }
+}
+
+// --- Tabs Content ---
+
+class _HomeTab extends StatelessWidget {
+  const _HomeTab();
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +199,7 @@ class _AuthenticatedContentState extends State<_AuthenticatedContent> {
             builder: (context) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 stopwatch.stop();
-                developer.log('GoogleSheetsScreen content build time: ${stopwatch.elapsedMilliseconds}ms');
+                developer.log('HomeTab content build time: ${stopwatch.elapsedMilliseconds}ms');
               });
               return const _DataDisplay();
             }
@@ -115,56 +210,117 @@ class _AuthenticatedContentState extends State<_AuthenticatedContent> {
   }
 }
 
-// --- Boutons de lAppBar ---
+class _OrderTab extends StatefulWidget {
+  const _OrderTab();
 
-class _SettingsButton extends StatelessWidget {
-  const _SettingsButton();
+  @override
+  State<_OrderTab> createState() => _OrderTabState();
+}
 
-  void _showAppSettingsDialog(BuildContext context) {
+class _OrderTabState extends State<_OrderTab> {
+  bool _isLoadingStock = false;
+  List<List<dynamic>>? _stockData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStock();
+  }
+
+  Future<void> _loadStock() async {
+    setState(() {
+      _isLoadingStock = true;
+    });
     final provider = context.read<CafeDataProvider>();
-    final sheetData = provider.sheetData;
-    
-    if (sheetData.isEmpty || sheetData.first.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chargez des données avant de configurer les colonnes.')),
-      );
-      return;
+    final stock = await provider.loadStockData();
+    if (mounted) {
+      setState(() {
+        _stockData = stock;
+        _isLoadingStock = false;
+      });
     }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) => Consumer<CafeDataProvider>(
-        builder: (context, provider, child) {
-          final visibility = provider.columnVisibility[provider.selectedTable] ?? [];
-          return AppSettingsDialog(
-            columnNames: sheetData.first,
-            visibility: visibility,
-            responsableName: provider.responsableName,
-            onVisibilityChanged: (index, isVisible) {
-              provider.setColumnVisibility(index, isVisible);
-            },
-            onResponsableNameSaved: (name) {
-              provider.saveResponsableName(name);
-            },
-          );
-        },
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Désactivé si non connecté ? Pas forcément, mais logique
-    final isAuthenticated = context.select<AuthProvider, bool>((p) => p.isAuthenticated);
-    if (!isAuthenticated) return const SizedBox.shrink();
+    final provider = context.watch<CafeDataProvider>();
 
-    return IconButton(
-      icon: const Icon(Icons.settings),
-      tooltip: 'Paramètres',
-      onPressed: () => _showAppSettingsDialog(context),
+    if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
+      return const Center(child: Text("Veuillez d'abord charger les données étudiants (Accueil)"));
+    }
+
+    if (_isLoadingStock) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_stockData == null || _stockData!.length < 2) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Erreur de chargement du stock ou stock vide."),
+            ElevatedButton(onPressed: _loadStock, child: const Text("Réessayer"))
+          ],
+        ),
+      );
+    }
+
+    return OrderForm(
+      studentsData: provider.studentsData,
+      stockData: _stockData!,
+      onSubmit: provider.handleOrderSubmission,
     );
   }
 }
+
+class _CreditTab extends StatelessWidget {
+  const _CreditTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<CafeDataProvider>();
+
+    if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
+       return const Center(child: Text("Veuillez d'abord charger les données étudiants (Accueil)"));
+    }
+
+    return CreditForm(
+      studentsData: provider.studentsData,
+      initialResponsableName: provider.responsableName,
+      onSubmit: provider.handleCreditSubmission,
+    );
+  }
+}
+
+class _SettingsTab extends StatelessWidget {
+  const _SettingsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<CafeDataProvider>();
+    final sheetData = provider.sheetData;
+
+    if (sheetData.isEmpty || sheetData.first.isEmpty) {
+      return const Center(child: Text("Chargez des données pour configurer les colonnes (Accueil)"));
+    }
+
+    final visibility = provider.columnVisibility[provider.selectedTable] ?? [];
+
+    return AppSettingsWidget(
+      columnNames: sheetData.first,
+      visibility: visibility,
+      responsableName: provider.responsableName,
+      onVisibilityChanged: (index, isVisible) {
+        provider.setColumnVisibility(index, isVisible);
+      },
+      onResponsableNameSaved: (name) {
+        provider.saveResponsableName(name);
+      },
+    );
+  }
+}
+
+// --- Boutons de lAppBar ---
 
 class _RefreshButton extends StatelessWidget {
   const _RefreshButton();
@@ -490,62 +646,6 @@ class _ActionButtonsGroup extends StatelessWidget {
     );
   }
 
-  void _showCreditForm(BuildContext context) {
-    final provider = context.read<CafeDataProvider>();
-    if (!_checkDataLoaded(context, provider)) return;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => CreditForm(
-        studentsData: provider.studentsData,
-        initialResponsableName: provider.responsableName,
-        onSubmit: (formData) async {
-          Navigator.of(context).pop();
-          final error = await provider.handleCreditSubmission(formData);
-          if (context.mounted) _showSnack(context, error, 'Crédit enregistré!');
-        },
-        onCancel: () => Navigator.of(context).pop(),
-      ),
-    );
-  }
-
-  void _showOrderForm(BuildContext context) async {
-    final provider = context.read<CafeDataProvider>();
-    if (!_checkDataLoaded(context, provider)) return;
-
-    final stockData = await provider.loadStockData();
-    if (stockData.isEmpty || stockData.length < 2) {
-      if (context.mounted) _showSnack(context, 'Erreur stock', null);
-      return;
-    }
-
-    if (!context.mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) => OrderForm(
-        studentsData: provider.studentsData,
-        stockData: stockData,
-        onSubmit: (formData) async {
-          Navigator.of(context).pop();
-          final error = await provider.handleOrderSubmission(formData);
-          if (context.mounted) _showSnack(context, error, 'Commande enregistrée!');
-        },
-        onCancel: () => Navigator.of(context).pop(),
-      ),
-    );
-  }
-
-  bool _checkDataLoaded(BuildContext context, CafeDataProvider provider) {
-    if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez d\'abord charger les données des étudiants')),
-      );
-      return false;
-    }
-    return true;
-  }
-
   void _showSnack(BuildContext context, String? error, String? successMsg) {
     if (error == null) {
       if (successMsg != null) {
@@ -561,7 +661,6 @@ class _ActionButtonsGroup extends StatelessWidget {
     return Consumer<CafeDataProvider>(
       builder: (context, provider, _) {
          final canAct = !provider.isLoading; // Auth checked by parent
-         final hasData = provider.studentsData.length >= 2;
          
          final buttonStyle = ElevatedButton.styleFrom(
            backgroundColor: Theme.of(context).colorScheme.tertiary,
@@ -572,23 +671,9 @@ class _ActionButtonsGroup extends StatelessWidget {
           children: [
             ElevatedButton.icon(
               style: buttonStyle,
-              onPressed: (canAct && hasData) ? () => _showOrderForm(context) : null,
-              icon: const Icon(Icons.shopping_cart),
-              label: const Text('Commande'),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              style: buttonStyle,
-              onPressed: (canAct && hasData) ? () => _showCreditForm(context) : null,
-              icon: const Icon(Icons.account_balance_wallet),
-              label: const Text('Crédit'),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              style: buttonStyle,
               onPressed: canAct ? () => _showRegistrationForm(context) : null,
               icon: const Icon(Icons.person_add),
-              label: const Text('Étudiant'),
+              label: const Text('Nouvel Étudiant'),
             ),
           ],
         );

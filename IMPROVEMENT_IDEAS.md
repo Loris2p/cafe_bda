@@ -4,11 +4,9 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 
 ## Améliorations UX/UI
 
-### Thème Sombre
-Implémenter un thème sombre complet pour l'application, offrant une expérience visuelle alternative et réduisant la fatigue oculaire, particulièrement utile dans des environnements peu éclairés.
 
 ### Optimisation de la Navigation
-*   **Barre de navigation inférieure (Bottom Navigation Bar)**: Pour une navigation plus intuitive sur mobile entre les principales sections (Accueil, Commandes, Crédits, Paramètres).
+*   **Barre de navigation inférieure (Bottom Navigation Bar)**: Pour une navigation plus intuitive sur mobile entre les principales sections (Accueil, Commandes, Crédits, Paramètres). (Fait)
 *   **Historique de navigation**: Faciliter le retour en arrière ou l'accès rapide aux écrans fréquemment visités.
 
 ### Améliorations des Formulaires
@@ -49,3 +47,4 @@ Ajouter la possibilité de traduire l'interface utilisateur dans différentes la
 *   **Notifications**: Envoyer des notifications pour des événements importants (stock faible, crédit étudiant bas, etc.).
 *   **Gestion des utilisateurs (au-delà de Google Auth)**: Permettre des rôles d'utilisateurs plus fins si nécessaire.
 *   **Historique des transactions détaillé**: Pour chaque étudiant, voir un historique complet de ses achats et rechargements.
+*   **Thème Sombre** :Implémenter un thème sombre complet pour l'application, offrant une expérience visuelle alternative et réduisant la fatigue oculaire, particulièrement utile dans des environnements peu éclairés.
