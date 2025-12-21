@@ -59,6 +59,7 @@ class OrderFormState extends State<OrderForm> {
     final now = DateTime.now();
     _dateController.text =
         '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+    _coffeeCountController.text = '1'; // Default to 1 coffee
   }
 
   @override
@@ -333,7 +334,11 @@ class OrderFormState extends State<OrderForm> {
                         ),
                         selectedColor: Colors.blue,
                         checkmarkColor: Colors.white,
-                        showCheckmark: true,
+                        showCheckmark: false,
+                        labelStyle: TextStyle(
+                          color: _selectedPaymentMethod == method ? Colors.white : Colors.black,
+                          fontWeight: _selectedPaymentMethod == method ? FontWeight.bold : FontWeight.normal,
+                        ),
                       );
                     }).toList(),
                   ),
