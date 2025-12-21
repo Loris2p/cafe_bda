@@ -1,8 +1,10 @@
+import 'package:cafe_bda/providers/auth_provider.dart';
+import 'package:cafe_bda/providers/cafe_data_provider.dart';
+import 'package:cafe_bda/services/google_sheets_service.dart';
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../providers/sheet_provider.dart';
 import '../widgets/app_settings_dialog.dart';
 import '../widgets/search_dialog.dart';
 import '../widgets/data_table_widget.dart';
@@ -11,14 +13,117 @@ import '../widgets/credit_form.dart';
 import '../widgets/order_form.dart';
 import 'dart:developer' as developer;
 
-class GoogleSheetsScreen extends StatelessWidget {
+class GoogleSheetsScreen extends StatefulWidget {
   const GoogleSheetsScreen({super.key});
 
+  @override
+  State<GoogleSheetsScreen> createState() => _GoogleSheetsScreenState();
+}
+
+class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
+  
+  @override
+  void initState() {
+    super.initState();
+    // Au démarrage, on initialise l'auth qui va tenter l'auto-login.
+    // Une fois connecté, on déclenchera le chargement des données.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().initialize();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestion Café - BDA', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: const [
+          _SettingsButton(),
+          SizedBox(width: 8),
+          _RefreshButton(),
+          _LogoutButton(),
+          _AuthLoadingIndicator(),
+        ],
+      ),
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          if (!authProvider.isAuthenticated) {
+            // Afficher le spinner si on est en train de vérifier l'auto-login
+            if (authProvider.isAuthenticating) {
+               return const Center(child: CircularProgressIndicator());
+            }
+            return const _WelcomePage();
+          }
+
+          if (authProvider.errorMessage == 'PERMISSION_DENIED') {
+            return const _AccessDeniedPage();
+          }
+          
+          // Une fois authentifié, on s'assure que les données sont chargées
+          // On utilise un Builder pour éviter de déclencher l'initData à chaque rebuild de AuthProvider
+          return const _AuthenticatedContent();
+        },
+      ),
+    );
+  }
+}
+
+class _AuthenticatedContent extends StatefulWidget {
+  const _AuthenticatedContent();
+
+  @override
+  State<_AuthenticatedContent> createState() => _AuthenticatedContentState();
+}
+
+class _AuthenticatedContentState extends State<_AuthenticatedContent> {
+  @override
+  void initState() {
+    super.initState();
+    // Charger les données dès que l'écran authentifié est monté
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CafeDataProvider>().initData();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Benchmark : Log build start
+    final stopwatch = Stopwatch()..start();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const _HeaderControls(),
+          const SizedBox(height: 16),
+          const _UnifiedToolbar(),
+          const SizedBox(height: 20),
+          const _StatusAndErrorSection(),
+          Expanded(child: Builder(
+            builder: (context) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                stopwatch.stop();
+                developer.log('GoogleSheetsScreen content build time: ${stopwatch.elapsedMilliseconds}ms');
+              });
+              return const _DataDisplay();
+            }
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+// --- Boutons de lAppBar ---
+
+class _SettingsButton extends StatelessWidget {
+  const _SettingsButton();
+
   void _showAppSettingsDialog(BuildContext context) {
-    final provider = context.read<SheetProvider>();
+    final provider = context.read<CafeDataProvider>();
     final sheetData = provider.sheetData;
     
-    // Ne pas ouvrir si les colonnes ne sont pas chargées
     if (sheetData.isEmpty || sheetData.first.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Chargez des données avant de configurer les colonnes.')),
@@ -28,7 +133,7 @@ class GoogleSheetsScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) => Consumer<SheetProvider>(
+      builder: (BuildContext dialogContext) => Consumer<CafeDataProvider>(
         builder: (context, provider, child) {
           final visibility = provider.columnVisibility[provider.selectedTable] ?? [];
           return AppSettingsDialog(
@@ -49,115 +154,91 @@ class GoogleSheetsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Benchmark : Log build start
-    final stopwatch = Stopwatch()..start();
-    
-    // On accède au provider sans écouter (listen: false) pour les appels de méthodes
-    final provider = context.read<SheetProvider>();
+    // Désactivé si non connecté ? Pas forcément, mais logique
+    final isAuthenticated = context.select<AuthProvider, bool>((p) => p.isAuthenticated);
+    if (!isAuthenticated) return const SizedBox.shrink();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion Café - BDA', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          // Settings Button
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Paramètres',
-            onPressed: () => _showAppSettingsDialog(context),
-          ),
-          const SizedBox(width: 8),
-
-          // Refresh Button (moved to AppBar)
-          Selector<SheetProvider, (bool, bool)>(
-            selector: (_, p) => (p.isLoading, p.isAuthenticated),
-            builder: (context, data, _) {
-              final isLoading = data.$1;
-              final isAuthenticated = data.$2;
-              if (!isAuthenticated) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Actualiser',
-                onPressed: isLoading
-                    ? null
-                    : () => context.read<SheetProvider>().readTable(forceRefresh: true),
-              );
-            },
-          ),
-          // Logout Button
-          Selector<SheetProvider, bool>(
-            selector: (_, p) => p.isAuthenticated,
-            builder: (_, isAuthenticated, __) {
-              if (!isAuthenticated) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.logout),
-                onPressed: () async {
-                  await provider.logout();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Déconnexion réussie')));
-                  }
-                },
-                tooltip: 'Déconnexion',
-              );
-            },
-          ),
-          Selector<SheetProvider, bool>(
-            selector: (_, p) => p.isAuthenticating,
-            builder: (_, isAuthenticating, __) {
-               return isAuthenticating 
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
-                  )
-                : const SizedBox.shrink();
-            },
-          ),
-        ],
-      ),
-      body: Consumer<SheetProvider>(
-        builder: (context, provider, _) {
-          if (!provider.isAuthenticated) {
-            return const _WelcomePage();
-          }
-
-          if (provider.errorMessage == 'PERMISSION_DENIED') {
-            return const _AccessDeniedPage();
-          }
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                // Top Section: Table Selector
-                const _HeaderControls(),
-                const SizedBox(height: 16),
-                
-                // Unified Toolbar (Search + Actions)
-                const _UnifiedToolbar(),
-                const SizedBox(height: 20),
-                
-                // Status Messages (Errors, Loading)
-                const _StatusAndErrorSection(),
-                
-                // Data Table
-                Expanded(child: Builder(
-                  builder: (context) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      stopwatch.stop();
-                      developer.log('GoogleSheetsScreen build time: ${stopwatch.elapsedMilliseconds}ms');
-                    });
-                    return const _DataDisplay();
-                  }
-                )),
-              ],
-            ),
-          );
-        },
-      ),
+    return IconButton(
+      icon: const Icon(Icons.settings),
+      tooltip: 'Paramètres',
+      onPressed: () => _showAppSettingsDialog(context),
     );
   }
 }
+
+class _RefreshButton extends StatelessWidget {
+  const _RefreshButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector2<CafeDataProvider, AuthProvider, (bool, bool)>(
+      selector: (_, data, auth) => (data.isLoading, auth.isAuthenticated),
+      builder: (context, data, _) {
+        final isLoading = data.$1;
+        final isAuthenticated = data.$2;
+        
+        if (!isAuthenticated) return const SizedBox.shrink();
+        
+        return IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Actualiser',
+          onPressed: isLoading
+              ? null
+              : () => context.read<CafeDataProvider>().readTable(forceRefresh: true),
+        );
+      },
+    );
+  }
+}
+
+class _LogoutButton extends StatelessWidget {
+  const _LogoutButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<AuthProvider, bool>(
+      selector: (_, p) => p.isAuthenticated,
+      builder: (_, isAuthenticated, __) {
+        if (!isAuthenticated) return const SizedBox.shrink();
+        return IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () async {
+            // On vide les données d'abord
+            context.read<CafeDataProvider>().clearData();
+            // Puis on déconnecte
+            await context.read<AuthProvider>().logout();
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Déconnexion réussie')));
+            }
+          },
+          tooltip: 'Déconnexion',
+        );
+      },
+    );
+  }
+}
+
+class _AuthLoadingIndicator extends StatelessWidget {
+  const _AuthLoadingIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<AuthProvider, bool>(
+      selector: (_, p) => p.isAuthenticating,
+      builder: (_, isAuthenticating, __) {
+         return isAuthenticating 
+          ? const Padding(
+              padding: EdgeInsets.all(12.0),
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+            )
+          : const SizedBox.shrink();
+      },
+    );
+  }
+}
+
+// --- Pages d'état ---
 
 class _AccessDeniedPage extends StatelessWidget {
   const _AccessDeniedPage();
@@ -186,7 +267,7 @@ class _AccessDeniedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<SheetProvider>();
+    final sheetsService = context.read<GoogleSheetsService>();
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -202,7 +283,7 @@ class _AccessDeniedPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Votre compte Google (${provider.sheetsService.currentUser?.email}) n\'a pas les permissions pour accéder à la feuille de calcul.',
+              'Votre compte Google (${sheetsService.currentUser?.email}) n\'a pas les permissions pour accéder à la feuille de calcul.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.grey),
             ),
@@ -253,7 +334,7 @@ class _WelcomePage extends StatelessWidget {
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 48),
-            Selector<SheetProvider, bool>(
+            Selector<AuthProvider, bool>(
               selector: (_, p) => p.isAuthenticating,
               builder: (context, isAuthenticating, _) {
                 if (isAuthenticating) {
@@ -261,11 +342,12 @@ class _WelcomePage extends StatelessWidget {
                 }
                 return ElevatedButton.icon(
                   onPressed: () async {
-                    final provider = context.read<SheetProvider>();
+                    final provider = context.read<AuthProvider>();
                     final error = await provider.authenticate();
                     if (context.mounted && error == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Authentification réussie!')));
+                      // Le chargement des données se fera via le changement d'état dans le parent
                     }
                   },
                   icon: const Icon(Icons.login),
@@ -277,6 +359,17 @@ class _WelcomePage extends StatelessWidget {
                 );
               },
             ),
+            Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                if (auth.errorMessage.isNotEmpty && auth.errorMessage != 'PERMISSION_DENIED') {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Text(auth.errorMessage, style: const TextStyle(color: Colors.red)),
+                  );
+                }
+                return const SizedBox.shrink();
+              }
+            )
           ],
         ),
       ),
@@ -297,7 +390,7 @@ class _HeaderControls extends StatelessWidget {
           children: [
             Text('Tableau Actif', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[600])),
             const SizedBox(height: 8),
-            Consumer<SheetProvider>(
+            Consumer<CafeDataProvider>(
               builder: (context, provider, _) {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -334,25 +427,21 @@ class _HeaderControls extends StatelessWidget {
   }
 }
 
-/// Barre d'outils unifiée combinant Recherche et Actions.
-/// S'adapte à la largeur de l'écran.
 class _UnifiedToolbar extends StatelessWidget {
   const _UnifiedToolbar();
 
   @override
   Widget build(BuildContext context) {
-    return Selector<SheetProvider, String>(
+    return Selector<CafeDataProvider, String>(
       selector: (_, p) => p.selectedTable,
       builder: (context, selectedTable, _) {
         if (selectedTable != AppConstants.studentsTable) return const SizedBox.shrink();
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            // Seuil desktop/mobile (800px)
             final isWide = constraints.maxWidth > 800;
 
             if (isWide) {
-              // Mode Desktop : Recherche à gauche, Actions à droite sur la même ligne
               return const Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -362,13 +451,12 @@ class _UnifiedToolbar extends StatelessWidget {
                 ],
               );
             } else {
-              // Mode Mobile : Recherche en haut, Actions en bas (scrollable horizontalement et centré)
               return const Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _SearchSection(),
                   SizedBox(height: 12),
-                  Center( // Center pour le groupe de boutons scrollable
+                  Center(
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: _ActionButtonsGroup(),
@@ -384,12 +472,11 @@ class _UnifiedToolbar extends StatelessWidget {
   }
 }
 
-/// Groupe de boutons d'action (Étudiant, Crédit, Commande)
 class _ActionButtonsGroup extends StatelessWidget {
   const _ActionButtonsGroup();
 
   void _showRegistrationForm(BuildContext context) {
-    final provider = context.read<SheetProvider>();
+    final provider = context.read<CafeDataProvider>();
     showDialog(
       context: context,
       builder: (BuildContext context) => RegistrationForm(
@@ -404,7 +491,7 @@ class _ActionButtonsGroup extends StatelessWidget {
   }
 
   void _showCreditForm(BuildContext context) {
-    final provider = context.read<SheetProvider>();
+    final provider = context.read<CafeDataProvider>();
     if (!_checkDataLoaded(context, provider)) return;
 
     showDialog(
@@ -423,7 +510,7 @@ class _ActionButtonsGroup extends StatelessWidget {
   }
 
   void _showOrderForm(BuildContext context) async {
-    final provider = context.read<SheetProvider>();
+    final provider = context.read<CafeDataProvider>();
     if (!_checkDataLoaded(context, provider)) return;
 
     final stockData = await provider.loadStockData();
@@ -449,7 +536,7 @@ class _ActionButtonsGroup extends StatelessWidget {
     );
   }
 
-  bool _checkDataLoaded(BuildContext context, SheetProvider provider) {
+  bool _checkDataLoaded(BuildContext context, CafeDataProvider provider) {
     if (provider.studentsData.isEmpty || provider.studentsData.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez d\'abord charger les données des étudiants')),
@@ -471,12 +558,11 @@ class _ActionButtonsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SheetProvider>(
+    return Consumer<CafeDataProvider>(
       builder: (context, provider, _) {
-         final canAct = !provider.isLoading && provider.isAuthenticated;
+         final canAct = !provider.isLoading; // Auth checked by parent
          final hasData = provider.studentsData.length >= 2;
          
-         // Style commun pour les boutons d'action (Couleur Tertiaire)
          final buttonStyle = ElevatedButton.styleFrom(
            backgroundColor: Theme.of(context).colorScheme.tertiary,
            foregroundColor: Theme.of(context).colorScheme.onTertiary,
@@ -484,7 +570,6 @@ class _ActionButtonsGroup extends StatelessWidget {
 
          return Row(
           children: [
-            
             ElevatedButton.icon(
               style: buttonStyle,
               onPressed: (canAct && hasData) ? () => _showOrderForm(context) : null,
@@ -526,7 +611,7 @@ class _SearchSectionState extends State<_SearchSection> {
     final searchTerm = _searchController.text.trim();
     if (searchTerm.isEmpty) return;
 
-    final provider = context.read<SheetProvider>();
+    final provider = context.read<CafeDataProvider>();
     final results = await provider.searchStudent(searchTerm);
 
     if (!mounted) return;
@@ -582,7 +667,7 @@ class _StatusAndErrorSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SheetProvider>(
+    return Consumer<CafeDataProvider>(
       builder: (context, provider, _) {
         if (provider.errorMessage.isNotEmpty) {
           return Container(
@@ -612,7 +697,6 @@ class _StatusAndErrorSection extends StatelessWidget {
              child: Center(child: CircularProgressIndicator()),
            );
         }
-        // Compteur de résultats supprimé ici (déplacé dans la popup)
         return const SizedBox.shrink();
       },
     );
@@ -624,8 +708,8 @@ class _DataDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.read<SheetProvider>();
-    return Selector<SheetProvider, (List<List<dynamic>>, String, int?, bool, Map<String, List<bool>>)>(
+    final provider = context.read<CafeDataProvider>();
+    return Selector<CafeDataProvider, (List<List<dynamic>>, String, int?, bool, Map<String, List<bool>>)>(
       selector: (_, p) => (p.sheetData, p.selectedTable, p.sortColumnIndex, p.sortAscending, p.columnVisibility),
       builder: (context, data, _) {
         final sheetData = data.$1;
@@ -638,7 +722,6 @@ class _DataDisplay extends StatelessWidget {
           return const Center(child: Text("Pas de données à afficher."));
         }
 
-        // --- Logique de filtrage et de mappage d'index ---
         final visibilityList = columnVisibility[selectedTable] ?? [];
         
         final List<int> visibleOriginalIndices = [];
@@ -649,7 +732,6 @@ class _DataDisplay extends StatelessWidget {
             }
           }
         } else if (sheetData.isNotEmpty) {
-          // Fallback si la visibilité n'est pas encore définie: tout afficher
           visibleOriginalIndices.addAll(List.generate(sheetData.first.length, (i) => i));
         }
 
@@ -658,7 +740,6 @@ class _DataDisplay extends StatelessWidget {
         }
 
         final visibleData = sheetData.map((row) {
-          // Assure que la ligne a assez d'éléments pour éviter une erreur de plage
           return visibleOriginalIndices.map((originalIndex) => originalIndex < row.length ? row[originalIndex] : null).toList();
         }).toList();
 
@@ -666,12 +747,11 @@ class _DataDisplay extends StatelessWidget {
         if (sortColumnIndex != null) {
           visibleSortColumnIndex = visibleOriginalIndices.indexOf(sortColumnIndex);
           if (visibleSortColumnIndex == -1) {
-            visibleSortColumnIndex = null; // La colonne triée est masquée
+            visibleSortColumnIndex = null;
           }
         }
 
         final bool isStockTable = selectedTable == AppConstants.stockTable;
-        // --- Fin de la logique ---
 
         return Container(
           decoration: BoxDecoration(
@@ -679,7 +759,7 @@ class _DataDisplay extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               )

@@ -73,7 +73,8 @@ Le projet est structuré pour séparer les préoccupations, ce qui le rend plus 
     - `data_table_widget.dart` : Affiche les données sous forme de tableau.
     - `registration_form.dart`, `credit_form.dart`, `order_form.dart` : Formulaires pour ajouter de nouvelles données.
   - **`providers/`** : Contient les fournisseurs de gestion d'état (`ChangeNotifier`).
-    - `sheet_provider.dart` : Gère l'état et la logique métier de l'application.
+    - `auth_provider.dart` : Gère l'authentification.
+- `cafe_data_provider.dart` : Gère les données métier (Étudiants, Crédits...).
   - **`services/`** : Contient les services qui interagissent avec des API externes.
     - `google_sheets_service.dart` : Un service générique pour interagir avec l'API Google Sheets.
   - **`repositories/`** : Contient les dépôts qui encapsulent la logique métier.
