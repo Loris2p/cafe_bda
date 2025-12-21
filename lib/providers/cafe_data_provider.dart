@@ -241,6 +241,7 @@ class CafeDataProvider with ChangeNotifier {
     } catch (e) {
         if (e is DetailedApiRequestError && e.status == 403) {
           _errorMessage = 'PERMISSION_DENIED';
+          clearData(); // Vide les données locales en cas de perte de droits
         } else {
           _errorMessage = e.toString();
         }

@@ -28,7 +28,15 @@ class AuthProvider with ChangeNotifier {
     _isAuthenticating = true;
     notifyListeners();
 
-    await _sheetsService.tryAutoAuthenticate();
+    final autoAuthSuccess = await _sheetsService.tryAutoAuthenticate();
+    
+    if (autoAuthSuccess) {
+      final hasAccess = await _sheetsService.checkSpreadsheetAccess();
+      if (!hasAccess) {
+        await _sheetsService.logout();
+        _errorMessage = 'PERMISSION_DENIED';
+      }
+    }
     
     _isAuthenticating = false;
     notifyListeners();
@@ -48,12 +56,26 @@ class AuthProvider with ChangeNotifier {
 
       final error = await _sheetsService.authenticate();
       
-      _isAuthenticating = false;
       if (error != null) {
+        _isAuthenticating = false;
         _errorMessage = error;
+        notifyListeners();
+        return error;
       }
+      
+      // Vérification des droits d'accès après connexion
+      final hasAccess = await _sheetsService.checkSpreadsheetAccess();
+      if (!hasAccess) {
+        await logout();
+        _isAuthenticating = false;
+        _errorMessage = 'PERMISSION_DENIED';
+        notifyListeners();
+        return _errorMessage;
+      }
+      
+      _isAuthenticating = false;
       notifyListeners();
-      return error;
+      return null;
     } catch (e) {
       _isAuthenticating = false;
       _errorMessage = 'Erreur Auth: ${e.toString()}';

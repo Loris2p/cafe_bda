@@ -1,3 +1,22 @@
+## [1.6.1] - 2025-12-21
+
+### Changed
+- **Refactorisation majeure des Providers**:
+  - La classe `SheetProvider` a été divisée en deux providers spécialisés : `AuthProvider` (pour l'authentification) et `CafeDataProvider` (pour la gestion des données et de l'état UI lié aux tableaux).
+  - Cela améliore la modularité, la testabilité et la maintenabilité du code.
+  - L'injection de dépendances a été mise à jour dans `main.dart` et les écrans/widgets ont été adaptés en conséquence.
+- **Sécurité et Révocation d'accès**:
+  - **Vérification d'accès stricte**: Après chaque authentification (automatique ou manuelle), l'application vérifie explicitement les droits de lecture sur la feuille de calcul via un appel API minimal. Si l'accès est refusé (erreur 403), l'utilisateur est immédiatement déconnecté.
+  - **Gestion des erreurs 403 en cours d'utilisation**: En cas de détection d'une erreur de permission (403 Forbidden) lors d'une opération sur les données, toutes les données locales sont effacées et l'utilisateur est déconnecté pour garantir que des informations non autorisées ne persistent pas.
+- **Optimisation de la taille de l'application (Android)**:
+  - Activation des options `isMinifyEnabled` et `isShrinkResources` dans le `build.gradle.kts` Android pour le build `release`. Cela réduit significativement la taille de l'APK en éliminant le code et les ressources inutilisées.
+
+### Fixed
+- **Stabilité de la disposition des boutons**:
+  - Les `FilterChip`s utilisés pour la sélection des moyens de paiement et de crédit ne changent plus de taille lors de la sélection/désélection. La coche (`showCheckmark`) a été désactivée et la sélection est maintenant indiquée par le changement de style du texte (couleur et gras).
+- **Valeur par défaut du "Nombre de cafés"**: Le champ "Nombre de cafés" dans le formulaire de commande est maintenant pré-rempli avec la valeur `1` par défaut.
+- **Avertissement de compilation**: Correction de l'utilisation dépréciée de `withOpacity` par `withValues` pour les couleurs.
+
 ## [1.6.0] - 2025-12-14
 
 ### Added
