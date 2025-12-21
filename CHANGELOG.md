@@ -1,3 +1,8 @@
+## [1.6.2] - 2025-12-21
+
+### Added
+- **Historique de Navigation**: Ajout d'une gestion de l'historique de navigation au sein de l'application. Le bouton "Retour" permet désormais de revenir à l'onglet précédemment consulté (ex: basculer entre "Commandes" et "Crédit").
+
 ## [1.6.1] - 2025-12-21
 
 ### Changed

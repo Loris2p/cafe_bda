@@ -75,6 +75,7 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
+  final List<int> _history = [0];
 
   @override
   void initState() {
@@ -86,8 +87,18 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   void _onItemTapped(int index) {
+    if (_selectedIndex == index) return;
     setState(() {
       _selectedIndex = index;
+      _history.add(index);
+    });
+  }
+
+  void _handlePop(bool didPop) {
+    if (didPop) return;
+    setState(() {
+      _history.removeLast();
+      _selectedIndex = _history.last;
     });
   }
 
@@ -131,46 +142,50 @@ class _MainScaffoldState extends State<MainScaffold> {
       const _SettingsTab(),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth > 800) {
-          // Desktop Layout
-          return Scaffold(
-            body: Row(
-              children: [
-                NavigationRail(
-                  selectedIndex: _selectedIndex,
-                  onDestinationSelected: _onItemTapped,
-                  labelType: NavigationRailLabelType.all,
-                  destinations: railDestinations,
-                  // Use a trailing widget for logout/refresh on desktop rail? 
-                  // For now, keep it simple, actions are in AppBar.
-                ),
-                const VerticalDivider(thickness: 1, width: 1),
-                Expanded(
-                  child: IndexedStack(
-                    index: _selectedIndex,
-                    children: pages,
+    return PopScope(
+      canPop: _history.length <= 1,
+      onPopInvoked: _handlePop,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 800) {
+            // Desktop Layout
+            return Scaffold(
+              body: Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: _selectedIndex,
+                    onDestinationSelected: _onItemTapped,
+                    labelType: NavigationRailLabelType.all,
+                    destinations: railDestinations,
+                    // Use a trailing widget for logout/refresh on desktop rail? 
+                    // For now, keep it simple, actions are in AppBar.
                   ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          // Mobile Layout
-          return Scaffold(
-            body: IndexedStack(
-              index: _selectedIndex,
-              children: pages,
-            ),
-            bottomNavigationBar: NavigationBar(
-              selectedIndex: _selectedIndex,
-              onDestinationSelected: _onItemTapped,
-              destinations: destinations,
-            ),
-          );
-        }
-      },
+                  const VerticalDivider(thickness: 1, width: 1),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _selectedIndex,
+                      children: pages,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            // Mobile Layout
+            return Scaffold(
+              body: IndexedStack(
+                index: _selectedIndex,
+                children: pages,
+              ),
+              bottomNavigationBar: NavigationBar(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: _onItemTapped,
+                destinations: destinations,
+              ),
+            );
+          }
+        },
+      ),
     );
   }
 }

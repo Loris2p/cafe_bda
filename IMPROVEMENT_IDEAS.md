@@ -7,9 +7,10 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 
 ### Optimisation de la Navigation
 *   **Barre de navigation inférieure (Bottom Navigation Bar)**: Pour une navigation plus intuitive sur mobile entre les principales sections (Accueil, Commandes, Crédits, Paramètres). (Fait)
-*   **Historique de navigation**: Faciliter le retour en arrière ou l'accès rapide aux écrans fréquemment visités.
+*   **Historique de navigation**: Faciliter le retour en arrière ou l'accès rapide aux écrans fréquemment visités. (Fait)
 
 ### Améliorations des Formulaires
+*   **Gestion des dates** : Modification de la 
 *   **Validation en temps réel**: Fournir un feedback immédiat aux utilisateurs pendant la saisie.
 *   **Autocomplétion intelligente**: Améliorer l'autocomplétion des noms d'étudiants ou de cafés.
 
