@@ -387,7 +387,11 @@ class _CreditFormState extends State<CreditForm> {
                         ),
                         selectedColor: Colors.blue,
                         checkmarkColor: Colors.white,
-                        showCheckmark: true,
+                        showCheckmark: false,
+                        labelStyle: TextStyle(
+                          color: _selectedPaymentMethod == method ? Colors.white : Colors.black,
+                          fontWeight: _selectedPaymentMethod == method ? FontWeight.bold : FontWeight.normal,
+                        ),
                       );
                     }).toList(),
                   ),
