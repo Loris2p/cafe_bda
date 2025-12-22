@@ -67,6 +67,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.14.4
+  mockito: ^5.6.1
+  build_runner: ^2.10.4
 
 msix_config:
   vs_build_path: "C:/Program Files (x86)/Microsoft Visual Studio/Community"  # Chemin sans espaces

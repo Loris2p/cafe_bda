@@ -1,30 +1,62 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:cafe_bda/providers/auth_provider.dart';
+import 'package:cafe_bda/providers/cafe_data_provider.dart';
+import 'package:cafe_bda/screens/google_sheets_screen.dart';
+import 'package:cafe_bda/services/google_sheets_service.dart';
+import 'package:cafe_bda/repositories/cafe_repository.dart';
+import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+import 'package:provider/provider.dart';
 
-import 'package:cafe_bda/main.dart';
+import 'mocks.mocks.dart';
+
+// Manual Mock for AuthProvider as simpler alternative to generated one for this test
+class MockAuthProvider extends Mock implements AuthProvider {
+  @override
+  bool get isAuthenticated => true;
+  @override
+  bool get isAuthenticating => false;
+  @override
+  String get errorMessage => '';
+  @override
+  Future<void> initialize() async {}
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App smoke test - loads Dashboard', (WidgetTester tester) async {
+    // Mocks
+    final mockDataProvider = MockCafeDataProvider();
+    final mockAuthProvider = MockAuthProvider();
+    final mockSheetsService = MockGoogleSheetsService();
+    final mockRepository = MockCafeRepository();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Stubs
+    when(mockDataProvider.availableTables).thenReturn(['Étudiants']);
+    when(mockDataProvider.selectedTable).thenReturn(AppConstants.studentsTable);
+    when(mockDataProvider.isLoading).thenReturn(false);
+    when(mockDataProvider.errorMessage).thenReturn('');
+    when(mockDataProvider.sheetData).thenReturn([]);
+    when(mockDataProvider.studentsData).thenReturn([]);
+    when(mockDataProvider.columnVisibility).thenReturn({});
+    when(mockDataProvider.initData()).thenAnswer((_) async {});
+    when(mockDataProvider.loadStockData()).thenAnswer((_) async => []);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<GoogleSheetsService>.value(value: mockSheetsService),
+          Provider<CafeRepository>.value(value: mockRepository),
+          ChangeNotifierProvider<AuthProvider>.value(value: mockAuthProvider),
+          ChangeNotifierProvider<CafeDataProvider>.value(value: mockDataProvider),
+        ],
+        child: const MaterialApp(
+          home: GoogleSheetsScreen(),
+        ),
+      ),
+    );
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify Dashboard is shown
+    expect(find.text('Bienvenue au Café BDA'), findsOneWidget);
   });
 }
