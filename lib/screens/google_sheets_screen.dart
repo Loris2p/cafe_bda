@@ -792,7 +792,12 @@ class _WelcomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.coffee, size: 80, color: Theme.of(context).colorScheme.primary),
+            Image.asset(
+              'assets/icon/logo-bda.png',
+              height: 120,
+              errorBuilder: (context, error, stackTrace) => 
+                  Icon(Icons.coffee, size: 80, color: Theme.of(context).colorScheme.primary),
+            ),
             const SizedBox(height: 24),
             Text(
               'Bienvenue sur Gestion Café',

@@ -27,8 +27,8 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 ## Qualité et Maintenabilité du Code
 
 ### Couverture de Tests
-*   **Tests unitaires**: Accroître la couverture des tests unitaires pour la logique métier des providers, services et repositories. [1]
-*   **Tests de widgets**: Ajouter des tests pour vérifier le comportement des composants UI. [1]
+*   **Tests unitaires**: Accroître la couverture des tests unitaires pour la logique métier des providers, services et repositories. (Fait)
+*   **Tests de widgets**: Ajouter des tests pour vérifier le comportement des composants UI. (Fait)
 *   **Tests d'intégration**: Mettre en place des tests d'intégration pour les flux critiques de l'application. [2]
 
 ### Documentation Technique

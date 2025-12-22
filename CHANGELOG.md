@@ -6,6 +6,10 @@
   - Cartes d'accès rapide colorées pour les principales sections (Étudiants, Stocks, Paiements, Crédits).
   - Barre de recherche intégrée directement sur l'accueil pour trouver rapidement un étudiant.
   - Bouton "Retour" pour revenir facilement au tableau de bord depuis un tableau de données.
+- **Suite de Tests Complète** :
+  - Mise en place d'une infrastructure de tests unitaires et widgets robuste avec `flutter_test` et `mockito`.
+  - Couverture des repositories (`CafeRepository`) et providers (`CafeDataProvider`) pour sécuriser la logique métier.
+  - Tests d'intégration UI pour le nouveau Dashboard.
 
 ### Optimized
 - **Performance d'affichage des tableaux** : 
