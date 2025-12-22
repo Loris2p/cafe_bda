@@ -204,7 +204,7 @@ class GoogleSheetsService {
     String rangeName,
     List<dynamic> rowData,
     {
-    bool useFormulas = false,
+    String valueInputOption = 'RAW',
   } ) async {
     final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
     if (spreadsheetId.isEmpty || sheetsApi == null) {
@@ -216,7 +216,7 @@ class GoogleSheetsService {
         valueRange,
         spreadsheetId,
         rangeName,
-        valueInputOption: useFormulas ? 'USER_ENTERED' : 'RAW',
+        valueInputOption: valueInputOption,
       );
     } catch (e) {
       rethrow;

@@ -1,6 +1,7 @@
 import 'package:cafe_bda/widgets/student_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 /// Formulaire pour saisir une nouvelle commande de café.
 ///
@@ -53,9 +54,7 @@ class OrderFormState extends State<OrderForm> {
   void initState() {
     super.initState();
     // Initialise avec la date et l'heure actuelles
-    final now = DateTime.now();
-    _dateController.text =
-        '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+    _dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
     _coffeeCountController.text = '1'; // Default to 1 coffee
   }
 
@@ -179,8 +178,7 @@ class OrderFormState extends State<OrderForm> {
             _selectedCoffee = null;
             _selectedPaymentMethod = null;
             _coffeeCountController.text = '1';
-            final now = DateTime.now();
-            _dateController.text = '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}';
+            _dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
           });
         } else {
           // Erreur retournée par le provider
@@ -306,10 +304,30 @@ class OrderFormState extends State<OrderForm> {
     return TextFormField(
       controller: _dateController,
       decoration: const InputDecoration(
-        labelText: 'Date et heure *',
+        labelText: 'Date et Heure *',
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.calendar_today),
       ),
+      readOnly: true,
+      onTap: () async {
+        final now = DateTime.now();
+        final date = await showDatePicker(
+          context: context,
+          initialDate: now,
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2100),
+        );
+        if (date == null) return;
+        
+        final time = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(now),
+        );
+        if (time == null) return;
+
+        final newDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+        _dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(newDate);
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'La date et heure sont obligatoires';
@@ -410,7 +428,7 @@ class OrderFormState extends State<OrderForm> {
           )
         else
           DropdownButtonFormField<String>(
-            value: _selectedCoffee,
+            initialValue: _selectedCoffee,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),

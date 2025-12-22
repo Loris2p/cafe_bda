@@ -1,9 +1,16 @@
-## [1.6.2] - 2025-12-21
+## [6.03] - 2025-12-21
+### Changed
+- **Gestion des dates dans les forms** :
+  - Les dates sont maintenant gérées de la même manière dans les deux tableaux et sont triable normalement. 
+### Fixed
+- **Crash au changement de tableau**: Correction d'un bug critique où l'application plantait lors du changement de tableau (ex: passer de "Étudiants" à "Stocks"). Le problème était dû à une persistance temporaire des données de l'ancien tableau avant le chargement du nouveau, créant une incompatibilité d'affichage.
+
+## [6.01] - 2025-12-21
 
 ### Added
 - **Historique de Navigation**: Ajout d'une gestion de l'historique de navigation au sein de l'application. Le bouton "Retour" permet désormais de revenir à l'onglet précédemment consulté (ex: basculer entre "Commandes" et "Crédit").
 
-## [1.6.1] - 2025-12-21
+## [6.0] - 2025-12-21
 
 ### Changed
 - **Refactorisation majeure des Providers**:

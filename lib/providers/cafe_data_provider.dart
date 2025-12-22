@@ -69,6 +69,7 @@ class CafeDataProvider with ChangeNotifier {
     if (tableName != null && tableName != _selectedTable) {
       _selectedTable = tableName;
       _sortColumnIndex = null;
+      _sheetData = [];
     }
 
     if (forceRefresh) {
