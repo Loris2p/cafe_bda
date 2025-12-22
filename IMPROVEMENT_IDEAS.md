@@ -29,7 +29,6 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 ### Optimisation Globale
 *   **Chargement paresseux (Lazy Loading)**: Des données pour les grands tableaux ou les images (si applicable). (Fait - via PaginatedDataTable)
 *   **Optimisation des requêtes API**: Regrouper les requêtes ou réduire la quantité de données transférées lorsque c'est possible (Pagination API). [2]
-*   **Amélioration de la gestion du cache**: Affiner les stratégies de cache pour les données fréquemment accédées. [3]
 
 ## Qualité et Maintenabilité du Code
 
