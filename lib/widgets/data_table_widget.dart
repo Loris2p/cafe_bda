@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Un widget réutilisable pour afficher des données sous forme de tableau dynamique.
+/// Utilise PaginatedDataTable pour optimiser les performances sur les grands jeux de données.
 class DataTableWidget extends StatefulWidget {
   /// Les données brutes à afficher. La première ligne est considérée comme l'en-tête.
   final List<List<dynamic>> data;
@@ -46,7 +47,7 @@ class DataTableWidget extends StatefulWidget {
     this.headerColor,
     this.rowColor1,
     this.rowColor2,
-    this.headerTextColor = Colors.white,
+    this.headerTextColor, // Default handled in build
     this.borderColor,
     this.borderRadius = 12.0,
     this.onCellUpdate,
@@ -60,14 +61,17 @@ class DataTableWidget extends StatefulWidget {
 }
 
 class _DataTableWidgetState extends State<DataTableWidget> {
-  final ScrollController _verticalScrollController = ScrollController();
-  final ScrollController _horizontalScrollController = ScrollController();
-
+  // Key unique pour forcer le rebuild du PaginatedDataTable si les données changent drastiquement
+  Key _tableKey = UniqueKey();
+  
   @override
-  void dispose() {
-    _verticalScrollController.dispose();
-    _horizontalScrollController.dispose();
-    super.dispose();
+  void didUpdateWidget(DataTableWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Si la structure des données change (nombre de colonnes ou lignes), on peut reset la vue
+    if (widget.data.length != oldWidget.data.length || 
+        (widget.data.isNotEmpty && oldWidget.data.isNotEmpty && widget.data[0].length != oldWidget.data[0].length)) {
+      _tableKey = UniqueKey();
+    }
   }
 
   @override
@@ -83,25 +87,22 @@ class _DataTableWidgetState extends State<DataTableWidget> {
     final theme = Theme.of(context);
     final defaultHeaderColor = theme.colorScheme.primary; 
     final defaultBorderColor = theme.colorScheme.outlineVariant;
+    final effectiveHeaderTextColor = widget.headerTextColor ?? theme.colorScheme.onPrimary;
 
-    final columns = widget.data[0].asMap().entries.map((entry) {
-      final headerText =
-          widget.data[0][entry.key]?.toString() ?? 'Colonne ${entry.key + 1}';
+    // Colonnes
+    final columns = widget.data[0].asMap().entries.map<DataColumn>((entry) {
+      final headerText = entry.value?.toString() ?? 'Colonne ${entry.key + 1}';
 
       return DataColumn(
         label: Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            alignment: Alignment.centerLeft,
-            child: Text(
-              headerText,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: widget.headerTextColor ?? theme.colorScheme.onPrimary,
-                fontSize: 14,
-              ),
-              overflow: TextOverflow.ellipsis,
+          child: Text(
+            headerText,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: effectiveHeaderTextColor,
+              fontSize: 14,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         tooltip: headerText,
@@ -109,147 +110,183 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       );
     }).toList();
 
-    final rows = widget.data.length > 1
-        ? widget.data.skip(1).mapIndexed((rowIndex, row) {
-            return DataRow(
-              color: WidgetStateProperty.resolveWith<Color?>((states) {
-                if (!widget.showZebraStriping) return null;
-                return rowIndex % 2 == 0
-                    ? widget.rowColor1 ?? theme.colorScheme.surface
-                    : widget.rowColor2 ?? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
-              }),
-              cells: row.asMap().entries.map((cellEntry) {
-                final dynamic cellValue = cellEntry.value;
-                final String cellString = cellValue?.toString() ?? '';
-                final int colIndex = cellEntry.key;
-                
-                final isFormula = cellString.startsWith('=');
-                final isNumeric =
-                    double.tryParse(cellString) != null && !isFormula;
+    // Source de données
+    final source = _DataSource(
+      data: widget.data, // Passe toutes les données
+      context: context,
+      showZebraStriping: widget.showZebraStriping,
+      rowColor1: widget.rowColor1,
+      rowColor2: widget.rowColor2,
+      onCellUpdate: widget.onCellUpdate,
+    );
 
-                bool isBoolean = false;
-                bool? boolValue;
-
-                if (cellValue is bool) {
-                  isBoolean = true;
-                  boolValue = cellValue;
-                } else if ((cellString.toLowerCase() == 'true' || cellString.toLowerCase() == 'false') && !isFormula) {
-                  isBoolean = true;
-                  boolValue = cellString.toLowerCase() == 'true';
-                }
-
-                if (isBoolean && widget.onCellUpdate != null && boolValue != null) {
-                  return DataCell(
-                    Center(
-                      child: Checkbox(
-                        value: boolValue,
-                        onChanged: (bool? newValue) {
-                          if (newValue != null) {
-                            widget.onCellUpdate!(rowIndex, colIndex, newValue);
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                }
-                
-                return DataCell(
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 12,
-                    ),
-                    child: Align(
-                      alignment: isNumeric
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Tooltip(
-                        message: isFormula
-                            ? 'Formule: $cellString'
-                            : cellString.isEmpty
-                            ? 'Vide'
-                            : cellString,
-                        child: SelectableText(
-                          isFormula ? 'Calculé' : cellString,
-                          style: TextStyle(
-                            fontStyle: isFormula
-                                ? FontStyle.italic
-                                : FontStyle.normal,
-                            color: isFormula
-                                ? theme.colorScheme.secondary
-                                : isBoolean
-                                    ? Colors.green.shade700
-                                    : theme.textTheme.bodyMedium?.color,
-                            fontWeight: cellString == 'N/A'
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            );
-          }).toList()
-        : <DataRow>[];
-
-    return Scrollbar(
-      controller: _verticalScrollController,
-      thumbVisibility: true,
-      trackVisibility: true,
-      child: SingleChildScrollView(
-        controller: _verticalScrollController,
-        scrollDirection: Axis.vertical,
-        child: Center(
-          child: Column(
-            children: [
-              Scrollbar(
-                controller: _horizontalScrollController,
-                thumbVisibility: true,
-                trackVisibility: true,
-                child: const SizedBox.shrink(), // Required child for Scrollbar
-              ),
-              SingleChildScrollView(
-                controller: _horizontalScrollController,
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: widget.borderColor ?? defaultBorderColor),
-                    borderRadius: BorderRadius.circular(widget.borderRadius),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(widget.borderRadius),
-                    child: DataTable(
-                      sortColumnIndex: widget.sortColumnIndex,
-                      sortAscending: widget.sortAscending,
-                      columnSpacing: 16.0,
-                      horizontalMargin: 0,
-                      headingRowHeight: 50.0,
-                      dataRowMinHeight: 48.0, // Use min/max height
-                      dataRowMaxHeight: 48.0,
-                      headingRowColor: WidgetStateProperty.all(
-                        widget.headerColor ?? defaultHeaderColor,
-                      ),
-                      dividerThickness: 1.0,
-                      columns: columns,
-                      rows: rows,
-                    ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: widget.borderColor ?? defaultBorderColor),
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  cardTheme: const CardThemeData(
+                    elevation: 0,
+                    margin: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                   ),
                 ),
+                child: PaginatedDataTable(
+                  key: _tableKey,
+                  columns: columns,
+                  source: source,
+                  sortColumnIndex: widget.sortColumnIndex,
+                  sortAscending: widget.sortAscending,
+                  header: null, // On n'utilise pas le header par défaut du widget
+                  rowsPerPage: 20,
+                  availableRowsPerPage: const [10, 20, 50, 100],
+                  onRowsPerPageChanged: (value) {
+                    // PaginatedDataTable gère l'état interne pour rowsPerPage si on ne le contrôle pas
+                  },
+                  showCheckboxColumn: false,
+                  columnSpacing: 16.0,
+                  horizontalMargin: 20,
+                  headingRowColor: WidgetStateProperty.all(widget.headerColor ?? defaultHeaderColor),
+                  headingRowHeight: 50,
+                  showFirstLastButtons: true,
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      }
     );
   }
 }
 
-/// Extension utilitaire pour obtenir l'index dans un map() sur un itérable.
-extension IndexedIterable<E> on Iterable<E> {
-  Iterable<T> mapIndexed<T>(T Function(int index, E element) f) {
-    var index = 0;
-    return map((element) => f(index++, element));
+class _DataSource extends DataTableSource {
+  final List<List<dynamic>> data;
+  final BuildContext context;
+  final bool showZebraStriping;
+  final Color? rowColor1;
+  final Color? rowColor2;
+  final Function(int rowIndex, int colIndex, dynamic newValue)? onCellUpdate;
+
+  _DataSource({
+    required this.data,
+    required this.context,
+    this.showZebraStriping = true,
+    this.rowColor1,
+    this.rowColor2,
+    this.onCellUpdate,
+  });
+
+  @override
+  DataRow? getRow(int index) {
+    // data[0] est le header, donc l'index réel dans data est index + 1
+    final int realIndex = index + 1;
+    
+    if (realIndex >= data.length) return null;
+
+    final row = data[realIndex];
+    final theme = Theme.of(context);
+
+    return DataRow.byIndex(
+      index: index,
+      color: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (!showZebraStriping) return null;
+        return index % 2 == 0
+            ? rowColor1 ?? theme.colorScheme.surface
+            : rowColor2 ?? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
+      }),
+      cells: row.asMap().entries.map((cellEntry) {
+        final dynamic cellValue = cellEntry.value;
+        final String cellString = cellValue?.toString() ?? '';
+        final int colIndex = cellEntry.key;
+        
+        final isFormula = cellString.startsWith('=');
+        final isNumeric = double.tryParse(cellString) != null && !isFormula;
+
+        bool isBoolean = false;
+        bool? boolValue;
+
+        if (cellValue is bool) {
+          isBoolean = true;
+          boolValue = cellValue;
+        } else if ((cellString.toLowerCase() == 'true' || cellString.toLowerCase() == 'false') && !isFormula) {
+          isBoolean = true;
+          boolValue = cellString.toLowerCase() == 'true';
+        }
+
+        if (isBoolean && onCellUpdate != null && boolValue != null) {
+          return DataCell(
+            Center(
+              child: Checkbox(
+                value: boolValue,
+                onChanged: (bool? newValue) {
+                  if (newValue != null) {
+                    onCellUpdate!(index, colIndex, newValue); // index est le rowIndex relatif aux données (sans header)
+                  }
+                },
+              ),
+            ),
+          );
+        }
+        
+        return DataCell(
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 8, // Réduit légèrement
+              horizontal: 8,
+            ),
+            child: Align(
+              alignment: isNumeric
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+              child: Tooltip(
+                message: isFormula
+                    ? 'Formule: $cellString'
+                    : cellString.isEmpty
+                    ? 'Vide'
+                    : cellString,
+                child: Text( // SelectableText peut être lourd dans de grandes listes, Text est plus performant
+                  isFormula ? 'Calculé' : cellString,
+                  style: TextStyle(
+                    fontStyle: isFormula
+                        ? FontStyle.italic
+                        : FontStyle.normal,
+                    color: isFormula
+                        ? theme.colorScheme.secondary
+                        : isBoolean
+                            ? Colors.green.shade700
+                            : theme.textTheme.bodyMedium?.color,
+                    fontWeight: cellString == 'N/A'
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  maxLines: 1,
+                ),
+              ),
+            ),
+          ),
+          onTap: () {
+             // Optionnel : gérer le tap sur une cellule normale si besoin
+          }
+        );
+      }).toList(),
+    );
   }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => data.length > 1 ? data.length - 1 : 0;
+
+  @override
+  int get selectedRowCount => 0;
 }

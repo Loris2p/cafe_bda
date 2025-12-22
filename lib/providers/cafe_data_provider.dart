@@ -5,6 +5,7 @@ import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis/sheets/v4.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 /// Gère les données métier de l'application (Étudiants, Crédits, Stocks...).
 class CafeDataProvider with ChangeNotifier {
@@ -69,6 +70,7 @@ class CafeDataProvider with ChangeNotifier {
     if (tableName != null && tableName != _selectedTable) {
       _selectedTable = tableName;
       _sortColumnIndex = null;
+      _sheetData = [];
     }
 
     if (forceRefresh) {
@@ -103,6 +105,23 @@ class CafeDataProvider with ChangeNotifier {
     });
   }
 
+  DateTime? _tryParseDate(String value) {
+    // Liste des formats possibles
+    final formats = [
+      DateFormat('dd/MM/yyyy HH:mm:ss'),
+      DateFormat('dd/MM/yyyy'),
+      DateFormat('yyyy-MM-dd HH:mm:ss'),
+      DateFormat('yyyy-MM-dd'),
+    ];
+
+    for (var format in formats) {
+      try {
+        return format.parseLoose(value);
+      } catch (_) {}
+    }
+    return null;
+  }
+
   /// Trie les données de la table actuellement affichée.
   void sortData(int columnIndex) {
     if (_sortColumnIndex == columnIndex) {
@@ -129,14 +148,25 @@ class CafeDataProvider with ChangeNotifier {
           return _sortAscending ? compare : -compare;
         }
         
-        final aNum = num.tryParse(aValue.toString());
-        final bNum = num.tryParse(bValue.toString());
+        final aStr = aValue.toString();
+        final bStr = bValue.toString();
+
+        final aNum = num.tryParse(aStr);
+        final bNum = num.tryParse(bStr);
 
         int compare;
         if (aNum != null && bNum != null) {
           compare = aNum.compareTo(bNum);
         } else {
-          compare = aValue.toString().toLowerCase().compareTo(bValue.toString().toLowerCase());
+          // Essayer de parser comme date
+          final aDate = _tryParseDate(aStr);
+          final bDate = _tryParseDate(bStr);
+
+          if (aDate != null && bDate != null) {
+            compare = aDate.compareTo(bDate);
+          } else {
+            compare = aStr.toLowerCase().compareTo(bStr.toLowerCase());
+          }
         }
 
         return _sortAscending ? compare : -compare;

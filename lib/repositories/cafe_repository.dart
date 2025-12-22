@@ -96,7 +96,7 @@ class CafeRepository {
     await _sheetsService.appendToTable(
       AppConstants.studentsTable, 
       rowData, 
-      useFormulas: true
+      valueInputOption: 'USER_ENTERED',
     );
     
     // Le cache est obsolète car une ligne a été ajoutée
@@ -120,7 +120,7 @@ class CafeRepository {
       formData['Moyen Paiement'],
     ];
 
-    await _sheetsService.appendToTable(AppConstants.creditsTable, rowData);
+    await _sheetsService.appendToTable(AppConstants.creditsTable, rowData, valueInputOption: 'USER_ENTERED');
   }
 
   /// Ajoute une commande (consommation) dans la feuille 'Paiements'.
@@ -137,7 +137,7 @@ class CafeRepository {
       formData['Nb de Cafés'],
       formData['Café pris'],
     ];
-    await _sheetsService.appendToTable(AppConstants.paymentsTable, rowData);
+    await _sheetsService.appendToTable(AppConstants.paymentsTable, rowData, valueInputOption: 'USER_ENTERED');
   }
 
   /// Méthode générique pour lire n'importe quelle table sans logique métier spécifique.

@@ -1,6 +1,7 @@
 import 'package:cafe_bda/widgets/student_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 /// Formulaire pour créditer le compte d'un étudiant (Rechargement).
 ///
@@ -59,8 +60,7 @@ class _CreditFormState extends State<CreditForm> {
   void initState() {
     super.initState();
     // Pré-remplissage avec la date du jour et le nom du responsable
-    final now = DateTime.now();
-    _dateController.text = '${now.day}/${now.month}/${now.year}';
+    _dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
     _responsibleController.text = widget.initialResponsableName ?? '';
   }
 
@@ -330,19 +330,33 @@ class _CreditFormState extends State<CreditForm> {
     return TextFormField(
       controller: _dateController,
       decoration: const InputDecoration(
-        labelText: 'Date (JJ/MM/AAAA) *',
-        hintText: 'Ex: 21/08/2025',
+        labelText: 'Date et Heure *',
         border: OutlineInputBorder(),
         prefixIcon: Icon(Icons.calendar_today),
       ),
+      readOnly: true,
+      onTap: () async {
+        final now = DateTime.now();
+        final date = await showDatePicker(
+          context: context,
+          initialDate: now,
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2100),
+        );
+        if (date == null) return;
+        
+        final time = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(now),
+        );
+        if (time == null) return;
+
+        final newDate = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+        _dateController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(newDate);
+      },
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'La date est obligatoire';
-        }
-        // Validation basique du format date
-        final parts = value.split('/');
-        if (parts.length != 3) {
-          return 'Format invalide (JJ/MM/AAAA)';
         }
         return null;
       },
