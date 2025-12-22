@@ -192,34 +192,335 @@ class _MainScaffoldState extends State<MainScaffold> {
 
 // --- Tabs Content ---
 
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   const _HomeTab();
+
+  @override
+  State<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> {
+  bool _showDashboard = true;
+
+  void _openTable(String tableName) {
+    context.read<CafeDataProvider>().readTable(tableName: tableName);
+    setState(() {
+      _showDashboard = false;
+    });
+  }
+
+  void _backToDashboard() {
+    setState(() {
+      _showDashboard = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     // Benchmark : Log build start
     final stopwatch = Stopwatch()..start();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          const _HeaderControls(),
-          const SizedBox(height: 16),
-          const _UnifiedToolbar(),
-          const SizedBox(height: 20),
-          const _StatusAndErrorSection(),
-          Expanded(child: Builder(
-            builder: (context) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                stopwatch.stop();
-                developer.log('HomeTab content build time: ${stopwatch.elapsedMilliseconds}ms');
-              });
-              return const _DataDisplay();
-            }
-          )),
-        ],
+    if (_showDashboard) {
+      return _DashboardView(onTableSelected: _openTable);
+    }
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _backToDashboard();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: _backToDashboard,
+                  tooltip: "Retour à l'accueil",
+                ),
+                Expanded(child: const _HeaderControls()),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const _UnifiedToolbar(),
+            const SizedBox(height: 20),
+            const _StatusAndErrorSection(),
+            Expanded(child: Builder(
+              builder: (context) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  stopwatch.stop();
+                  developer.log('HomeTab content build time: ${stopwatch.elapsedMilliseconds}ms');
+                });
+                return const _DataDisplay();
+              }
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardView extends StatefulWidget {
+  final Function(String) onTableSelected;
+
+  const _DashboardView({required this.onTableSelected});
+
+  @override
+  State<_DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<_DashboardView> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _performSearch() async {
+    final searchTerm = _searchController.text.trim();
+    if (searchTerm.isEmpty) return;
+
+    // Masquer le clavier
+    FocusScope.of(context).unfocus();
+
+    final provider = context.read<CafeDataProvider>();
+    
+    // Si les données étudiants ne sont pas encore chargées, on tente de les charger
+    if (provider.studentsData.isEmpty) {
+      await provider.readTable(tableName: AppConstants.studentsTable);
+    }
+
+    final results = await provider.searchStudent(searchTerm);
+
+    if (!mounted) return;
+
+    if (results.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Aucun résultat pour "$searchTerm"')),
+      );
+    } else {
+      SearchDialog.showSearchResults(
+        context,
+        searchTerm: searchTerm,
+        results: results,
+        fullData: provider.studentsData,
+        onRowSelected: (row) {
+          SearchDialog.showRowDetails(
+            context,
+            row: row,
+            columnNames: provider.studentsData.isNotEmpty
+                ? provider.studentsData[0]
+                : [],
+          );
+        },
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                Hero(
+                  tag: 'app_logo',
+                  child: Image.asset(
+                    'assets/icon/logo-bda.png',
+                    height: 140,
+                    errorBuilder: (context, error, stackTrace) => 
+                        const Icon(Icons.coffee, size: 100, color: Colors.brown),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Bienvenue au Café BDA',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                
+                // --- Barre de recherche ---
+                Container(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onSubmitted: (_) => _performSearch(),
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: "Rechercher un étudiant...",
+                      hintStyle: TextStyle(color: Colors.grey[400]),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: Consumer<CafeDataProvider>(
+                        builder: (context, provider, _) {
+                          if (provider.isLoading && provider.selectedTable == AppConstants.studentsTable) {
+                             return const Padding(
+                               padding: EdgeInsets.all(12.0),
+                               child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                             );
+                          }
+                          return IconButton(
+                            icon: Icon(Icons.arrow_forward, color: Theme.of(context).primaryColor),
+                            onPressed: _performSearch,
+                          );
+                        }
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    ),
+                  ),
+                ),
+                // --------------------------
+
+                const SizedBox(height: 48),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth > 600;
+                    return Wrap(
+                      spacing: 20,
+                      runSpacing: 20,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _DashboardCard(
+                          title: 'Étudiants',
+                          subtitle: 'Soldes & Inscriptions',
+                          icon: Icons.people_alt_rounded,
+                          color: Colors.blue.shade700,
+                          onTap: () => widget.onTableSelected(AppConstants.studentsTable),
+                          width: isWide ? 300 : double.infinity,
+                        ),
+                        _DashboardCard(
+                          title: 'Stocks',
+                          subtitle: 'Inventaire produits',
+                          icon: Icons.inventory_2_rounded,
+                          color: Colors.orange.shade800,
+                          onTap: () => widget.onTableSelected(AppConstants.stockTable),
+                          width: isWide ? 300 : double.infinity,
+                        ),
+                        _DashboardCard(
+                          title: 'Historique Paiements',
+                          subtitle: 'Transactions récentes',
+                          icon: Icons.payments_rounded,
+                          color: Colors.green.shade700,
+                          onTap: () => widget.onTableSelected(AppConstants.paymentsTable),
+                          width: isWide ? 300 : double.infinity,
+                        ),
+                        _DashboardCard(
+                          title: 'Historique Crédits',
+                          subtitle: 'Rechargements effectués',
+                          icon: Icons.history_edu_rounded,
+                          color: Colors.purple.shade700,
+                          onTap: () => widget.onTableSelected(AppConstants.creditsTable),
+                          width: isWide ? 300 : double.infinity,
+                        ),
+                      ],
+                    );
+                  }
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final double width;
+
+  const _DashboardCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    required this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 32),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: Colors.grey[400]),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -554,36 +855,64 @@ class _HeaderControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tableau Actif', style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Colors.grey[600])),
+            Text(
+              'Tableau Actif',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 8),
             Consumer<CafeDataProvider>(
               builder: (context, provider, _) {
+                // Défense : s'assurer que la valeur sélectionnée existe dans la liste
+                final String dropdownValue = provider.availableTables.contains(provider.selectedTable)
+                    ? provider.selectedTable
+                    : provider.availableTables.isNotEmpty 
+                        ? provider.availableTables.first 
+                        : '';
+
+                if (dropdownValue.isEmpty) return const SizedBox.shrink();
+
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: Theme.of(context).colorScheme.outline),
                     borderRadius: BorderRadius.circular(8),
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: provider.selectedTable,
+                      value: dropdownValue,
                       isExpanded: true,
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          provider.readTable(tableName: newValue);
-                        }
-                      },
+                      icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.primary),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: provider.isLoading 
+                          ? null // Désactiver visuellement pendant le chargement pour éviter les conflits
+                          : (String? newValue) {
+                              if (newValue != null) {
+                                provider.readTable(tableName: newValue);
+                              }
+                            },
                       items: provider.availableTables
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
+                          child: Text(value),
                         );
                       }).toList(),
                     ),

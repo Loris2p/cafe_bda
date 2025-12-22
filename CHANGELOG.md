@@ -1,3 +1,26 @@
+## [6.04] - 2025-12-22
+
+### Added
+- **Nouveau Tableau de Bord (Dashboard)** : 
+  - Refonte complète de l'accueil de l'application pour un accès plus visuel et rapide.
+  - Cartes d'accès rapide colorées pour les principales sections (Étudiants, Stocks, Paiements, Crédits).
+  - Barre de recherche intégrée directement sur l'accueil pour trouver rapidement un étudiant.
+  - Bouton "Retour" pour revenir facilement au tableau de bord depuis un tableau de données.
+
+### Optimized
+- **Performance d'affichage des tableaux** : 
+  - Remplacement du widget `DataTable` standard par un `PaginatedDataTable`.
+  - Chargement instantané même avec des centaines de lignes (chargement partiel par pages de 20 lignes).
+  - Navigation fluide entre les pages de données.
+
+### Fixed
+- **Tri des Dates** : 
+  - Correction du tri des colonnes de dates qui se faisait auparavant par ordre alphabétique (texte). Le tri respecte maintenant l'ordre chronologique réel.
+- **Menu déroulant "Tableau Actif"** :
+  - Correction d'un bug visuel où le menu apparaissait grisé.
+  - Ajout d'une sécurité pour empêcher le crash si le tableau sélectionné est introuvable.
+  - Amélioration visuelle du menu pour mieux s'intégrer au thème de l'application.
+
 ## [6.03] - 2025-12-21
 ### Changed
 - **Gestion des dates dans les forms** :
