@@ -48,6 +48,7 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 *   **Rapports et Statistiques**: Afficher des graphiques ou des résumés sur les ventes, les crédits, la popularité des cafés, etc. [2]
 *   **Mode Hors Ligne (Consultation)** : Permettre la consultation des données mises en cache (Dernière version connue) sans connexion internet. [3]
 *   **Historique des transactions détaillé**: Pour chaque étudiant, voir un historique complet de ses achats et rechargements. [3]
+*   **Gestion des Stocks Avancée** : Ajout de seuils d'alerte (stock bas) et gestion des quantités numériques si nécessaire. [4]
 *   **Export Données** : Exporter les vues actuelles en CSV/PDF pour archivage. [4]
 *   **Thème Sombre** : Implémenter un thème sombre complet pour l'application. [4]
 *   **Notifications**: Envoyer des notifications pour des événements importants (stock faible, crédit étudiant bas, etc.). [5]
