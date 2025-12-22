@@ -1,3 +1,12 @@
+## [6.06] - 2025-12-22
+
+### Added
+- **Documentation Technique** :
+  - Ajout de la documentation du schéma de données Google Sheets (`docs/SHEETS_SCHEMA.md`).
+  - Ajout du guide d'architecture de l'application (`docs/ARCHITECTURE.md`).
+  - Amélioration des commentaires de code pour l'entrée de l'application et l'authentification.
+
+
 ## [6.05] - 2025-12-22
 
 ### Changed

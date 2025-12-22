@@ -38,8 +38,10 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 *   **Tests d'intégration**: Mettre en place des tests d'intégration pour les flux critiques de l'application. (Partiellement Fait - Dashboard)
 
 ### Documentation Technique
-*   Mettre à jour la documentation existante et ajouter des commentaires de code là où c'est nécessaire. [5]
-*   Créer une documentation pour l'API (si une API custom est développée). [6]
+*   **Schéma de Données** : Documenter la structure attendue du Google Sheets (Colonnes, Formules, Plages nommées). (Fait - `docs/SHEETS_SCHEMA.md`)
+*   **Guide d'Architecture** : Créer un document expliquant le flux de données (Service -> Repository -> Provider -> UI). (Fait - `docs/ARCHITECTURE.md`)
+*   **Commentaires de code (Dartdoc)** : Harmoniser les commentaires pour permettre la génération d'une documentation API propre via `dartdoc`. (Fait - `main.dart`, `auth_provider.dart`)
+*   **Guide de Contribution** : Expliquer comment configurer l'environnement de développement (Firebase/Google Cloud) pour les nouveaux développeurs. [4]
 
 ## Nouvelles Fonctionnalités Potentielles
 

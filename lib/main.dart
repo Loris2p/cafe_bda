@@ -8,6 +8,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'screens/google_sheets_screen.dart';
 
+/// Point d'entrée de l'application Gestion Café BDA.
+///
+/// Initialise les liaisons Flutter, charge les variables d'environnement,
+/// et configure l'injection de dépendances globale via le package `provider`.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -41,6 +45,9 @@ Future<void> main() async {
   );
 }
 
+/// Widget racine de l'application.
+///
+/// Configure le thème global et définit l'écran initial.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

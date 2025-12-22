@@ -43,6 +43,10 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// Lance le processus d'authentification complet.
+  /// 
+  /// Vérifie d'abord la connectivité Internet, puis appelle le service d'authentification Google.
+  /// Après connexion, vérifie si l'utilisateur a les droits d'accès à la feuille de calcul.
+  /// Retourne un message d'erreur en cas d'échec, sinon null.
   Future<String?> authenticate() async {
     _isAuthenticating = true;
     _errorMessage = '';
@@ -50,7 +54,7 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final connectivityResult = await (Connectivity().checkConnectivity());
-      if (connectivityResult == ConnectivityResult.none) {
+      if (connectivityResult.contains(ConnectivityResult.none)) {
         throw Exception('Pas de connexion Internet');
       }
 
