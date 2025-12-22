@@ -141,7 +141,7 @@
     },
     {
       "name": "crypto",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/crypto-3.0.6",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/crypto-3.0.7",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -237,7 +237,7 @@
     },
     {
       "name": "get_it",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/get_it-8.2.0",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/get_it-8.3.0",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
@@ -303,7 +303,7 @@
     },
     {
       "name": "http",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/http-1.5.0",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/http-1.6.0",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -321,7 +321,7 @@
     },
     {
       "name": "image",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/image-4.5.4",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/image-4.7.2",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
@@ -345,7 +345,7 @@
     },
     {
       "name": "leak_tracker",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/leak_tracker-11.0.1",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/leak_tracker-11.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -435,15 +435,15 @@
     },
     {
       "name": "path_provider_android",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/path_provider_android-2.2.18",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/path_provider_android-2.2.22",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.9"
     },
     {
       "name": "path_provider_foundation",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/path_provider_foundation-2.4.2",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/path_provider_foundation-2.5.1",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.9"
     },
     {
       "name": "path_provider_linux",
@@ -513,21 +513,21 @@
     },
     {
       "name": "shared_preferences",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/shared_preferences-2.5.3",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/shared_preferences-2.5.4",
       "packageUri": "lib/",
-      "languageVersion": "3.5"
+      "languageVersion": "3.9"
     },
     {
       "name": "shared_preferences_android",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/shared_preferences_android-2.4.11",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/shared_preferences_android-2.4.18",
       "packageUri": "lib/",
-      "languageVersion": "3.6"
+      "languageVersion": "3.9"
     },
     {
       "name": "shared_preferences_foundation",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/shared_preferences_foundation-2.5.4",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/shared_preferences_foundation-2.5.6",
       "packageUri": "lib/",
-      "languageVersion": "3.4"
+      "languageVersion": "3.9"
     },
     {
       "name": "shared_preferences_linux",
@@ -633,27 +633,27 @@
     },
     {
       "name": "url_launcher_android",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.17",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.28",
       "packageUri": "lib/",
-      "languageVersion": "3.6"
+      "languageVersion": "3.9"
     },
     {
       "name": "url_launcher_ios",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.4",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_ios-6.3.6",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.9"
     },
     {
       "name": "url_launcher_linux",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_linux-3.2.1",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_linux-3.2.2",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.8"
     },
     {
       "name": "url_launcher_macos",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_macos-3.2.3",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_macos-3.2.5",
       "packageUri": "lib/",
-      "languageVersion": "3.7"
+      "languageVersion": "3.9"
     },
     {
       "name": "url_launcher_platform_interface",
@@ -669,9 +669,9 @@
     },
     {
       "name": "url_launcher_windows",
-      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_windows-3.1.4",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/url_launcher_windows-3.1.5",
       "packageUri": "lib/",
-      "languageVersion": "3.4"
+      "languageVersion": "3.8"
     },
     {
       "name": "vector_math",

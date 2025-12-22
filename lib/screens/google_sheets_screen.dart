@@ -76,6 +76,7 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   int _selectedIndex = 0;
   final List<int> _history = [0];
+  final GlobalKey<_HomeTabState> _homeTabKey = GlobalKey();
 
   @override
   void initState() {
@@ -87,7 +88,12 @@ class _MainScaffoldState extends State<MainScaffold> {
   }
 
   void _onItemTapped(int index) {
-    if (_selectedIndex == index) return;
+    if (_selectedIndex == index) {
+      if (index == 0) {
+        _homeTabKey.currentState?.resetToDashboard();
+      }
+      return;
+    }
     setState(() {
       _selectedIndex = index;
       _history.add(index);
@@ -136,7 +142,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     }).toList();
 
     final pages = [
-      const _HomeTab(),
+      _HomeTab(key: _homeTabKey),
       const _OrderTab(),
       const _CreditTab(),
       const _SettingsTab(),
@@ -193,7 +199,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 // --- Tabs Content ---
 
 class _HomeTab extends StatefulWidget {
-  const _HomeTab();
+  const _HomeTab({super.key});
 
   @override
   State<_HomeTab> createState() => _HomeTabState();
@@ -207,6 +213,14 @@ class _HomeTabState extends State<_HomeTab> {
     setState(() {
       _showDashboard = false;
     });
+  }
+
+  void resetToDashboard() {
+    if (!_showDashboard) {
+      setState(() {
+        _showDashboard = true;
+      });
+    }
   }
 
   void _backToDashboard() {

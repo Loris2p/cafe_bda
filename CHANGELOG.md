@@ -10,6 +10,8 @@
 - **Amélioration des Résultats de Recherche (Accueil)** :
   - Mise à jour esthétique des dialogues de résultats (`SearchDialog`).
   - Les détails d'un résultat respectent désormais la visibilité des colonnes configurée dans les paramètres.
+- **Navigation Améliorée** :
+  - Cliquer sur l'onglet "Accueil" alors qu'il est déjà actif permet de revenir au tableau de bord (choix des tableaux) si vous étiez en train de consulter un tableau spécifique.
 
 ### Fixed
 - **Alignement des colonnes** : Correction d'un désalignement entre l'en-tête et les valeurs pour les colonnes numériques (ex: dernière colonne). Les en-têtes sont désormais correctement alignés à droite comme les données.
