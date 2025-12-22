@@ -42,6 +42,8 @@ void main() {
     // Stub methods returning Futures
     when(mockDataProvider.initData()).thenAnswer((_) async {});
     when(mockDataProvider.loadStockData()).thenAnswer((_) async => []);
+    when(mockDataProvider.fetchAllTableHeaders()).thenAnswer((_) => Future.value());
+    when(mockDataProvider.tableHeaders).thenReturn({'DummyTable': ['Col1']});
     when(mockDataProvider.readTable(tableName: anyNamed('tableName')))
         .thenAnswer((_) async {});
   });
@@ -60,6 +62,7 @@ void main() {
 
   testWidgets('Dashboard displays welcome message and cards', (WidgetTester tester) async {
     await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump(); // Flush future completion
     await tester.pumpAndSettle(); // Wait for animations/futures
 
     // Verify Welcome Text
@@ -73,6 +76,7 @@ void main() {
 
   testWidgets('Clicking on a dashboard card calls readTable', (WidgetTester tester) async {
     await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump(); // Flush future completion
     await tester.pumpAndSettle();
 
     // Tap on Stocks card

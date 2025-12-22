@@ -34,10 +34,6 @@ import 'package:mockito/src/dummies.dart' as _i5;
 /// See the documentation for Mockito's code generation for more information.
 class MockGoogleSheetsService extends _i1.Mock
     implements _i2.GoogleSheetsService {
-  MockGoogleSheetsService() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   set sheetsApi(_i3.SheetsApi? value) => super.noSuchMethod(
     Invocation.setter(#sheetsApi, value),
@@ -58,6 +54,10 @@ class MockGoogleSheetsService extends _i1.Mock
               this,
               Invocation.method(#checkEnvVariables, []),
             ),
+            returnValueForMissingStub: _i5.dummyValue<String>(
+              this,
+              Invocation.method(#checkEnvVariables, []),
+            ),
           )
           as String);
 
@@ -66,6 +66,7 @@ class MockGoogleSheetsService extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#tryAutoAuthenticate, []),
             returnValue: _i6.Future<bool>.value(false),
+            returnValueForMissingStub: _i6.Future<bool>.value(false),
           )
           as _i6.Future<bool>);
 
@@ -74,6 +75,7 @@ class MockGoogleSheetsService extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#authenticate, []),
             returnValue: _i6.Future<String?>.value(),
+            returnValueForMissingStub: _i6.Future<String?>.value(),
           )
           as _i6.Future<String?>);
 
@@ -91,6 +93,7 @@ class MockGoogleSheetsService extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#checkSpreadsheetAccess, []),
             returnValue: _i6.Future<bool>.value(false),
+            returnValueForMissingStub: _i6.Future<bool>.value(false),
           )
           as _i6.Future<bool>);
 
@@ -99,6 +102,7 @@ class MockGoogleSheetsService extends _i1.Mock
       (super.noSuchMethod(
             Invocation.method(#readTable, [rangeName]),
             returnValue: _i6.Future<List<List<dynamic>>?>.value(),
+            returnValueForMissingStub: _i6.Future<List<List<dynamic>>?>.value(),
           )
           as _i6.Future<List<List<dynamic>>?>);
 
@@ -143,10 +147,6 @@ class MockGoogleSheetsService extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCafeRepository extends _i1.Mock implements _i7.CafeRepository {
-  MockCafeRepository() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   void invalidateCache() => super.noSuchMethod(
     Invocation.method(#invalidateCache, []),
@@ -162,6 +162,7 @@ class MockCafeRepository extends _i1.Mock implements _i7.CafeRepository {
               #forceRefresh: forceRefresh,
             }),
             returnValue: _i6.Future<List<List<dynamic>>?>.value(),
+            returnValueForMissingStub: _i6.Future<List<List<dynamic>>?>.value(),
           )
           as _i6.Future<List<List<dynamic>>?>);
 
@@ -197,6 +198,7 @@ class MockCafeRepository extends _i1.Mock implements _i7.CafeRepository {
       (super.noSuchMethod(
             Invocation.method(#getGenericTable, [tableName]),
             returnValue: _i6.Future<List<List<dynamic>>?>.value(),
+            returnValueForMissingStub: _i6.Future<List<List<dynamic>>?>.value(),
           )
           as _i6.Future<List<List<dynamic>>?>);
 
@@ -224,15 +226,12 @@ class MockCafeRepository extends _i1.Mock implements _i7.CafeRepository {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
-  MockCafeDataProvider() {
-    _i1.throwOnMissingStub(this);
-  }
-
   @override
   List<List<dynamic>> get sheetData =>
       (super.noSuchMethod(
             Invocation.getter(#sheetData),
             returnValue: <List<dynamic>>[],
+            returnValueForMissingStub: <List<dynamic>>[],
           )
           as List<List<dynamic>>);
 
@@ -241,6 +240,7 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.getter(#searchResults),
             returnValue: <List<dynamic>>[],
+            returnValueForMissingStub: <List<dynamic>>[],
           )
           as List<List<dynamic>>);
 
@@ -249,12 +249,17 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.getter(#studentsData),
             returnValue: <List<dynamic>>[],
+            returnValueForMissingStub: <List<dynamic>>[],
           )
           as List<List<dynamic>>);
 
   @override
   bool get isLoading =>
-      (super.noSuchMethod(Invocation.getter(#isLoading), returnValue: false)
+      (super.noSuchMethod(
+            Invocation.getter(#isLoading),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
           as bool);
 
   @override
@@ -262,6 +267,10 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.getter(#errorMessage),
             returnValue: _i5.dummyValue<String>(
+              this,
+              Invocation.getter(#errorMessage),
+            ),
+            returnValueForMissingStub: _i5.dummyValue<String>(
               this,
               Invocation.getter(#errorMessage),
             ),
@@ -276,6 +285,10 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
               this,
               Invocation.getter(#selectedTable),
             ),
+            returnValueForMissingStub: _i5.dummyValue<String>(
+              this,
+              Invocation.getter(#selectedTable),
+            ),
           )
           as String);
 
@@ -284,12 +297,17 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.getter(#availableTables),
             returnValue: <String>[],
+            returnValueForMissingStub: <String>[],
           )
           as List<String>);
 
   @override
   bool get sortAscending =>
-      (super.noSuchMethod(Invocation.getter(#sortAscending), returnValue: false)
+      (super.noSuchMethod(
+            Invocation.getter(#sortAscending),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
           as bool);
 
   @override
@@ -297,18 +315,41 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.getter(#columnVisibility),
             returnValue: <String, List<bool>>{},
+            returnValueForMissingStub: <String, List<bool>>{},
           )
           as Map<String, List<bool>>);
 
   @override
+  Map<String, List<String>> get tableHeaders =>
+      (super.noSuchMethod(
+            Invocation.getter(#tableHeaders),
+            returnValue: <String, List<String>>{},
+            returnValueForMissingStub: <String, List<String>>{},
+          )
+          as Map<String, List<String>>);
+
+  @override
   bool get hasListeners =>
-      (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
+      (super.noSuchMethod(
+            Invocation.getter(#hasListeners),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
           as bool);
 
   @override
   _i6.Future<void> initData() =>
       (super.noSuchMethod(
             Invocation.method(#initData, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> fetchAllTableHeaders() =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchAllTableHeaders, []),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )
@@ -345,6 +386,9 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
             returnValue: _i6.Future<List<List<dynamic>>>.value(
               <List<dynamic>>[],
             ),
+            returnValueForMissingStub: _i6.Future<List<List<dynamic>>>.value(
+              <List<dynamic>>[],
+            ),
           )
           as _i6.Future<List<List<dynamic>>>);
 
@@ -358,17 +402,25 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
           as _i6.Future<void>);
 
   @override
-  void setColumnVisibility(int? columnIndex, bool? isVisible) =>
-      super.noSuchMethod(
-        Invocation.method(#setColumnVisibility, [columnIndex, isVisible]),
-        returnValueForMissingStub: null,
-      );
+  void setColumnVisibility(
+    int? columnIndex,
+    bool? isVisible, {
+    String? tableName,
+  }) => super.noSuchMethod(
+    Invocation.method(
+      #setColumnVisibility,
+      [columnIndex, isVisible],
+      {#tableName: tableName},
+    ),
+    returnValueForMissingStub: null,
+  );
 
   @override
   _i6.Future<String?> handleRegistrationForm(Map<String, dynamic>? formData) =>
       (super.noSuchMethod(
             Invocation.method(#handleRegistrationForm, [formData]),
             returnValue: _i6.Future<String?>.value(),
+            returnValueForMissingStub: _i6.Future<String?>.value(),
           )
           as _i6.Future<String?>);
 
@@ -377,6 +429,7 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.method(#handleCreditSubmission, [formData]),
             returnValue: _i6.Future<String?>.value(),
+            returnValueForMissingStub: _i6.Future<String?>.value(),
           )
           as _i6.Future<String?>);
 
@@ -385,6 +438,7 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.method(#handleOrderSubmission, [formData]),
             returnValue: _i6.Future<String?>.value(),
+            returnValueForMissingStub: _i6.Future<String?>.value(),
           )
           as _i6.Future<String?>);
 
@@ -393,6 +447,9 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.method(#searchStudent, [searchTerm]),
             returnValue: _i6.Future<List<List<dynamic>>>.value(
+              <List<dynamic>>[],
+            ),
+            returnValueForMissingStub: _i6.Future<List<List<dynamic>>>.value(
               <List<dynamic>>[],
             ),
           )
@@ -407,6 +464,7 @@ class MockCafeDataProvider extends _i1.Mock implements _i8.CafeDataProvider {
       (super.noSuchMethod(
             Invocation.method(#updateCellValue, [rowIndex, colIndex, newValue]),
             returnValue: _i6.Future<String?>.value(),
+            returnValueForMissingStub: _i6.Future<String?>.value(),
           )
           as _i6.Future<String?>);
 

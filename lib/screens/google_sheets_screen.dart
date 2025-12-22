@@ -623,29 +623,52 @@ class _CreditTab extends StatelessWidget {
   }
 }
 
-class _SettingsTab extends StatelessWidget {
+class _SettingsTab extends StatefulWidget {
   const _SettingsTab();
 
   @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<CafeDataProvider>();
-    final sheetData = provider.sheetData;
+  State<_SettingsTab> createState() => _SettingsTabState();
+}
 
-    if (sheetData.isEmpty || sheetData.first.isEmpty) {
-      return const Center(child: Text("Chargez des données pour configurer les colonnes (Accueil)"));
+class _SettingsTabState extends State<_SettingsTab> {
+  late Future<void> _headersFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final provider = context.read<CafeDataProvider>();
+    // Start fetching headers when the tab is initialized if not already present
+    if (provider.tableHeaders.isEmpty) {
+      _headersFuture = provider.fetchAllTableHeaders();
+    } else {
+      _headersFuture = Future.value();
     }
+  }
 
-    final visibility = provider.columnVisibility[provider.selectedTable] ?? [];
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _headersFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        // We can consume provider even if fetch had an error (it handles its own errors gracefully mostly)
+        final provider = context.watch<CafeDataProvider>();
 
-    return AppSettingsWidget(
-      columnNames: sheetData.first,
-      visibility: visibility,
-      responsableName: provider.responsableName,
-      onVisibilityChanged: (index, isVisible) {
-        provider.setColumnVisibility(index, isVisible);
-      },
-      onResponsableNameSaved: (name) {
-        provider.saveResponsableName(name);
+        return AppSettingsWidget(
+          allHeaders: provider.tableHeaders,
+          allVisibility: provider.columnVisibility,
+          responsableName: provider.responsableName,
+          appVersion: AppConstants.appVersion,
+          onVisibilityChanged: (tableName, index, isVisible) {
+            provider.setColumnVisibility(index, isVisible, tableName: tableName);
+          },
+          onResponsableNameSaved: (name) {
+            provider.saveResponsableName(name);
+          },
+        );
       },
     );
   }

@@ -3,6 +3,8 @@
 /// L'utilisation de constantes centralisées permet d'éviter les fautes de frappe ("Magic Strings")
 /// et facilite la maintenance si le nom d'une table ou d'un champ venait à changer.
 class AppConstants {
+  static const String appVersion = '6.05';
+
   // --- Noms des Feuilles (Onglets) Google Sheets ---
   
   static const String studentsTable = 'Étudiants';

@@ -12,6 +12,11 @@
   - Les détails d'un résultat respectent désormais la visibilité des colonnes configurée dans les paramètres.
 - **Navigation Améliorée** :
   - Cliquer sur l'onglet "Accueil" alors qu'il est déjà actif permet de revenir au tableau de bord (choix des tableaux) si vous étiez en train de consulter un tableau spécifique.
+- **Paramètres des colonnes améliorés** :
+  - Refonte de l'interface des paramètres avec un système d'accordéon coloré pour chaque tableau.
+  - Possibilité de configurer la visibilité des colonnes pour **tous** les tableaux depuis un seul écran, même sans les avoir ouverts au préalable.
+  - Ajout d'icônes et de couleurs thématiques pour une meilleure lisibilité.
+  - Affichage de la version de l'application en bas des paramètres.
 
 ### Fixed
 - **Alignement des colonnes** : Correction d'un désalignement entre l'en-tête et les valeurs pour les colonnes numériques (ex: dernière colonne). Les en-têtes sont désormais correctement alignés à droite comme les données.

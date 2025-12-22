@@ -23,6 +23,7 @@ class CafeDataProvider with ChangeNotifier {
   int? _sortColumnIndex;
   bool _sortAscending = true;
   Map<String, List<bool>> _columnVisibility = {};
+  Map<String, List<String>> _tableHeaders = {};
   String? _responsableName;
 
   final List<String> _availableTables = [
@@ -45,6 +46,7 @@ class CafeDataProvider with ChangeNotifier {
   int? get sortColumnIndex => _sortColumnIndex;
   bool get sortAscending => _sortAscending;
   Map<String, List<bool>> get columnVisibility => _columnVisibility;
+  Map<String, List<String>> get tableHeaders => _tableHeaders;
   String? get responsableName => _responsableName;
 
   /// Initialise les données une fois l'utilisateur authentifié.
@@ -54,11 +56,38 @@ class CafeDataProvider with ChangeNotifier {
     await readTable();
   }
 
+  /// Récupère les en-têtes de toutes les tables pour la configuration.
+  Future<void> fetchAllTableHeaders() async {
+    for (final table in _availableTables) {
+      if (_tableHeaders.containsKey(table) && _tableHeaders[table]!.isNotEmpty) continue;
+      
+      try {
+        // Fetch only the first row (headers)
+        // Using !1:1 range to get the first row of the sheet
+        final data = await _sheetsService.readTable('$table!1:1');
+        if (data != null && data.isNotEmpty) {
+          final headers = data[0].map((e) => e.toString()).toList();
+          _tableHeaders[table] = headers;
+
+          // Initialize visibility if missing
+          if (_columnVisibility[table] == null || _columnVisibility[table]!.length != headers.length) {
+            _columnVisibility[table] = List.generate(headers.length, (_) => true);
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching headers for $table: $e');
+      }
+    }
+    await _saveColumnVisibility();
+    notifyListeners();
+  }
+
   /// Vide les données locales (lors de la déconnexion).
   void clearData() {
     _sheetData = [];
     _searchResults = [];
     _studentsData = [];
+    _tableHeaders = {};
     _sortColumnIndex = null;
     _columnVisibility = {};
     _responsableName = null;
@@ -204,15 +233,16 @@ class CafeDataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setColumnVisibility(int columnIndex, bool isVisible) {
-    if (_columnVisibility[_selectedTable] != null &&
-        columnIndex < _columnVisibility[_selectedTable]!.length) {
+  void setColumnVisibility(int columnIndex, bool isVisible, {String? tableName}) {
+    final targetTable = tableName ?? _selectedTable;
+    if (_columnVisibility[targetTable] != null &&
+        columnIndex < _columnVisibility[targetTable]!.length) {
       
-      final newVisibilityList = List<bool>.from(_columnVisibility[_selectedTable]!);
+      final newVisibilityList = List<bool>.from(_columnVisibility[targetTable]!);
       newVisibilityList[columnIndex] = isVisible;
       
       final newVisibilityMap = Map<String, List<bool>>.from(_columnVisibility);
-      newVisibilityMap[_selectedTable] = newVisibilityList;
+      newVisibilityMap[targetTable] = newVisibilityList;
       
       _columnVisibility = newVisibilityMap;
       notifyListeners();
