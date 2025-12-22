@@ -94,7 +94,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     });
   }
 
-  void _handlePop(bool didPop) {
+  void _handlePop(bool didPop, dynamic result) {
     if (didPop) return;
     setState(() {
       _history.removeLast();
@@ -113,12 +113,12 @@ class _MainScaffoldState extends State<MainScaffold> {
       const NavigationDestination(
         icon: Icon(Icons.shopping_cart_outlined),
         selectedIcon: Icon(Icons.shopping_cart),
-        label: 'Commandes',
+        label: 'Commander',
       ),
       const NavigationDestination(
         icon: Icon(Icons.account_balance_wallet_outlined),
         selectedIcon: Icon(Icons.account_balance_wallet),
-        label: 'Crédits',
+        label: 'Créditer',
       ),
       const NavigationDestination(
         icon: Icon(Icons.settings_outlined),
@@ -144,7 +144,7 @@ class _MainScaffoldState extends State<MainScaffold> {
 
     return PopScope(
       canPop: _history.length <= 1,
-      onPopInvoked: _handlePop,
+      onPopInvokedWithResult: _handlePop,
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 800) {
