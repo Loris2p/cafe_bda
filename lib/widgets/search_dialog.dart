@@ -17,58 +17,111 @@ class SearchDialog {
     required List<List<dynamic>> fullData,
     required Function(List<dynamic>) onRowSelected,
   }) {
+    // Attempt to get headers from fullData if available (unused for now)
+    // final headers = fullData.isNotEmpty ? fullData[0] : [];
+    
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(child: Text('Résultats pour "$searchTerm"')),
-              Text(
-                '${results.length} résultats',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: results.isEmpty
-                ? const Center(child: Text('Aucun résultat trouvé'))
-                : ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: results.length,
-                    separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final row = results[index];
-                      // Trouver l'index réel dans fullData pour un affichage correct
-                      final realIndex = fullData.indexOf(row) + 1;
-
-                      return ListTile(
-                        title: Text('Ligne $realIndex'),
-                        subtitle: Text(
-                          row.join(', '),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Résultats pour "$searchTerm"',
+                              style: Theme.of(context).textTheme.titleLarge,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${results.length} résultat(s) trouvé(s)',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          onRowSelected(row);
-                        },
-                        trailing: const Icon(Icons.chevron_right),
-                      );
-                    },
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Fermer',
+                      ),
+                    ],
                   ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Fermer'),
+                ),
+                const Divider(height: 1),
+                
+                // List
+                Expanded(
+                  child: results.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.search_off, size: 48, color: Theme.of(context).colorScheme.outline),
+                              const SizedBox(height: 16),
+                              Text('Aucun résultat trouvé', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: results.length,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          separatorBuilder: (context, index) => const Divider(indent: 72, endIndent: 24, height: 1),
+                          itemBuilder: (context, index) {
+                            final row = results[index];
+                            final firstVal = row.isNotEmpty ? row[0].toString() : '';
+                            final secondVal = row.length > 1 ? row[1].toString() : '';
+                            final thirdVal = row.length > 2 ? row[2].toString() : '';
+                            
+                            // Heuristic: If it looks like a name, use initials.
+                            final initial = firstVal.isNotEmpty ? firstVal[0].toUpperCase() : '?';
+
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                              leading: CircleAvatar(
+                                backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
+                                foregroundColor: Theme.of(context).colorScheme.onTertiaryContainer,
+                                child: Text(initial, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                              title: Text(
+                                firstVal,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                maxLines: 1, 
+                                overflow: TextOverflow.ellipsis
+                              ),
+                              subtitle: Text(
+                                [secondVal, thirdVal].where((e) => e.isNotEmpty).join(' • '),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                onRowSelected(row);
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -78,62 +131,89 @@ class SearchDialog {
   ///
   /// * [row] - La ligne de données à afficher.
   /// * [columnNames] - Les noms des colonnes pour étiqueter chaque valeur.
+  /// * [visibleColumns] - Liste optionnelle de booléens indiquant la visibilité de chaque colonne.
   static void showRowDetails(
     BuildContext context, {
     required List<dynamic> row,
     required List<dynamic> columnNames,
+    List<bool>? visibleColumns,
   }) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const SelectableText('Détails de la ligne'),
-          content: SingleChildScrollView(
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (row.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: SelectableText('Aucune donnée disponible'),
-                  )
-                else ...[
-                  for (int i = 0; i < row.length; i++)
-                    if (i < columnNames.length)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: SelectableText.rich(
-                          TextSpan(
-                            style: DefaultTextStyle.of(context).style,
-                            children: [
-                              TextSpan(
-                                text: '${columnNames[i]}: ',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              TextSpan(
-                                text: row[i]?.toString() ?? 'N/A',
-                                style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(width: 16),
+                      Text('Détails', style: Theme.of(context).textTheme.headlineSmall),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close),
                       ),
-                ],
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (row.isEmpty)
+                          const Text('Aucune donnée disponible')
+                        else ...[
+                          for (int i = 0; i < row.length; i++)
+                            if (i < columnNames.length)
+                               if (visibleColumns == null || (i < visibleColumns.length && visibleColumns[i]))
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          columnNames[i].toString(),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context).colorScheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        SelectableText(
+                                          row[i]?.toString() ?? '-',
+                                          style: Theme.of(context).textTheme.bodyLarge,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Fermer'),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Fermer'),
-            ),
-          ],
         );
       },
     );

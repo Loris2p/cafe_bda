@@ -1,3 +1,19 @@
+## [6.05] - 2025-12-22
+
+### Changed
+- **Refonte de la Recherche Étudiant** :
+  - Amélioration esthétique majeure de la boîte de dialogue de recherche (`StudentSearchDialog`).
+  - Interface moderne avec coins arrondis et meilleures icônes.
+  - Affichage des résultats avec avatars (initiales) et meilleure lisibilité (Nom/Prénom en gras, ID en sous-titre).
+  - Ajout d'un état "Aucun résultat" visuel.
+  - Champ de recherche plus clair et mieux intégré.
+- **Amélioration des Résultats de Recherche (Accueil)** :
+  - Mise à jour esthétique des dialogues de résultats (`SearchDialog`).
+  - Les détails d'un résultat respectent désormais la visibilité des colonnes configurée dans les paramètres.
+
+### Fixed
+- **Alignement des colonnes** : Correction d'un désalignement entre l'en-tête et les valeurs pour les colonnes numériques (ex: dernière colonne). Les en-têtes sont désormais correctement alignés à droite comme les données.
+
 ## [6.04] - 2025-12-22
 
 ### Added

@@ -318,6 +318,7 @@ class _DashboardViewState extends State<_DashboardView> {
             columnNames: provider.studentsData.isNotEmpty
                 ? provider.studentsData[0]
                 : [],
+            visibleColumns: provider.columnVisibility[AppConstants.studentsTable],
           );
         },
       );
@@ -1067,6 +1068,7 @@ class _SearchSectionState extends State<_SearchSection> {
             columnNames: provider.studentsData.isNotEmpty
                 ? provider.studentsData[0]
                 : [],
+            visibleColumns: provider.columnVisibility[AppConstants.studentsTable],
           );
         },
       );

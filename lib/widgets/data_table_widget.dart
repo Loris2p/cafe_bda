@@ -89,9 +89,21 @@ class _DataTableWidgetState extends State<DataTableWidget> {
     final defaultBorderColor = theme.colorScheme.outlineVariant;
     final effectiveHeaderTextColor = widget.headerTextColor ?? theme.colorScheme.onPrimary;
 
+    // Check for numeric columns based on the first row of data
+    bool isColumnNumeric(int index) {
+      if (widget.data.length < 2) return false;
+      if (index >= widget.data[1].length) return false;
+      final value = widget.data[1][index];
+      if (value == null) return false;
+      // Check if it's a number and not a formula
+      final str = value.toString();
+      return !str.startsWith('=') && num.tryParse(str) != null;
+    }
+
     // Colonnes
     final columns = widget.data[0].asMap().entries.map<DataColumn>((entry) {
       final headerText = entry.value?.toString() ?? 'Colonne ${entry.key + 1}';
+      final isNumeric = isColumnNumeric(entry.key);
 
       return DataColumn(
         label: Expanded(
@@ -103,8 +115,10 @@ class _DataTableWidgetState extends State<DataTableWidget> {
               fontSize: 14,
             ),
             overflow: TextOverflow.ellipsis,
+            textAlign: isNumeric ? TextAlign.right : TextAlign.left,
           ),
         ),
+        numeric: isNumeric,
         tooltip: headerText,
         onSort: widget.onSort != null ? (columnIndex, _) => widget.onSort!(columnIndex) : null,
       );
