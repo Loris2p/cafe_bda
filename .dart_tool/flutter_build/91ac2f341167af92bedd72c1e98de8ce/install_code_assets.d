@@ -1,1 +1,0 @@
- G:\\Cytech\\ing1\\s1\\proba\\cafe_bda\\.dart_tool\\flutter_build\\91ac2f341167af92bedd72c1e98de8ce\\native_assets.json: 
