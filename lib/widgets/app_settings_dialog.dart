@@ -131,7 +131,7 @@ class _AppSettingsWidgetState extends State<AppSettingsWidget> {
                       Icon(Icons.badge, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
-                        'Responsable par défaut',
+                        'Votre nom de responsable',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ],
