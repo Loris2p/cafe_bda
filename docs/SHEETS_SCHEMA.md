@@ -1,6 +1,6 @@
 # Schéma du Google Sheets - Café BDA
 
-Ce document décrit la structure attendue du tableur Google Sheets utilisé par l'application. Le spreadsheet doit contenir les quatre feuilles (onglets) suivantes avec les noms exacts.
+Ce document décrit la structure attendue du tableur Google Sheets utilisé par l'application. Le spreadsheet doit contenir les cinq feuilles (onglets) suivantes avec les noms exacts.
 
 ## 1. Étudiants
 Cette feuille contient la base de données des clients et leurs soldes calculés.
@@ -65,3 +65,21 @@ Gestion de la disponibilité des produits.
 |---|---|---|---|
 | A | Nom | Texte | Nom du café / produit |
 | B | Disponible | Booléen | `TRUE` ou `FALSE` |
+
+---
+
+## 5. Application
+Configuration technique de l'application pour le contrôle de version.
+Cette feuille fonctionne sous forme de paire Clé / Valeur.
+
+| Colonne | Nom | Description |
+|---|---|---|
+| A | Clé | Nom du paramètre |
+| B | Valeur | Valeur du paramètre |
+
+### Valeurs attendues
+| Clé | Exemple de Valeur | Description |
+|---|---|---|
+| `latest_version` | `1.5.0` | La version la plus récente disponible. |
+| `min_compatible_version` | `1.4.0` | La version minimale requise pour fonctionner. Si l'app est en dessous, la mise à jour est forcée. |
+| `download_url` | `https://github.com/...` | Lien vers le fichier à télécharger. |

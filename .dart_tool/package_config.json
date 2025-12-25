@@ -422,6 +422,18 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "package_info_plus",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/package_info_plus-9.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "package_info_plus_platform_interface",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/package_info_plus_platform_interface-3.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.18"
+    },
+    {
       "name": "path",
       "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
@@ -708,6 +720,12 @@
       "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/web_socket_channel-3.0.3",
       "packageUri": "lib/",
       "languageVersion": "3.3"
+    },
+    {
+      "name": "win32",
+      "rootUri": "file:///home/loris2p/.pub-cache/hosted/pub.dev/win32-5.15.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
     },
     {
       "name": "window_to_front",

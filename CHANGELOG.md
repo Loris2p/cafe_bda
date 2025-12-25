@@ -1,3 +1,13 @@
+## [6.06] - 2025-12-25
+
+### Added
+- **Système de Mise à Jour Automatique** :
+  - L'application vérifie désormais automatiquement au démarrage si une nouvelle version est disponible.
+  - Affichage d'une fenêtre de dialogue proposant le téléchargement de la nouvelle version.
+  - Gestion des mises à jour obligatoires (si la version actuelle est trop ancienne) et facultatives.
+  - Redirection automatique vers la page de "Release" GitHub pour télécharger les fichiers (APK, Windows, Linux).
+  - Ajout d'une configuration distante via la feuille "Application" du Google Sheet (Version, URL, Version minimale).
+
 ## [6.05.2] - 2025-12-22
 
 ### Added

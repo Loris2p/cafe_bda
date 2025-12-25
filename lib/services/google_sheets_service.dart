@@ -1,3 +1,4 @@
+import 'package:cafe_bda/models/app_config.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -253,6 +254,23 @@ class GoogleSheetsService {
     } catch (e) {
       rethrow;
     }
+  }
+
+  /// Récupère la configuration de l'application (versions, url) depuis la feuille 'Application'.
+  ///
+  /// Lit les colonnes A (Clé) et B (Valeur) de la feuille 'Application'.
+  Future<AppConfig?> getAppConfig() async {
+    final rows = await readTable('Application!A:B');
+    if (rows == null || rows.isEmpty) return null;
+
+    final Map<String, String> configMap = {};
+    for (var row in rows) {
+      if (row.length >= 2) {
+        // row[0] est la clé, row[1] est la valeur
+        configMap[row[0].toString().trim()] = row[1].toString().trim();
+      }
+    }
+    return AppConfig.fromMap(configMap);
   }
 
   /// Convertit un index de colonne entier (base 0) en sa lettre correspondante (A, B, C...).

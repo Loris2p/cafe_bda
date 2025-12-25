@@ -1,8 +1,11 @@
 import 'package:cafe_bda/providers/auth_provider.dart';
 import 'package:cafe_bda/providers/cafe_data_provider.dart';
 import 'package:cafe_bda/services/google_sheets_service.dart';
+import 'package:cafe_bda/services/version_check_service.dart'; // Ajout
+import 'package:cafe_bda/widgets/update_dialog.dart'; // Ajout
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/app_settings_dialog.dart';
@@ -21,6 +24,7 @@ class GoogleSheetsScreen extends StatefulWidget {
 }
 
 class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
+  bool _versionChecked = false;
   
   @override
   void initState() {
@@ -30,6 +34,35 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthProvider>().initialize();
     });
+  }
+
+  Future<void> _checkVersion(BuildContext context) async {
+    if (!mounted) return;
+    
+    final sheetsService = context.read<GoogleSheetsService>();
+    final versionService = VersionCheckService(sheetsService);
+    
+    final result = await versionService.checkVersion();
+    
+    if (!mounted) return;
+
+    if (result.status == VersionStatus.updateRequired) {
+      UpdateDialog.show(
+        context,
+        isMandatory: true,
+        latestVersion: result.latestVersion ?? '?',
+        currentVersion: result.localVersion ?? '?',
+        downloadUrl: result.downloadUrl,
+      );
+    } else if (result.status == VersionStatus.updateAvailable) {
+      UpdateDialog.show(
+        context,
+        isMandatory: false,
+        latestVersion: result.latestVersion ?? '?',
+        currentVersion: result.localVersion ?? '?',
+        downloadUrl: result.downloadUrl,
+      );
+    }
   }
 
   @override
@@ -51,6 +84,12 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
                return const Center(child: CircularProgressIndicator());
             }
             return const _WelcomePage();
+          }
+
+          // Déclencher la vérification de version une seule fois après l'authentification
+          if (!_versionChecked) {
+            _versionChecked = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) => _checkVersion(context));
           }
 
           if (authProvider.errorMessage == 'PERMISSION_DENIED') {
@@ -657,17 +696,26 @@ class _SettingsTabState extends State<_SettingsTab> {
         // We can consume provider even if fetch had an error (it handles its own errors gracefully mostly)
         final provider = context.watch<CafeDataProvider>();
 
-        return AppSettingsWidget(
-          allHeaders: provider.tableHeaders,
-          allVisibility: provider.columnVisibility,
-          responsableName: provider.responsableName,
-          appVersion: AppConstants.appVersion,
-          onVisibilityChanged: (tableName, index, isVisible) {
-            provider.setColumnVisibility(index, isVisible, tableName: tableName);
-          },
-          onResponsableNameSaved: (name) {
-            provider.saveResponsableName(name);
-          },
+        return FutureBuilder<PackageInfo>(
+          future: PackageInfo.fromPlatform(),
+          builder: (context, packageSnapshot) {
+            final String version = packageSnapshot.hasData 
+                ? packageSnapshot.data!.version 
+                : 'Chargement...';
+
+            return AppSettingsWidget(
+              allHeaders: provider.tableHeaders,
+              allVisibility: provider.columnVisibility,
+              responsableName: provider.responsableName,
+              appVersion: version,
+              onVisibilityChanged: (tableName, index, isVisible) {
+                provider.setColumnVisibility(index, isVisible, tableName: tableName);
+              },
+              onResponsableNameSaved: (name) {
+                provider.saveResponsableName(name);
+              },
+            );
+          }
         );
       },
     );
