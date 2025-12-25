@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="G:\Cytech\ing1\s1\proba\cafe_bda\build\windows\x64\CMakeFiles\c2e54a61cdd871154ddc9da9e9fdaa1d\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{329BDF5E-7931-329C-B0BD-5F55D60248FF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

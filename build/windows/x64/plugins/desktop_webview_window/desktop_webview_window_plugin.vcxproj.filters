@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\desktop_webview_window_plugin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\webview_window.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\utils.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\flutter_view.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\web_view.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\message_channel_plugin.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\web_view_window_plugin.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\webview_window.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\strconv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\flutter_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\web_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\message_channel_plugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\web_view_window_plugin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="G:\Cytech\ing1\s1\proba\cafe_bda\windows\flutter\ephemeral\.plugin_symlinks\desktop_webview_window\windows\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{D2728467-19B9-3319-8F44-3D6448816155}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{713EFAA1-02A2-3E37-8A35-A43C20D7981F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
