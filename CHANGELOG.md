@@ -1,3 +1,11 @@
+## [6.8.3] - 2025-12-30
+
+### Changed
+- **Authentification** : Migration majeure de `google_sign_in` vers la version 7.0.0.
+  - Séparation explicite de l'authentification et de l'autorisation des permissions Google Sheets.
+  - Utilisation de la nouvelle infrastructure de gestion des jetons d'accès.
+  - Amélioration de la stabilité de la connexion sur Android et iOS.
+
 ## [6.8.2] - 2025-12-30
 
 ### Changed
