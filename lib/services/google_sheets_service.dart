@@ -172,7 +172,15 @@ class GoogleSheetsService {
   Future<void> logout() async {
     await _clearStoredAuth();
     if (Platform.isAndroid || Platform.isIOS) {
-      await _googleSignIn.signOut();
+      try {
+        // disconnect() révoque l'accès, ce qui force le sélecteur de compte au prochain login
+        await _googleSignIn.disconnect(); 
+      } catch (_) {
+        // Si disconnect échoue (ex: pas connecté), on tente signOut par sécurité
+        try {
+          await _googleSignIn.signOut();
+        } catch (_) {}
+      }
       _currentUser = null;
     }
     client?.close();

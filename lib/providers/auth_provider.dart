@@ -8,11 +8,13 @@ class AuthProvider with ChangeNotifier {
 
   bool _isAuthenticating = false;
   String _errorMessage = '';
+  String? _deniedEmail;
 
   AuthProvider(this._sheetsService);
 
   bool get isAuthenticating => _isAuthenticating;
   String get errorMessage => _errorMessage;
+  String? get deniedEmail => _deniedEmail;
   
   /// Indique si l'utilisateur est connecté à Google Sheets API.
   bool get isAuthenticated => _sheetsService.sheetsApi != null;
@@ -33,6 +35,7 @@ class AuthProvider with ChangeNotifier {
     if (autoAuthSuccess) {
       final hasAccess = await _sheetsService.checkSpreadsheetAccess();
       if (!hasAccess) {
+        _deniedEmail = _sheetsService.currentUser?.email;
         await _sheetsService.logout();
         _errorMessage = 'PERMISSION_DENIED';
       }
@@ -50,6 +53,7 @@ class AuthProvider with ChangeNotifier {
   Future<String?> authenticate() async {
     _isAuthenticating = true;
     _errorMessage = '';
+    _deniedEmail = null;
     notifyListeners();
 
     try {
@@ -70,6 +74,7 @@ class AuthProvider with ChangeNotifier {
       // Vérification des droits d'accès après connexion
       final hasAccess = await _sheetsService.checkSpreadsheetAccess();
       if (!hasAccess) {
+        _deniedEmail = _sheetsService.currentUser?.email;
         await logout();
         _isAuthenticating = false;
         _errorMessage = 'PERMISSION_DENIED';
@@ -90,7 +95,12 @@ class AuthProvider with ChangeNotifier {
 
   /// Déconnecte l'utilisateur.
   Future<void> logout() async {
-    await _sheetsService.logout();
-    notifyListeners();
+    try {
+      await _sheetsService.logout();
+    } finally {
+      _errorMessage = '';
+      _deniedEmail = null;
+      notifyListeners();
+    }
   }
 }
