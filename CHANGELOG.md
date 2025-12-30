@@ -1,3 +1,9 @@
+## [6.8.5] - 2025-12-30
+
+### Fixed
+- **Authentification Android** : Correction d'une erreur de configuration (`serverClientId`) empêchant la connexion Google sur Android avec la nouvelle librairie v7.
+  - Ajout du support de la variable `GOOGLE_SERVER_CLIENT_ID` dans le fichier `.env` (nécessite un Client ID de type "Web Application").
+
 ## [6.8.4] - 2025-12-30
 
 ### Changed

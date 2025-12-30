@@ -85,8 +85,15 @@ class GoogleSheetsService {
     // Pour mobile, on tente une connexion silencieuse
     if (Platform.isAndroid || Platform.isIOS) {
       try {
-        // Migration v7 : Initialisation (sans scopes)
-        await _googleSignIn.initialize();
+        // Migration v7 : Initialisation avec serverClientId requis sur Android.
+        // IMPORTANT : Le serverClientId DOIT être l'ID Client de type "WEB APPLICATION"
+        // et non l'ID Client Android.
+        final serverClientId = dotenv.env['GOOGLE_SERVER_CLIENT_ID'] ?? dotenv.env['GOOGLE_CLIENT_ID'];
+        
+        await _googleSignIn.initialize(
+          serverClientId: Platform.isAndroid ? serverClientId : null,
+          clientId: Platform.isIOS ? serverClientId : null, 
+        );
         
         // Tentative de connexion silencieuse
         final account = await _googleSignIn.attemptLightweightAuthentication();
