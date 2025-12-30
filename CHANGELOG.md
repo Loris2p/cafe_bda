@@ -1,3 +1,11 @@
+## [6.8.4] - 2025-12-30
+
+### Changed
+- **Dépendances** : Mise à jour de plusieurs bibliothèques vers leurs dernières versions stables :
+  - `http` (^1.6.0)
+  - `shared_preferences` (^2.5.4)
+  - `url_launcher` (^6.3.2)
+
 ## [6.8.3] - 2025-12-30
 
 ### Changed
