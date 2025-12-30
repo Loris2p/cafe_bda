@@ -1,23 +1,23 @@
-# Version 6.8.4 - Maintenance et Consolidation Technique 🛠️
+# Version 6.9.3 - Gestion Avancée des Comptes 🔑
 
-Cette version cumule plusieurs mises à jour techniques importantes depuis la version 6.07, visant à moderniser le cœur de l'application et assurer sa stabilité à long terme.
+Cette mise à jour (v6.9.x) se concentre sur l'amélioration de l'expérience utilisateur lors de la connexion et de la gestion des comptes Google, tout en consolidant les bases techniques posées en v6.8.
 
-### 🚀 Mises à jour Techniques (v6.8.1 - v6.8.4)
+### 🆕 Gestion Avancée du Compte (v6.9.0 - v6.9.3)
 
-*   **Authentification Google (v6.8.3)** :
-    *   Refonte complète du système de connexion (migration vers `google_sign_in` v7.0.0).
-    *   Séparation de l'authentification et des autorisations pour une meilleure sécurité.
-    *   Amélioration de la fiabilité de la connexion sur mobile.
-*   **Mise à jour des Dépendances** :
-    *   Intégration des dernières versions des bibliothèques principales (`googleapis`, `http`, `url_launcher`, `shared_preferences`).
-    *   Support amélioré pour Android 14+ et les réseaux modernes via `connectivity_plus` v7.0.0.
+*   **Changement de Compte Facilité** :
+    *   Ajout d'une option explicite pour **révoquer l'accès** Google dans les paramètres (icône 👤 barrée en haut à droite). Cela force l'affichage du sélecteur de compte lors de la prochaine connexion, idéal si vous utilisez plusieurs comptes Google.
+*   **Déconnexion Intelligente** :
+    *   **Déconnexion Rapide** (bouton en haut) : Déconnecte la session tout en gardant votre compte en mémoire pour une reconnexion rapide.
+    *   **Révocation** (Paramètres / Erreur) : Nettoie complètement les accès.
+*   **Gestion des Erreurs d'Accès** :
+    *   Si vous vous connectez avec un compte non autorisé, la page d'erreur vous propose désormais directement de **changer de compte** ou de contacter le support.
 
-### 🌍 Nouveautés de la v6.07
+### 🚀 Rappel des Mises à jour Techniques (v6.8.x)
 
-*   **Nouveau Module de Paiement** :
-    *   Ajout d'un onglet **Paiements** dédié.
-    *   Affichage des QR Codes (Lydia, etc.) générés automatiquement.
-    *   Configuration simple via la feuille `InfosPaiement`.
-*   **Améliorations de l'Interface** :
-    *   **Traduction** : L'interface est désormais entièrement en français (y compris les éléments de pagination "Lignes par page").
-    *   **Correctifs** : Réparation du sélecteur de lignes par page et meilleure gestion des cases à cocher.
+*   **Authentification Robuste** : Migration vers la nouvelle infrastructure d'authentification Google (v7.0.0), plus sécurisée et stable sur Android/iOS.
+*   **Performance & Dépendances** : Mise à jour de l'ensemble des composants internes (`googleapis`, `http`, etc.) pour garantir la pérennité de l'application.
+
+### 🌍 Rappel v6.07
+
+*   **Module Paiements** : Onglet dédié avec QR Codes Lydia.
+*   **Interface** : Traduction française intégrale et correctifs d'affichage.
