@@ -1,3 +1,8 @@
+## [6.8.1] - 2025-12-30
+
+### Changed
+- **Dépendances** : Mise à jour de `connectivity_plus` vers la version 7.0.0 pour une meilleure gestion de la connectivité réseau (support multi-réseaux, Android 14+).
+
 ## [6.07] - 2025-12-30
 
 ### Added

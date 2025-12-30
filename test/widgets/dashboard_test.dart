@@ -41,6 +41,7 @@ void main() {
     when(mockDataProvider.sheetData).thenReturn([]);
     when(mockDataProvider.studentsData).thenReturn([]);
     when(mockDataProvider.columnVisibility).thenReturn({});
+    when(mockDataProvider.paymentConfigs).thenReturn([]);
     
     // Stub methods returning Futures
     when(mockDataProvider.initData()).thenAnswer((_) async {});

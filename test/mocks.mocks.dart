@@ -4,11 +4,12 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i6;
-import 'dart:ui' as _i10;
+import 'dart:ui' as _i11;
 
 import 'package:cafe_bda/models/app_config.dart' as _i7;
-import 'package:cafe_bda/providers/cafe_data_provider.dart' as _i9;
-import 'package:cafe_bda/repositories/cafe_repository.dart' as _i8;
+import 'package:cafe_bda/models/payment_config.dart' as _i8;
+import 'package:cafe_bda/providers/cafe_data_provider.dart' as _i10;
+import 'package:cafe_bda/repositories/cafe_repository.dart' as _i9;
 import 'package:cafe_bda/services/google_sheets_service.dart' as _i2;
 import 'package:googleapis/sheets/v4.dart' as _i3;
 import 'package:googleapis_auth/auth_io.dart' as _i4;
@@ -151,12 +152,26 @@ class MockGoogleSheetsService extends _i1.Mock
             returnValueForMissingStub: _i6.Future<_i7.AppConfig?>.value(),
           )
           as _i6.Future<_i7.AppConfig?>);
+
+  @override
+  _i6.Future<List<_i8.PaymentConfig>> getPaymentConfigs() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPaymentConfigs, []),
+            returnValue: _i6.Future<List<_i8.PaymentConfig>>.value(
+              <_i8.PaymentConfig>[],
+            ),
+            returnValueForMissingStub:
+                _i6.Future<List<_i8.PaymentConfig>>.value(
+                  <_i8.PaymentConfig>[],
+                ),
+          )
+          as _i6.Future<List<_i8.PaymentConfig>>);
 }
 
 /// A class which mocks [CafeRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCafeRepository extends _i1.Mock implements _i8.CafeRepository {
+class MockCafeRepository extends _i1.Mock implements _i9.CafeRepository {
   @override
   void invalidateCache() => super.noSuchMethod(
     Invocation.method(#invalidateCache, []),
@@ -175,6 +190,20 @@ class MockCafeRepository extends _i1.Mock implements _i8.CafeRepository {
             returnValueForMissingStub: _i6.Future<List<List<dynamic>>?>.value(),
           )
           as _i6.Future<List<List<dynamic>>?>);
+
+  @override
+  _i6.Future<List<_i8.PaymentConfig>> getPaymentConfigs() =>
+      (super.noSuchMethod(
+            Invocation.method(#getPaymentConfigs, []),
+            returnValue: _i6.Future<List<_i8.PaymentConfig>>.value(
+              <_i8.PaymentConfig>[],
+            ),
+            returnValueForMissingStub:
+                _i6.Future<List<_i8.PaymentConfig>>.value(
+                  <_i8.PaymentConfig>[],
+                ),
+          )
+          as _i6.Future<List<_i8.PaymentConfig>>);
 
   @override
   _i6.Future<void> addStudent(Map<String, dynamic>? formData) =>
@@ -235,7 +264,7 @@ class MockCafeRepository extends _i1.Mock implements _i8.CafeRepository {
 /// A class which mocks [CafeDataProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCafeDataProvider extends _i1.Mock implements _i9.CafeDataProvider {
+class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
   @override
   List<List<dynamic>> get sheetData =>
       (super.noSuchMethod(
@@ -262,6 +291,15 @@ class MockCafeDataProvider extends _i1.Mock implements _i9.CafeDataProvider {
             returnValueForMissingStub: <List<dynamic>>[],
           )
           as List<List<dynamic>>);
+
+  @override
+  List<_i8.PaymentConfig> get paymentConfigs =>
+      (super.noSuchMethod(
+            Invocation.getter(#paymentConfigs),
+            returnValue: <_i8.PaymentConfig>[],
+            returnValueForMissingStub: <_i8.PaymentConfig>[],
+          )
+          as List<_i8.PaymentConfig>);
 
   @override
   bool get isLoading =>
@@ -351,6 +389,15 @@ class MockCafeDataProvider extends _i1.Mock implements _i9.CafeDataProvider {
   _i6.Future<void> initData() =>
       (super.noSuchMethod(
             Invocation.method(#initData, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> fetchPaymentConfigs() =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchPaymentConfigs, []),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )
@@ -479,13 +526,13 @@ class MockCafeDataProvider extends _i1.Mock implements _i9.CafeDataProvider {
           as _i6.Future<String?>);
 
   @override
-  void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i11.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void removeListener(_i10.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i11.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#removeListener, [listener]),
     returnValueForMissingStub: null,
   );
