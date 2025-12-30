@@ -1,3 +1,8 @@
+## [6.8.2] - 2025-12-30
+
+### Changed
+- **Dépendances** : Mise à jour de `googleapis` vers la version 15.0.0 pour bénéficier des dernières améliorations et assurer la compatibilité avec le SDK Dart 3.7+.
+
 ## [6.8.1] - 2025-12-30
 
 ### Changed
