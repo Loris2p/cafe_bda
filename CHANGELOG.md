@@ -1,10 +1,16 @@
-## [6.9.2] - 2025-12-30
+## [6.9.3] - 2025-12-30
+
+### Changed
+- **Amélioration UI (Paramètres)** : Déplacement de l'option de révocation du compte vers le haut de l'écran (sous forme d'icône) pour éviter de masquer les options de visibilité des colonnes sur les petits écrans.
+
+## [6.9.2.2] - 2025-12-30
 
 ### Fixed
 - **Gestion des Erreurs d'Accès** : 
   - Correction d'un bug où la page "Accès non autorisé" n'apparaissait plus lors d'une erreur 403.
   - Ajout du bouton "Se déconnecter / Changer de compte" sur la page d'accès refusé pour permettre de basculer facilement vers un compte autorisé.
   - Amélioration de l'affichage de l'email bloqué sur la page d'erreur.
+
 ## [6.9.2] - 2025-12-30
 
 ### Added
