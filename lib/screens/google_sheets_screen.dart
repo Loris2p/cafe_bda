@@ -79,6 +79,10 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
       ),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
+          if (authProvider.errorMessage == 'PERMISSION_DENIED') {
+            return const _AccessDeniedPage();
+          }
+
           if (!authProvider.isAuthenticated) {
             // Afficher le spinner si on est en train de vérifier l'auto-login
             if (authProvider.isAuthenticating) {
@@ -91,10 +95,6 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
           if (!_versionChecked) {
             _versionChecked = true;
             WidgetsBinding.instance.addPostFrameCallback((_) => _checkVersion(context));
-          }
-
-          if (authProvider.errorMessage == 'PERMISSION_DENIED') {
-            return const _AccessDeniedPage();
           }
           
           // Une fois authentifié, on s'assure que les données sont chargées
@@ -865,7 +865,9 @@ class _AccessDeniedPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sheetsService = context.read<GoogleSheetsService>();
+    final authProvider = context.read<AuthProvider>();
+    final deniedEmail = authProvider.deniedEmail ?? 'Compte inconnu';
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32.0),
@@ -881,7 +883,7 @@ class _AccessDeniedPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Votre compte Google (${sheetsService.currentUser?.email}) n\'a pas les permissions pour accéder à la feuille de calcul.',
+              'Votre compte Google ($deniedEmail) n\'a pas les permissions pour accéder à la feuille de calcul.',
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.grey),
             ),
@@ -898,6 +900,17 @@ class _AccessDeniedPage extends StatelessWidget {
               label: const Text('Contacter bdapaucytech@gmail.com'),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: () async {
+                await context.read<AuthProvider>().logout();
+              },
+              icon: const Icon(Icons.logout),
+              label: const Text('Se déconnecter / Changer de compte'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[700],
               ),
             ),
           ],

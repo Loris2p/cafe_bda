@@ -1,10 +1,18 @@
-## [6.8.5] - 2025-12-30
+## [6.9.1] - 2025-12-30
 
 ### Fixed
 - **Authentification Android** : Correction d'une erreur de configuration (`serverClientId`) empêchant la connexion Google sur Android avec la nouvelle librairie v7.
   - Ajout du support de la variable `GOOGLE_SERVER_CLIENT_ID` dans le fichier `.env` (nécessite un Client ID de type "Web Application").
 
-## [6.8.4] - 2025-12-30
+## [6.9.0] - 2025-12-30
+
+### Fixed
+- **Gestion des Erreurs d'Accès** : 
+  - Correction d'un bug où la page "Accès non autorisé" n'apparaissait plus lors d'une erreur 403.
+  - Ajout du bouton "Se déconnecter / Changer de compte" sur la page d'accès refusé pour permettre de basculer facilement vers un compte autorisé.
+  - Amélioration de l'affichage de l'email bloqué sur la page d'erreur.
+
+## [6.8.5] - 2025-12-30
 
 ### Changed
 - **Dépendances** : Mise à jour de plusieurs bibliothèques vers leurs dernières versions stables :
