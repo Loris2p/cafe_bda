@@ -1,3 +1,16 @@
+# Version 6.07 - Correction et Localisation 🌍
+
+Cette version mineure 6.07 apporte des correctifs importants pour l'expérience utilisateur, notamment sur l'affichage des tableaux.
+
+### 🛠️ Corrections & Améliorations
+
+*   **Pied de page des tableaux** : 
+    *   Correction du sélecteur "Lignes par page" qui ne fonctionnait pas.
+    *   Le texte est désormais entièrement en français (fini le "Rows per page" !).
+*   **Localisation** : Ajout du support officiel de la langue française pour les composants système.
+
+---
+
 # Version 6.06 - La version de la maturité 🚀
 
 Cette version 6.06 marque l'aboutissement du cycle v6. Elle intègre un nouveau système de mise à jour automatique et consolide toutes les refontes d'interface et de performance apportées ces derniers jours.

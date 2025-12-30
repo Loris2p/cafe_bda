@@ -1,3 +1,14 @@
+## [6.07] - 2025-12-30
+
+### Fixed
+- **Pied de page des tableaux** : 
+  - Le sélecteur du nombre de lignes par page fonctionne désormais correctement.
+  - Le texte du pied de page est maintenant traduit en français ("Lignes par page", etc.) grâce à l'ajout de la localisation.
+
+### Improved
+- **Expérience Utilisateur** :
+  - Ajout d'une transition fluide (flou + chargement) lors du changement du nombre de lignes affichées dans les tableaux pour éviter les saccades visuelles.
+
 ## [6.06] - 2025-12-25
 
 ### Added

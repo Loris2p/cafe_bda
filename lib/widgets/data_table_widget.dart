@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Un widget réutilisable pour afficher des données sous forme de tableau dynamique.
@@ -63,6 +64,12 @@ class DataTableWidget extends StatefulWidget {
 class _DataTableWidgetState extends State<DataTableWidget> {
   // Key unique pour forcer le rebuild du PaginatedDataTable si les données changent drastiquement
   Key _tableKey = UniqueKey();
+  
+  // Nombre de lignes par page
+  int _rowsPerPage = 20;
+
+  // État de chargement pour la transition de pagination
+  bool _isLoading = false;
   
   @override
   void didUpdateWidget(DataTableWidget oldWidget) {
@@ -143,36 +150,65 @@ class _DataTableWidgetState extends State<DataTableWidget> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(widget.borderRadius),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  cardTheme: const CardThemeData(
-                    elevation: 0,
-                    margin: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      cardTheme: const CardThemeData(
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                      ),
+                    ),
+                    child: PaginatedDataTable(
+                      key: _tableKey,
+                      columns: columns,
+                      source: source,
+                      sortColumnIndex: widget.sortColumnIndex,
+                      sortAscending: widget.sortAscending,
+                      header: null, // On n'utilise pas le header par défaut du widget
+                      rowsPerPage: _rowsPerPage,
+                      availableRowsPerPage: const [10, 20, 50, 100],
+                      onRowsPerPageChanged: (value) {
+                        if (value != null && value != _rowsPerPage) {
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          // Petit délai pour l'effet visuel
+                          Future.delayed(const Duration(milliseconds: 300), () {
+                            if (mounted) {
+                              setState(() {
+                                _rowsPerPage = value;
+                                _isLoading = false;
+                              });
+                            }
+                          });
+                        }
+                      },
+                      showCheckboxColumn: false,
+                      columnSpacing: 16.0,
+                      horizontalMargin: 20,
+                      headingRowColor: WidgetStateProperty.all(widget.headerColor ?? defaultHeaderColor),
+                      headingRowHeight: 50,
+                      showFirstLastButtons: true,
+                    ),
                   ),
                 ),
-                child: PaginatedDataTable(
-                  key: _tableKey,
-                  columns: columns,
-                  source: source,
-                  sortColumnIndex: widget.sortColumnIndex,
-                  sortAscending: widget.sortAscending,
-                  header: null, // On n'utilise pas le header par défaut du widget
-                  rowsPerPage: 20,
-                  availableRowsPerPage: const [10, 20, 50, 100],
-                  onRowsPerPageChanged: (value) {
-                    // PaginatedDataTable gère l'état interne pour rowsPerPage si on ne le contrôle pas
-                  },
-                  showCheckboxColumn: false,
-                  columnSpacing: 16.0,
-                  horizontalMargin: 20,
-                  headingRowColor: WidgetStateProperty.all(widget.headerColor ?? defaultHeaderColor),
-                  headingRowHeight: 50,
-                  showFirstLastButtons: true,
-                ),
-              ),
+                if (_isLoading)
+                  Positioned.fill(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         );
