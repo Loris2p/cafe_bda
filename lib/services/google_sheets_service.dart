@@ -164,12 +164,30 @@ class GoogleSheetsService {
     }
   }
 
-  /// Déconnecte l'utilisateur et efface les données de session.
+  /// Déconnecte l'utilisateur (Soft Logout).
   ///
   /// * Supprime les credentials stockés localement.
-  /// * Révoque l'accès Google Sign-In (sur mobile).
-  /// * Ferme le client HTTP.
-  Future<void> logout() async {
+  /// * Utilise `signOut` : le compte reste connu du système pour une reconnexion rapide.
+  Future<void> signOut() async {
+    await _clearStoredAuth();
+    if (Platform.isAndroid || Platform.isIOS) {
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {
+        // Ignorer les erreurs de signOut
+      }
+      _currentUser = null;
+    }
+    client?.close();
+    sheetsApi = null;
+    client = null;
+  }
+
+  /// Révoque l'accès et déconnecte (Hard Logout).
+  ///
+  /// * Utilise `disconnect` : force la révocation des droits.
+  /// * Utile pour changer de compte ou nettoyer complètement l'accès.
+  Future<void> disconnect() async {
     await _clearStoredAuth();
     if (Platform.isAndroid || Platform.isIOS) {
       try {

@@ -21,6 +21,9 @@ class AppSettingsWidget extends StatefulWidget {
   /// Callback appelé lors de la sauvegarde du nom du responsable.
   final Function(String) onResponsableNameSaved;
 
+  /// Callback appelé pour révoquer l'accès (changement de compte).
+  final VoidCallback? onRevokeAccess;
+
   const AppSettingsWidget({
     super.key,
     required this.allHeaders,
@@ -29,6 +32,7 @@ class AppSettingsWidget extends StatefulWidget {
     required this.appVersion,
     required this.onVisibilityChanged,
     required this.onResponsableNameSaved,
+    this.onRevokeAccess,
   });
 
   @override
@@ -249,7 +253,39 @@ class _AppSettingsWidgetState extends State<AppSettingsWidget> {
             ),
           ),
           
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
+          
+          if (widget.onRevokeAccess != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Révoquer l\'accès ?'),
+                      content: const Text('Cela déconnectera votre compte et forcera la demande de permissions à la prochaine connexion.\n\nUtilisez cette option pour changer de compte Google.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+                        TextButton(onPressed: () => Navigator.pop(ctx, true), style: TextButton.styleFrom(foregroundColor: Colors.red), child: const Text('Révoquer')),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    widget.onRevokeAccess!();
+                  }
+                },
+                icon: const Icon(Icons.person_off),
+                label: const Text('Révoquer l\'accès Google (Changer de compte)'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(color: Theme.of(context).colorScheme.error),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 24),
           Center(
             child: Text(
               'Version ${widget.appVersion}',

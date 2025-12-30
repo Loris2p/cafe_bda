@@ -36,7 +36,7 @@ class AuthProvider with ChangeNotifier {
       final hasAccess = await _sheetsService.checkSpreadsheetAccess();
       if (!hasAccess) {
         _deniedEmail = _sheetsService.currentUser?.email;
-        await _sheetsService.logout();
+        await _sheetsService.signOut();
         _errorMessage = 'PERMISSION_DENIED';
       }
     }
@@ -93,10 +93,23 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Déconnecte l'utilisateur.
+  /// Déconnecte l'utilisateur (Soft).
+  /// Conserve le compte dans le sélecteur système pour une reconnexion facile.
   Future<void> logout() async {
     try {
-      await _sheetsService.logout();
+      await _sheetsService.signOut();
+    } finally {
+      _errorMessage = '';
+      _deniedEmail = null;
+      notifyListeners();
+    }
+  }
+
+  /// Révoque l'accès et déconnecte (Hard).
+  /// Force le changement de compte.
+  Future<void> revokeAccess() async {
+    try {
+      await _sheetsService.disconnect();
     } finally {
       _errorMessage = '';
       _deniedEmail = null;

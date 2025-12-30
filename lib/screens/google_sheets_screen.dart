@@ -754,6 +754,12 @@ class _SettingsTabState extends State<_SettingsTab> {
               onResponsableNameSaved: (name) {
                 provider.saveResponsableName(name);
               },
+              onRevokeAccess: () async {
+                // On vide les données
+                provider.clearData();
+                // On révoque l'accès
+                await context.read<AuthProvider>().revokeAccess();
+              },
             );
           }
         );
@@ -905,7 +911,8 @@ class _AccessDeniedPage extends StatelessWidget {
             const SizedBox(height: 16),
             TextButton.icon(
               onPressed: () async {
-                await context.read<AuthProvider>().logout();
+                // Sur la page d'erreur, on veut forcer le changement de compte (Hard Logout)
+                await context.read<AuthProvider>().revokeAccess();
               },
               icon: const Icon(Icons.logout),
               label: const Text('Se déconnecter / Changer de compte'),

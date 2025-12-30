@@ -5,6 +5,13 @@
   - Correction d'un bug où la page "Accès non autorisé" n'apparaissait plus lors d'une erreur 403.
   - Ajout du bouton "Se déconnecter / Changer de compte" sur la page d'accès refusé pour permettre de basculer facilement vers un compte autorisé.
   - Amélioration de l'affichage de l'email bloqué sur la page d'erreur.
+## [6.9.2] - 2025-12-30
+
+### Added
+- **Gestion Avancée du Compte** :
+  - Ajout d'une option "Révoquer l'accès Google (Changer de compte)" en bas de l'onglet Paramètres. Cela permet de forcer le changement d'utilisateur en cas de besoin.
+  - Distinction entre la déconnexion "rapide" (via le bouton de la barre d'outils) qui permet une reconnexion facile, et la révocation (via les paramètres ou la page d'erreur) qui nettoie complètement l'accès.
+
 ## [6.9.1] - 2025-12-30
 
 ### Fixed
