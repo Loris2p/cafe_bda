@@ -1,11 +1,23 @@
-# Version 6.07 - Correction et Localisation 🌍
+# Version 6.8.4 - Maintenance et Consolidation Technique 🛠️
 
-Cette version mineure 6.07 apporte des correctifs importants pour l'expérience utilisateur, notamment sur l'affichage des tableaux.
+Cette version cumule plusieurs mises à jour techniques importantes depuis la version 6.07, visant à moderniser le cœur de l'application et assurer sa stabilité à long terme.
 
-### 🛠️ Corrections & Améliorations
+### 🚀 Mises à jour Techniques (v6.8.1 - v6.8.4)
 
-*   **Paiements** : Nouvel onglet dédié avec QR Code Lydia et informations de paiement.
-*   **Pied de page des tableaux** : 
-    *   Correction du sélecteur "Lignes par page" qui ne fonctionnait pas.
-    *   Le texte est désormais entièrement en français (fini le "Rows per page" !).
-*   **Localisation** : Ajout du support officiel de la langue française pour les composants système.
+*   **Authentification Google (v6.8.3)** :
+    *   Refonte complète du système de connexion (migration vers `google_sign_in` v7.0.0).
+    *   Séparation de l'authentification et des autorisations pour une meilleure sécurité.
+    *   Amélioration de la fiabilité de la connexion sur mobile.
+*   **Mise à jour des Dépendances** :
+    *   Intégration des dernières versions des bibliothèques principales (`googleapis`, `http`, `url_launcher`, `shared_preferences`).
+    *   Support amélioré pour Android 14+ et les réseaux modernes via `connectivity_plus` v7.0.0.
+
+### 🌍 Nouveautés de la v6.07
+
+*   **Nouveau Module de Paiement** :
+    *   Ajout d'un onglet **Paiements** dédié.
+    *   Affichage des QR Codes (Lydia, etc.) générés automatiquement.
+    *   Configuration simple via la feuille `InfosPaiement`.
+*   **Améliorations de l'Interface** :
+    *   **Traduction** : L'interface est désormais entièrement en français (y compris les éléments de pagination "Lignes par page").
+    *   **Correctifs** : Réparation du sélecteur de lignes par page et meilleure gestion des cases à cocher.
