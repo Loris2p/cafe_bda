@@ -3,6 +3,7 @@ import 'package:cafe_bda/providers/cafe_data_provider.dart';
 import 'package:cafe_bda/services/google_sheets_service.dart';
 import 'package:cafe_bda/services/version_check_service.dart'; // Ajout
 import 'package:cafe_bda/widgets/update_dialog.dart'; // Ajout
+import 'package:cafe_bda/widgets/payment_dialog.dart'; // Ajout
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -166,6 +167,11 @@ class _MainScaffoldState extends State<MainScaffold> {
         label: 'Créditer',
       ),
       const NavigationDestination(
+        icon: Icon(Icons.qr_code_2_outlined),
+        selectedIcon: Icon(Icons.qr_code_2),
+        label: 'Lydia',
+      ),
+      const NavigationDestination(
         icon: Icon(Icons.settings_outlined),
         selectedIcon: Icon(Icons.settings),
         label: 'Paramètres',
@@ -184,6 +190,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       _HomeTab(key: _homeTabKey),
       const _OrderTab(),
       const _CreditTab(),
+      const _PaymentTab(),
       const _SettingsTab(),
     ];
 
@@ -658,6 +665,39 @@ class _CreditTab extends StatelessWidget {
       studentsData: provider.studentsData,
       initialResponsableName: provider.responsableName,
       onSubmit: provider.handleCreditSubmission,
+    );
+  }
+}
+
+class _PaymentTab extends StatelessWidget {
+  const _PaymentTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<CafeDataProvider>();
+    final configs = provider.paymentConfigs;
+
+    if (configs.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 48, color: Colors.grey),
+            SizedBox(height: 16),
+            Text("Aucune information de paiement configurée."),
+          ],
+        ),
+      );
+    }
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: PaymentInfoWidget(paymentConfigs: configs), // Reusing PaymentInfoWidget widget which handles layouts well
+        ),
+      ),
     );
   }
 }

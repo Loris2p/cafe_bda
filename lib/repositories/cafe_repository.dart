@@ -1,4 +1,5 @@
 import '../services/google_sheets_service.dart';
+import '../models/payment_config.dart';
 import '../utils/constants.dart';
 
 /// La classe CafeRepository est responsable de la logique métier de l'application.
@@ -56,6 +57,11 @@ class CafeRepository {
       _lastFetchTime = DateTime.now();
     }
     return data;
+  }
+
+  /// Récupère les configurations de paiement.
+  Future<List<PaymentConfig>> getPaymentConfigs() async {
+    return await _sheetsService.getPaymentConfigs();
   }
 
   /// Ajoute un nouvel étudiant à la feuille 'Étudiants'.

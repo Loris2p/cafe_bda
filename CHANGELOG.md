@@ -1,3 +1,27 @@
+## [6.07] - 2025-12-30
+
+### Added
+- **Page d'Informations de Paiement** :
+  - Ajout d'un nouvel onglet "Paiements" dans le menu principal, affichant les informations de paiement (Lydia, etc.).
+  - L'interface utilise un système d'onglets pour naviguer entre plusieurs moyens de paiement.
+  - Génération automatique d'un QR Code pour les liens de paiement, cliquable pour ouvrir l'application correspondante.
+  - Ajout d'un bouton pour copier le numéro de téléphone/IBAN.
+  - La configuration se fait via une nouvelle feuille Google Sheets `InfosPaiement`.
+  - Ajout de la dépendance `qr_flutter` pour la génération des QR codes.
+
+### Fixed
+- **Pagination des Tableaux** : 
+  - Correction du sélecteur du nombre de lignes par page qui ne fonctionnait pas.
+- **Localisation** : 
+  - Ajout du support pour la langue française (`flutter_localizations`), traduisant les textes par défaut de l'interface (ex: "Rows per page" en "Lignes par page").
+
+### Improved
+- **Expérience Utilisateur (UX)** :
+  - Ajout d'une transition visuelle (flou et indicateur de chargement) lors du changement du nombre de lignes dans les tableaux pour une expérience plus fluide.
+  - L'interface de la page de paiement a été conçue pour être claire et similaire au style des formulaires existants.
+- **Robustesse du Code** :
+  - Amélioration de l'analyse des booléens (`TRUE`/`FALSE`) depuis Google Sheets pour mieux gérer les cases à cocher.
+
 ## [6.06] - 2025-12-25
 
 ### Added

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cafe_bda/models/payment_config.dart';
 import 'package:cafe_bda/repositories/cafe_repository.dart';
 import 'package:cafe_bda/services/google_sheets_service.dart';
 import 'package:cafe_bda/utils/constants.dart';
@@ -15,6 +16,7 @@ class CafeDataProvider with ChangeNotifier {
   List<List<dynamic>> _sheetData = [];
   List<List<dynamic>> _searchResults = [];
   List<List<dynamic>> _studentsData = [];
+  List<PaymentConfig> _paymentConfigs = [];
   
   bool _isLoading = false;
   String _errorMessage = '';
@@ -39,6 +41,7 @@ class CafeDataProvider with ChangeNotifier {
   List<List<dynamic>> get sheetData => _sheetData;
   List<List<dynamic>> get searchResults => _searchResults;
   List<List<dynamic>> get studentsData => _studentsData;
+  List<PaymentConfig> get paymentConfigs => _paymentConfigs;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   String get selectedTable => _selectedTable;
@@ -54,6 +57,17 @@ class CafeDataProvider with ChangeNotifier {
     await _loadColumnVisibility();
     await _loadResponsableName();
     await readTable();
+    await fetchPaymentConfigs();
+  }
+  
+  /// Récupère les configurations de paiement.
+  Future<void> fetchPaymentConfigs() async {
+    try {
+      _paymentConfigs = await _cafeRepository.getPaymentConfigs();
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Erreur lors de la récupération des configs de paiement: $e");
+    }
   }
 
   /// Récupère les en-têtes de toutes les tables pour la configuration.

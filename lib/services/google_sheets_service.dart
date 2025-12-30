@@ -1,4 +1,5 @@
 import 'package:cafe_bda/models/app_config.dart';
+import 'package:cafe_bda/models/payment_config.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -271,6 +272,20 @@ class GoogleSheetsService {
       }
     }
     return AppConfig.fromMap(configMap);
+  }
+
+  /// Récupère les configurations de paiement depuis la feuille 'InfosPaiement'.
+  ///
+  /// Lit toutes les colonnes à partir de la deuxième ligne (en supposant une ligne d'en-tête).
+  Future<List<PaymentConfig>> getPaymentConfigs() async {
+    // Lecture de A2:D pour ignorer l'en-tête et lire 4 colonnes
+    final rows = await readTable('InfosPaiement!A2:D');
+
+    if (rows == null || rows.isEmpty) return [];
+
+    final configs = rows.map((row) => PaymentConfig.fromRow(row)).toList();
+    
+    return configs.where((config) => config.isActive).toList();
   }
 
   /// Convertit un index de colonne entier (base 0) en sa lettre correspondante (A, B, C...).

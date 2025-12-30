@@ -4,6 +4,7 @@ import 'package:cafe_bda/repositories/cafe_repository.dart';
 import 'package:cafe_bda/services/google_sheets_service.dart';
 import 'package:cafe_bda/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'screens/google_sheets_screen.dart';
@@ -58,6 +59,14 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       home: const GoogleSheetsScreen(),
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('fr', 'FR'), // Français
+      ],
     );
   }
 }

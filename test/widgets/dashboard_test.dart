@@ -1,6 +1,7 @@
 import 'package:cafe_bda/providers/auth_provider.dart';
 import 'package:cafe_bda/providers/cafe_data_provider.dart';
 import 'package:cafe_bda/screens/google_sheets_screen.dart';
+import 'package:cafe_bda/services/google_sheets_service.dart';
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,10 +26,12 @@ class MockAuthProvider extends Mock implements AuthProvider {
 void main() {
   late MockCafeDataProvider mockDataProvider;
   late MockAuthProvider mockAuthProvider;
+  late MockGoogleSheetsService mockSheetsService;
 
   setUp(() {
     mockDataProvider = MockCafeDataProvider();
     mockAuthProvider = MockAuthProvider();
+    mockSheetsService = MockGoogleSheetsService();
 
     // Default stubs
     when(mockDataProvider.availableTables).thenReturn(['Étudiants', 'Stocks']);
@@ -46,6 +49,9 @@ void main() {
     when(mockDataProvider.tableHeaders).thenReturn({'DummyTable': ['Col1']});
     when(mockDataProvider.readTable(tableName: anyNamed('tableName')))
         .thenAnswer((_) async {});
+        
+    // Stub checkVersion which might be called in initState
+    when(mockSheetsService.getAppConfig()).thenAnswer((_) => Future.value(null));
   });
 
   Widget createWidgetUnderTest() {
@@ -53,6 +59,7 @@ void main() {
       providers: [
         ChangeNotifierProvider<AuthProvider>.value(value: mockAuthProvider),
         ChangeNotifierProvider<CafeDataProvider>.value(value: mockDataProvider),
+        Provider<GoogleSheetsService>.value(value: mockSheetsService),
       ],
       child: const MaterialApp(
         home: GoogleSheetsScreen(),
