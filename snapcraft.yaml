@@ -1,6 +1,6 @@
 name: cafe-bda
 base: core24
-version: '1.0'
+version: '6.08.1'
 summary: Une application Flutter pour gérer le café BDA
 description: |
   Ceci est une application construite avec Flutter pour Linux.

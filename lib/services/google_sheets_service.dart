@@ -37,9 +37,8 @@ class GoogleAuthClient extends http.BaseClient {
 ///
 /// Voir [CafeRepository] pour la logique métier.
 class GoogleSheetsService {
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: [
-    SheetsApi.spreadsheetsScope,
-  ]);
+  // Migration v7: Singleton instance
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   // Clés pour le stockage sécurisé des credentials
   static const _authCredentialsKey = 'google_auth_credentials';
@@ -52,8 +51,11 @@ class GoogleSheetsService {
   /// Le client HTTP authentifié (pour le Desktop).
   auth_io.AutoRefreshingAuthClient? client;
 
+  /// L'utilisateur Google actuellement connecté (suivi manuel pour v7+).
+  GoogleSignInAccount? _currentUser;
+
   /// L'utilisateur Google actuellement connecté.
-  GoogleSignInAccount? get currentUser => _googleSignIn.currentUser;
+  GoogleSignInAccount? get currentUser => _currentUser;
 
   /// Vérifie si les variables d'environnement requises sont présentes.
   ///
@@ -83,12 +85,25 @@ class GoogleSheetsService {
     // Pour mobile, on tente une connexion silencieuse
     if (Platform.isAndroid || Platform.isIOS) {
       try {
-        final account = await _googleSignIn.signInSilently();
+        // Migration v7 : Initialisation (sans scopes)
+        await _googleSignIn.initialize();
+        
+        // Tentative de connexion silencieuse
+        final account = await _googleSignIn.attemptLightweightAuthentication();
         if (account != null) {
-          final authHeaders = await account.authHeaders;
-          final httpClient = GoogleAuthClient(authHeaders);
-          sheetsApi = SheetsApi(httpClient);
-          return true;
+          _currentUser = account;
+          
+          // Vérification si les scopes requis sont déjà accordés (silencieux)
+          // authorizationForScopes retourne un objet d'autorisation si les scopes sont OK, sinon null.
+          final auth = await account.authorizationClient.authorizationForScopes([SheetsApi.spreadsheetsScope]);
+          
+          if (auth != null) {
+             final authHeaders = {'Authorization': 'Bearer ${auth.accessToken}'};
+             final httpClient = GoogleAuthClient(authHeaders);
+             sheetsApi = SheetsApi(httpClient);
+             return true;
+          }
+          // Si pas d'autorisation pour les scopes, on considère l'auto-auth comme échouée
         }
         return false;
       } catch (e) {
@@ -151,6 +166,7 @@ class GoogleSheetsService {
     await _clearStoredAuth();
     if (Platform.isAndroid || Platform.isIOS) {
       await _googleSignIn.signOut();
+      _currentUser = null;
     }
     client?.close();
     sheetsApi = null;
@@ -367,16 +383,19 @@ class GoogleSheetsService {
   /// Gère le flux d'authentification Mobile (via le plugin google_sign_in).
   Future<String?> _authenticateMobile() async {
     try {
-      final account = await _googleSignIn.signIn();
-      if (account == null) {
-        return 'Connexion annulée';
-      }
-
-      final authHeaders = await account.authHeaders;
-      final httpClient = GoogleAuthClient(authHeaders);
+      // Migration v7 : signIn() -> authenticate()
+      final account = await _googleSignIn.authenticate();
       
+      _currentUser = account;
+      
+      // Demande explicite des scopes (avec UI si nécessaire)
+      final auth = await account.authorizationClient.authorizeScopes([SheetsApi.spreadsheetsScope]);
+      
+      // Ici auth est supposé non-null si l'utilisateur a accepté, et accessToken aussi.
+      final authHeaders = {'Authorization': 'Bearer ${auth.accessToken}'};
+      final httpClient = GoogleAuthClient(authHeaders);
       sheetsApi = SheetsApi(httpClient);
-      return null;
+      return null; // Succès
     } catch (e) {
       return 'Erreur d\'authentification mobile: ${e.toString()}';
     }

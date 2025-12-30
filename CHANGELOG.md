@@ -1,3 +1,29 @@
+## [6.8.4] - 2025-12-30
+
+### Changed
+- **Dépendances** : Mise à jour de plusieurs bibliothèques vers leurs dernières versions stables :
+  - `http` (^1.6.0)
+  - `shared_preferences` (^2.5.4)
+  - `url_launcher` (^6.3.2)
+
+## [6.8.3] - 2025-12-30
+
+### Changed
+- **Authentification** : Migration majeure de `google_sign_in` vers la version 7.0.0.
+  - Séparation explicite de l'authentification et de l'autorisation des permissions Google Sheets.
+  - Utilisation de la nouvelle infrastructure de gestion des jetons d'accès.
+  - Amélioration de la stabilité de la connexion sur Android et iOS.
+
+## [6.8.2] - 2025-12-30
+
+### Changed
+- **Dépendances** : Mise à jour de `googleapis` vers la version 15.0.0 pour bénéficier des dernières améliorations et assurer la compatibilité avec le SDK Dart 3.7+.
+
+## [6.8.1] - 2025-12-30
+
+### Changed
+- **Dépendances** : Mise à jour de `connectivity_plus` vers la version 7.0.0 pour une meilleure gestion de la connectivité réseau (support multi-réseaux, Android 14+).
+
 ## [6.07] - 2025-12-30
 
 ### Added
