@@ -132,88 +132,143 @@ class SearchDialog {
   /// * [row] - La ligne de données à afficher.
   /// * [columnNames] - Les noms des colonnes pour étiqueter chaque valeur.
   /// * [visibleColumns] - Liste optionnelle de booléens indiquant la visibilité de chaque colonne.
+  /// * [canEdit] - Si vrai, permet de modifier les valeurs.
+  /// * [onEdit] - Callback (colIndex, newValue) appelé lors d'une modification.
   static void showRowDetails(
     BuildContext context, {
     required List<dynamic> row,
     required List<dynamic> columnNames,
     List<bool>? visibleColumns,
+    bool canEdit = false,
+    Function(int colIndex, dynamic newValue)? onEdit,
   }) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
-                      const SizedBox(width: 16),
-                      Text('Détails', style: Theme.of(context).textTheme.headlineSmall),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                ),
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (row.isEmpty)
-                          const Text('Aucune donnée disponible')
-                        else ...[
-                          for (int i = 0; i < row.length; i++)
-                            if (i < columnNames.length)
-                               if (visibleColumns == null || (i < visibleColumns.length && visibleColumns[i]))
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 12.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          columnNames[i].toString(),
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Theme.of(context).colorScheme.primary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        SelectableText(
-                                          row[i]?.toString() ?? '-',
-                                          style: Theme.of(context).textTheme.bodyLarge,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+        // Nécessaire pour mettre à jour l'UI après une édition locale
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+                          const SizedBox(width: 16),
+                          Text('Détails', style: Theme.of(context).textTheme.headlineSmall),
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.close),
+                          ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Fermer'),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (row.isEmpty)
+                              const Text('Aucune donnée disponible')
+                            else ...[
+                              for (int i = 0; i < row.length; i++)
+                                if (i < columnNames.length)
+                                   if (visibleColumns == null || (i < visibleColumns.length && visibleColumns[i]))
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 12.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              columnNames[i].toString(),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Theme.of(context).colorScheme.primary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: SelectableText(
+                                                    row[i]?.toString() ?? '-',
+                                                    style: Theme.of(context).textTheme.bodyLarge,
+                                                  ),
+                                                ),
+                                                if (canEdit && onEdit != null)
+                                                  IconButton(
+                                                    icon: const Icon(Icons.edit, size: 18),
+                                                    color: Theme.of(context).colorScheme.secondary,
+                                                    onPressed: () {
+                                                      final currentVal = row[i]?.toString() ?? '';
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (ctx) {
+                                                          final controller = TextEditingController(text: currentVal);
+                                                          return AlertDialog(
+                                                            title: Text('Modifier ${columnNames[i]}'),
+                                                            content: TextField(
+                                                              controller: controller,
+                                                              autofocus: true,
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed: () => Navigator.pop(ctx),
+                                                                child: const Text('Annuler'),
+                                                              ),
+                                                              FilledButton(
+                                                                onPressed: () {
+                                                                  final newVal = controller.text;
+                                                                  Navigator.pop(ctx);
+                                                                  // Update UI locale
+                                                                  setState(() {
+                                                                     row[i] = newVal;
+                                                                  });
+                                                                  // Call backend
+                                                                  onEdit(i, newVal);
+                                                                },
+                                                                child: const Text('Sauvegarder'),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        }
+                                                      );
+                                                    },
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Fermer'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          }
         );
       },
     );

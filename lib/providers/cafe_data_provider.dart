@@ -19,6 +19,7 @@ class CafeDataProvider with ChangeNotifier {
   List<PaymentConfig> _paymentConfigs = [];
   
   bool _isLoading = false;
+  bool _isAdminMode = false;
   String _errorMessage = '';
   
   String _selectedTable = AppConstants.studentsTable;
@@ -43,6 +44,7 @@ class CafeDataProvider with ChangeNotifier {
   List<List<dynamic>> get studentsData => _studentsData;
   List<PaymentConfig> get paymentConfigs => _paymentConfigs;
   bool get isLoading => _isLoading;
+  bool get isAdminMode => _isAdminMode;
   String get errorMessage => _errorMessage;
   String get selectedTable => _selectedTable;
   List<String> get availableTables => _availableTables;
@@ -51,6 +53,11 @@ class CafeDataProvider with ChangeNotifier {
   Map<String, List<bool>> get columnVisibility => _columnVisibility;
   Map<String, List<String>> get tableHeaders => _tableHeaders;
   String? get responsableName => _responsableName;
+
+  set isAdminMode(bool value) {
+    _isAdminMode = value;
+    notifyListeners();
+  }
 
   /// Initialise les données une fois l'utilisateur authentifié.
   Future<void> initData() async {
@@ -360,6 +367,27 @@ class CafeDataProvider with ChangeNotifier {
     }
 
     final results = _studentsData.skip(1).where((row) {
+      return row.any(
+        (cell) =>
+            cell != null &&
+            cell.toString().toLowerCase().contains(searchTerm.toLowerCase()),
+      );
+    }).toList();
+
+    _searchResults = results;
+    notifyListeners();
+    return results;
+  }
+
+  Future<List<List<dynamic>>> searchCurrentTable(String searchTerm) async {
+    if (searchTerm.isEmpty) {
+      _searchResults = [];
+      return [];
+    }
+
+    final dataToSearch = _sheetData.length > 1 ? _sheetData.sublist(1) : <List<dynamic>>[];
+    
+    final results = dataToSearch.where((row) {
       return row.any(
         (cell) =>
             cell != null &&

@@ -33,16 +33,19 @@ class AppTheme {
   static const double radiusL = 16.0;
 
   /// Retourne le thème clair configuré (Light Theme).
-  static ThemeData get lightTheme {
+  static ThemeData getTheme({bool isAdmin = false}) {
+    final primaryColor = isAdmin ? Colors.deepOrange : primary;
+    final secondaryColor = isAdmin ? Colors.orange : secondary;
+
     return ThemeData(
       useMaterial3: true,
       
       // Configuration des couleurs globales
-      colorScheme: const ColorScheme(
+      colorScheme: ColorScheme(
         brightness: Brightness.light,
-        primary: primary,
+        primary: primaryColor,
         onPrimary: Colors.black,
-        secondary: secondary,
+        secondary: secondaryColor,
         onSecondary: Colors.white,
         error: error,
         onError: Colors.white,

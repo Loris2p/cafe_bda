@@ -24,6 +24,12 @@ class AppSettingsWidget extends StatefulWidget {
   /// Callback appelé pour révoquer l'accès (changement de compte).
   final VoidCallback? onRevokeAccess;
 
+  /// Mode administrateur activé ou non.
+  final bool isAdminMode;
+
+  /// Callback appelé lors du changement du mode administrateur.
+  final ValueChanged<bool>? onAdminModeChanged;
+
   const AppSettingsWidget({
     super.key,
     required this.allHeaders,
@@ -33,6 +39,8 @@ class AppSettingsWidget extends StatefulWidget {
     required this.onVisibilityChanged,
     required this.onResponsableNameSaved,
     this.onRevokeAccess,
+    this.isAdminMode = false,
+    this.onAdminModeChanged,
   });
 
   @override
@@ -189,6 +197,21 @@ class _AppSettingsWidgetState extends State<AppSettingsWidget> {
           ),
           
           const SizedBox(height: 32),
+          const Divider(),
+          const SizedBox(height: 16),
+
+          // Section Mode Admin
+          SwitchListTile(
+            title: const Text('Mode Administrateur'),
+            subtitle: const Text('Active l\'édition des tableaux et change le thème.'),
+            secondary: Icon(Icons.admin_panel_settings, color: widget.isAdminMode ? Colors.deepOrange : Colors.grey),
+            value: widget.isAdminMode,
+            activeThumbColor: Colors.deepOrange,
+            activeTrackColor: Colors.deepOrange.withValues(alpha: 0.4),
+            onChanged: widget.onAdminModeChanged,
+          ),
+
+          const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
 

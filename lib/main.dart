@@ -54,19 +54,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Gestion Café BDA',
-      theme: AppTheme.lightTheme,
-      home: const GoogleSheetsScreen(),
-      debugShowCheckedModeBanner: false,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('fr', 'FR'), // Français
-      ],
+    return Consumer<CafeDataProvider>(
+      builder: (context, cafeDataProvider, child) {
+        return MaterialApp(
+          title: 'Gestion Café BDA',
+          theme: AppTheme.getTheme(isAdmin: cafeDataProvider.isAdminMode),
+          home: const GoogleSheetsScreen(),
+          debugShowCheckedModeBanner: false,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('fr', 'FR'), // Français
+          ],
+        );
+      },
     );
   }
 }

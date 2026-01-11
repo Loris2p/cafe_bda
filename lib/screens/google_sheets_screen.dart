@@ -748,6 +748,10 @@ class _SettingsTabState extends State<_SettingsTab> {
               allVisibility: provider.columnVisibility,
               responsableName: provider.responsableName,
               appVersion: version,
+              isAdminMode: provider.isAdminMode,
+              onAdminModeChanged: (bool value) {
+                provider.isAdminMode = value;
+              },
               onVisibilityChanged: (tableName, index, isVisible) {
                 provider.setColumnVisibility(index, isVisible, tableName: tableName);
               },
@@ -1083,36 +1087,43 @@ class _UnifiedToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<CafeDataProvider, String>(
-      selector: (_, p) => p.selectedTable,
-      builder: (context, selectedTable, _) {
-        if (selectedTable != AppConstants.studentsTable) return const SizedBox.shrink();
+    return Selector<CafeDataProvider, (String, bool)>(
+      selector: (_, p) => (p.selectedTable, p.isAdminMode),
+      builder: (context, data, _) {
+        final selectedTable = data.$1;
+        final isAdminMode = data.$2;
+        
+        // Show toolbar if Students table OR Admin Mode
+        if (selectedTable != AppConstants.studentsTable && !isAdminMode) return const SizedBox.shrink();
 
         return LayoutBuilder(
           builder: (context, constraints) {
             final isWide = constraints.maxWidth > 800;
 
             if (isWide) {
-              return const Row(
+              return Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(child: _SearchSection()),
-                  SizedBox(width: 16),
-                  _ActionButtonsGroup(),
+                  const Expanded(child: _SearchSection()),
+                  const SizedBox(width: 16),
+                  if (selectedTable == AppConstants.studentsTable)
+                    const _ActionButtonsGroup(),
                 ],
               );
             } else {
-              return const Column(
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _SearchSection(),
-                  SizedBox(height: 12),
-                  Center(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: _ActionButtonsGroup(),
+                  const _SearchSection(),
+                  if (selectedTable == AppConstants.studentsTable) ...[
+                    const SizedBox(height: 12),
+                    const Center(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: _ActionButtonsGroup(),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               );
             }
@@ -1192,7 +1203,12 @@ class _SearchSectionState extends State<_SearchSection> {
     if (searchTerm.isEmpty) return;
 
     final provider = context.read<CafeDataProvider>();
-    final results = await provider.searchStudent(searchTerm);
+    
+    // Si Admin Mode, recherche dans la table courante
+    // Sinon, comportement par défaut (recherche étudiant)
+    final results = provider.isAdminMode 
+        ? await provider.searchCurrentTable(searchTerm)
+        : await provider.searchStudent(searchTerm);
 
     if (!mounted) return;
 
@@ -1205,15 +1221,32 @@ class _SearchSectionState extends State<_SearchSection> {
         context,
         searchTerm: searchTerm,
         results: results,
-        fullData: provider.studentsData,
+        fullData: provider.sheetData, // Utiliser sheetData pour être générique
         onRowSelected: (row) {
+          // Si Admin, on active l'édition dans les détails
+          final canEdit = provider.isAdminMode;
+          
           SearchDialog.showRowDetails(
             context,
             row: row,
-            columnNames: provider.studentsData.isNotEmpty
-                ? provider.studentsData[0]
+            columnNames: provider.sheetData.isNotEmpty
+                ? provider.sheetData[0]
                 : [],
-            visibleColumns: provider.columnVisibility[AppConstants.studentsTable],
+            visibleColumns: provider.columnVisibility[provider.selectedTable],
+            canEdit: canEdit,
+            onEdit: canEdit ? (colIndex, newValue) async {
+               // Retrouver l'index original de la ligne
+               // sheetData[0] est header. row est une référence dans sheetData.
+               final originalRowIndex = provider.sheetData.indexOf(row);
+               if (originalRowIndex > 0) {
+                 // updateCellValue attend un index relatif aux données (sans header)
+                 // Donc index - 1.
+                 final error = await provider.updateCellValue(originalRowIndex - 1, colIndex, newValue);
+                 if (error != null && context.mounted) {
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+                 }
+               }
+            } : null,
           );
         },
       );
@@ -1228,10 +1261,15 @@ class _SearchSectionState extends State<_SearchSection> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CafeDataProvider>();
+    final hint = provider.isAdminMode 
+        ? "Rechercher dans ${provider.selectedTable}..." 
+        : "Rechercher (Nom, Prénom, N°)...";
+
     return TextField(
       controller: _searchController,
       decoration: InputDecoration(
-        hintText: "Rechercher (Nom, Prénom, N°)...",
+        hintText: hint,
         prefixIcon: const Icon(Icons.search),
         suffixIcon: IconButton(
           icon: const Icon(Icons.arrow_forward),
@@ -1333,6 +1371,7 @@ class _DataDisplay extends StatelessWidget {
         }
 
         final bool isStockTable = selectedTable == AppConstants.stockTable;
+        final bool canEdit = isStockTable || provider.isAdminMode;
 
         return Container(
           decoration: BoxDecoration(
@@ -1356,7 +1395,7 @@ class _DataDisplay extends StatelessWidget {
                 final originalIndex = visibleOriginalIndices[visibleIndex];
                 provider.sortData(originalIndex);
               },
-              onCellUpdate: isStockTable
+              onCellUpdate: canEdit
                   ? (rowIndex, visibleIndex, newValue) async {
                       final originalIndex = visibleOriginalIndices[visibleIndex];
                       final error = await provider.updateCellValue(rowIndex, originalIndex, newValue);

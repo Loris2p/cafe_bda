@@ -1,3 +1,16 @@
+# Version 6.10.0 - Mode Administrateur & Édition 🛠️
+
+Cette version majeure introduit un **Mode Administrateur** complet pour faciliter la gestion et la correction des données directement depuis l'application, sans avoir besoin d'accéder au fichier Google Sheets.
+
+### 👑 Nouveau Mode Administrateur
+
+*   **Activation Simple** : Accessible via un interrupteur dans le menu Paramètres.
+*   **Thème Visuel Distinct** : L'interface passe du violet à l'**orange** pour indiquer clairement que le mode édition est actif.
+*   **Édition Totale** : Cliquez sur n'importe quelle cellule de n'importe quel tableau pour modifier sa valeur instantanément. Idéal pour corriger une erreur de saisie ou ajuster un stock rapidement.
+*   **Recherche Contextuelle & Édition** :
+    *   La barre de recherche s'adapte au tableau affiché (recherche dans les Stocks, les Paiements, etc.).
+    *   Les résultats permettent d'accéder aux détails d'une ligne et de la modifier directement (via l'icône crayon).
+
 # Version 6.9.3 - Gestion Avancée des Comptes 🔑
 
 Cette mise à jour (v6.9.x) se concentre sur l'amélioration de l'expérience utilisateur lors de la connexion et de la gestion des comptes Google, tout en consolidant les bases techniques posées en v6.8.

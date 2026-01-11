@@ -82,9 +82,18 @@ class MockGoogleSheetsService extends _i1.Mock
           as _i6.Future<String?>);
 
   @override
-  _i6.Future<void> logout() =>
+  _i6.Future<void> signOut() =>
       (super.noSuchMethod(
-            Invocation.method(#logout, []),
+            Invocation.method(#signOut, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> disconnect() =>
+      (super.noSuchMethod(
+            Invocation.method(#disconnect, []),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )
@@ -311,6 +320,15 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
           as bool);
 
   @override
+  bool get isAdminMode =>
+      (super.noSuchMethod(
+            Invocation.getter(#isAdminMode),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
   String get errorMessage =>
       (super.noSuchMethod(
             Invocation.getter(#errorMessage),
@@ -375,6 +393,12 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
             returnValueForMissingStub: <String, List<String>>{},
           )
           as Map<String, List<String>>);
+
+  @override
+  set isAdminMode(bool? value) => super.noSuchMethod(
+    Invocation.setter(#isAdminMode, value),
+    returnValueForMissingStub: null,
+  );
 
   @override
   bool get hasListeners =>
@@ -503,6 +527,19 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
   _i6.Future<List<List<dynamic>>> searchStudent(String? searchTerm) =>
       (super.noSuchMethod(
             Invocation.method(#searchStudent, [searchTerm]),
+            returnValue: _i6.Future<List<List<dynamic>>>.value(
+              <List<dynamic>>[],
+            ),
+            returnValueForMissingStub: _i6.Future<List<List<dynamic>>>.value(
+              <List<dynamic>>[],
+            ),
+          )
+          as _i6.Future<List<List<dynamic>>>);
+
+  @override
+  _i6.Future<List<List<dynamic>>> searchCurrentTable(String? searchTerm) =>
+      (super.noSuchMethod(
+            Invocation.method(#searchCurrentTable, [searchTerm]),
             returnValue: _i6.Future<List<List<dynamic>>>.value(
               <List<dynamic>>[],
             ),

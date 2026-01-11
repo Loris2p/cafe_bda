@@ -1,3 +1,12 @@
+## [6.10.0] - 2026-01-11
+
+### Added
+- **Mode Administrateur** :
+  - Ajout d'un interrupteur "Mode Administrateur" dans les paramètres.
+  - Changement de thème visuel (Violet -> Orange) lorsque le mode admin est actif pour éviter les confusions.
+  - **Édition Universelle** : Possibilité de modifier n'importe quelle cellule de n'importe quel tableau (Stocks, Crédits, etc.) en cliquant simplement dessus.
+  - **Recherche Contextuelle** : La barre de recherche s'adapte désormais au tableau actif (ex: rechercher un produit dans les Stocks) et permet d'éditer les valeurs directement depuis les résultats de recherche.
+
 ## [6.9.3] - 2025-12-30
 
 ### Changed

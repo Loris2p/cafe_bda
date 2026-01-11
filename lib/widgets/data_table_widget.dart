@@ -323,9 +323,46 @@ class _DataSource extends DataTableSource {
               ),
             ),
           ),
-          onTap: () {
-             // Optionnel : gérer le tap sur une cellule normale si besoin
-          }
+          onTap: (onCellUpdate != null && !isFormula) ? () {
+             showDialog(
+               context: context,
+               builder: (context) {
+                 final controller = TextEditingController(text: cellString);
+                 return AlertDialog(
+                   title: Text('Modifier la cellule'),
+                   content: TextField(
+                     controller: controller,
+                     keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+                     autofocus: true,
+                     decoration: const InputDecoration(
+                       labelText: 'Nouvelle valeur',
+                       border: OutlineInputBorder(),
+                     ),
+                   ),
+                   actions: [
+                     TextButton(
+                       onPressed: () => Navigator.pop(context),
+                       child: const Text('Annuler'),
+                     ),
+                     FilledButton(
+                       onPressed: () {
+                         final newValue = controller.text;
+                         // Tentative de conversion si c'était numérique
+                         dynamic finalValue = newValue;
+                         if (isNumeric) {
+                            final numValue = num.tryParse(newValue);
+                            if (numValue != null) finalValue = numValue;
+                         }
+                         onCellUpdate!(index, colIndex, finalValue);
+                         Navigator.pop(context);
+                       },
+                       child: const Text('Sauvegarder'),
+                     ),
+                   ],
+                 );
+               }
+             );
+          } : null,
         );
       }).toList(),
     );
