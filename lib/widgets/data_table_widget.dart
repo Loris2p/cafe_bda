@@ -41,6 +41,11 @@ class DataTableWidget extends StatefulWidget {
   /// Callback déclenché lors du clic sur un en-tête de colonne pour le tri.
   final Function(int columnIndex)? onSort;
 
+  /// Callback optionnel pour déterminer si une cellule spécifique est éditable.
+  /// Si null, toutes les cellules sont considérées éditables (si onCellUpdate est fourni).
+  /// Retourne true si éditable, false sinon.
+  final bool Function(int rowIndex, int colIndex)? isCellEditable;
+
   const DataTableWidget({
     super.key,
     required this.data,
@@ -55,6 +60,7 @@ class DataTableWidget extends StatefulWidget {
     this.sortColumnIndex,
     this.sortAscending = true,
     this.onSort,
+    this.isCellEditable,
   });
 
   @override
@@ -139,6 +145,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       rowColor1: widget.rowColor1,
       rowColor2: widget.rowColor2,
       onCellUpdate: widget.onCellUpdate,
+      isCellEditable: widget.isCellEditable,
     );
 
     return LayoutBuilder(
@@ -224,6 +231,7 @@ class _DataSource extends DataTableSource {
   final Color? rowColor1;
   final Color? rowColor2;
   final Function(int rowIndex, int colIndex, dynamic newValue)? onCellUpdate;
+  final bool Function(int rowIndex, int colIndex)? isCellEditable;
 
   _DataSource({
     required this.data,
@@ -232,6 +240,7 @@ class _DataSource extends DataTableSource {
     this.rowColor1,
     this.rowColor2,
     this.onCellUpdate,
+    this.isCellEditable,
   });
 
   @override
@@ -260,6 +269,12 @@ class _DataSource extends DataTableSource {
         final isFormula = cellString.startsWith('=');
         final isNumeric = double.tryParse(cellString) != null && !isFormula;
 
+        // Check if cell is editable via callback if provided, otherwise fallback to formula check
+        // Note: isFormula here is checking the DISPLAY value, so it's likely false.
+        // That's why we added isCellEditable which checks the backend formula data.
+        final bool canEdit = onCellUpdate != null && 
+                             (isCellEditable == null || isCellEditable!(index, colIndex));
+
         bool isBoolean = false;
         bool? boolValue;
 
@@ -276,11 +291,11 @@ class _DataSource extends DataTableSource {
             Center(
               child: Checkbox(
                 value: boolValue,
-                onChanged: (bool? newValue) {
+                onChanged: canEdit ? (bool? newValue) {
                   if (newValue != null) {
                     onCellUpdate!(index, colIndex, newValue); // index est le rowIndex relatif aux données (sans header)
                   }
-                },
+                } : null,
               ),
             ),
           );
@@ -312,7 +327,7 @@ class _DataSource extends DataTableSource {
                         ? theme.colorScheme.secondary
                         : isBoolean
                             ? Colors.green.shade700
-                            : theme.textTheme.bodyMedium?.color,
+                            : canEdit ? theme.textTheme.bodyMedium?.color : Colors.grey.shade600, // Grisé si non éditable
                     fontWeight: cellString == 'N/A'
                         ? FontWeight.bold
                         : FontWeight.normal,
@@ -323,7 +338,7 @@ class _DataSource extends DataTableSource {
               ),
             ),
           ),
-          onTap: (onCellUpdate != null && !isFormula) ? () {
+          onTap: (canEdit && !isFormula) ? () {
              showDialog(
                context: context,
                builder: (context) {

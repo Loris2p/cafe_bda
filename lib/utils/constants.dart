@@ -37,5 +37,8 @@ class AppConstants {
   static const String orderFormFirstName = 'Prénom';
   static const String orderFormStudentId = 'Numéro étudiant';
   static const String orderFormCoffees = 'Nb de Cafés';
-  static const String orderFormCoffeeTaken = 'Café pris';
+  static const String applicationTable = 'Application';
+
+  // Sécurité
+  static const String adminPin = '1234'; // Code PIN par défaut pour le mode Admin
 }

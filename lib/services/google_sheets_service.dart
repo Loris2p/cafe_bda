@@ -228,15 +228,17 @@ class GoogleSheetsService {
   /// Lit les données brutes d'une plage (Range) dans le Google Sheet.
   ///
   /// * [rangeName] - Le nom de la feuille ou de la plage nommée (ex: 'Étudiants', 'A1:B10').
+  /// * [valueRenderOption] - Option de rendu des valeurs (FORMATTED_VALUE par défaut, FORMULA, UNFORMATTED_VALUE).
   /// * Returns - Une liste de lignes `List<List<dynamic>>`, ou `null` si erreur/vide.
   /// * Throws - Exception si l'API échoue.
-  Future<List<List<dynamic>>?> readTable(String rangeName) async {
+  Future<List<List<dynamic>>?> readTable(String rangeName, {String? valueRenderOption}) async {
     final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
     if (spreadsheetId.isEmpty || sheetsApi == null) return null;
     try {
       final response = await sheetsApi!.spreadsheets.values.get(
         spreadsheetId,
         rangeName,
+        valueRenderOption: valueRenderOption,
       );
       return response.values;
     } catch (e) {

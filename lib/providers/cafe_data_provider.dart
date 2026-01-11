@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cafe_bda/models/app_config.dart';
 import 'package:cafe_bda/models/payment_config.dart';
 import 'package:cafe_bda/repositories/cafe_repository.dart';
 import 'package:cafe_bda/services/google_sheets_service.dart';
@@ -13,21 +14,14 @@ class CafeDataProvider with ChangeNotifier {
   final CafeRepository _cafeRepository;
   final GoogleSheetsService _sheetsService;
 
+  CafeDataProvider(this._cafeRepository, this._sheetsService);
+
   List<List<dynamic>> _sheetData = [];
+  List<List<dynamic>> _formulaData = [];
   List<List<dynamic>> _searchResults = [];
   List<List<dynamic>> _studentsData = [];
   List<PaymentConfig> _paymentConfigs = [];
-  
-  bool _isLoading = false;
-  bool _isAdminMode = false;
-  String _errorMessage = '';
-  
-  String _selectedTable = AppConstants.studentsTable;
-  int? _sortColumnIndex;
-  bool _sortAscending = true;
-  Map<String, List<bool>> _columnVisibility = {};
-  Map<String, List<String>> _tableHeaders = {};
-  String? _responsableName;
+  AppConfig? _appConfig;
 
   final List<String> _availableTables = [
     AppConstants.studentsTable,
@@ -36,23 +30,33 @@ class CafeDataProvider with ChangeNotifier {
     AppConstants.stockTable,
   ];
 
-  CafeDataProvider(this._cafeRepository, this._sheetsService);
+  String _selectedTable = AppConstants.studentsTable;
+  Map<String, List<String>> _tableHeaders = {};
+  Map<String, List<bool>> _columnVisibility = {};
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
+  String? _responsableName;
+  String _errorMessage = '';
+  bool _isAdminMode = false;
+  bool _isLoading = false;
 
-  // --- Getters ---
+  // Getters
   List<List<dynamic>> get sheetData => _sheetData;
+  List<List<dynamic>> get formulaData => _formulaData;
   List<List<dynamic>> get searchResults => _searchResults;
   List<List<dynamic>> get studentsData => _studentsData;
   List<PaymentConfig> get paymentConfigs => _paymentConfigs;
-  bool get isLoading => _isLoading;
-  bool get isAdminMode => _isAdminMode;
-  String get errorMessage => _errorMessage;
-  String get selectedTable => _selectedTable;
+  AppConfig? get appConfig => _appConfig;
   List<String> get availableTables => _availableTables;
+  String get selectedTable => _selectedTable;
+  Map<String, List<String>> get tableHeaders => _tableHeaders;
+  Map<String, List<bool>> get columnVisibility => _columnVisibility;
   int? get sortColumnIndex => _sortColumnIndex;
   bool get sortAscending => _sortAscending;
-  Map<String, List<bool>> get columnVisibility => _columnVisibility;
-  Map<String, List<String>> get tableHeaders => _tableHeaders;
   String? get responsableName => _responsableName;
+  String get errorMessage => _errorMessage;
+  bool get isAdminMode => _isAdminMode;
+  bool get isLoading => _isLoading;
 
   set isAdminMode(bool value) {
     _isAdminMode = value;
@@ -65,8 +69,20 @@ class CafeDataProvider with ChangeNotifier {
     await _loadResponsableName();
     await readTable();
     await fetchPaymentConfigs();
+    await fetchAppConfig();
+    await fetchAllTableHeaders();
   }
-  
+
+  /// Récupère la configuration de l'application (version, PIN...).
+  Future<void> fetchAppConfig() async {
+    try {
+      _appConfig = await _sheetsService.getAppConfig();
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Erreur lors de la récupération de la config app: $e");
+    }
+  }
+
   /// Récupère les configurations de paiement.
   Future<void> fetchPaymentConfigs() async {
     try {
@@ -81,16 +97,13 @@ class CafeDataProvider with ChangeNotifier {
   Future<void> fetchAllTableHeaders() async {
     for (final table in _availableTables) {
       if (_tableHeaders.containsKey(table) && _tableHeaders[table]!.isNotEmpty) continue;
-      
+
       try {
-        // Fetch only the first row (headers)
-        // Using !1:1 range to get the first row of the sheet
         final data = await _sheetsService.readTable('$table!1:1');
         if (data != null && data.isNotEmpty) {
           final headers = data[0].map((e) => e.toString()).toList();
           _tableHeaders[table] = headers;
 
-          // Initialize visibility if missing
           if (_columnVisibility[table] == null || _columnVisibility[table]!.length != headers.length) {
             _columnVisibility[table] = List.generate(headers.length, (_) => true);
           }
@@ -112,6 +125,7 @@ class CafeDataProvider with ChangeNotifier {
     _sortColumnIndex = null;
     _columnVisibility = {};
     _responsableName = null;
+    _errorMessage = '';
     notifyListeners();
   }
 
@@ -126,37 +140,43 @@ class CafeDataProvider with ChangeNotifier {
     if (forceRefresh) {
       _cafeRepository.invalidateCache();
     }
-    
-    await _executeTransaction(() async {
-      List<List<dynamic>>? data;
-      
-      if (_selectedTable == AppConstants.studentsTable) {
-        data = await _cafeRepository.getStudentsTable(forceRefresh: forceRefresh);
-        if (data != null) {
-          _studentsData = data;
-        }
-      } else {
-        data = await _cafeRepository.getGenericTable(_selectedTable);
-      }
-      
-      _sheetData = data ?? [];
 
-      // Initialise les paramètres de visibilité si nécessaire
+    await _executeTransaction(() async {
+      final results = await Future.wait([
+        (_selectedTable == AppConstants.studentsTable)
+            ? _cafeRepository.getStudentsTable(forceRefresh: forceRefresh)
+            : _cafeRepository.getGenericTable(_selectedTable),
+        _cafeRepository.getGenericTable(_selectedTable, renderOption: 'FORMULA'),
+      ]);
+
+      _sheetData = results[0] ?? [];
+      _formulaData = results[1] ?? [];
+
+      if (_selectedTable == AppConstants.studentsTable) {
+        _studentsData = _sheetData;
+      }
+
       if (_sheetData.isNotEmpty && (_columnVisibility[_selectedTable] == null || _columnVisibility[_selectedTable]!.length != _sheetData[0].length)) {
         _columnVisibility[_selectedTable] = List.generate(_sheetData[0].length, (_) => true);
         await _saveColumnVisibility();
       }
-      
-      // S'assure que les données étudiants (pour les formulaires) sont à jour
+
       if ((_studentsData.isEmpty || forceRefresh) && _selectedTable != AppConstants.studentsTable) {
-         final sData = await _cafeRepository.getStudentsTable(forceRefresh: forceRefresh);
-         if (sData != null) _studentsData = sData;
+        final sData = await _cafeRepository.getStudentsTable(forceRefresh: forceRefresh);
+        if (sData != null) _studentsData = sData;
       }
     });
   }
 
+  bool isCellFormula(int rowIndex, int colIndex) {
+    if (rowIndex + 1 >= _formulaData.length || colIndex >= _formulaData[rowIndex + 1].length) {
+      return false;
+    }
+    final cellValue = _formulaData[rowIndex + 1][colIndex].toString();
+    return cellValue.startsWith('=');
+  }
+
   DateTime? _tryParseDate(String value) {
-    // Liste des formats possibles
     final formats = [
       DateFormat('dd/MM/yyyy HH:mm:ss'),
       DateFormat('dd/MM/yyyy'),
@@ -192,12 +212,12 @@ class CafeDataProvider with ChangeNotifier {
         if (aValue == null && bValue == null) return 0;
         if (aValue == null) return _sortAscending ? -1 : 1;
         if (bValue == null) return _sortAscending ? 1 : -1;
-        
+
         if (aValue is bool && bValue is bool) {
           final compare = aValue.toString().compareTo(bValue.toString());
           return _sortAscending ? compare : -compare;
         }
-        
+
         final aStr = aValue.toString();
         final bStr = bValue.toString();
 
@@ -208,7 +228,6 @@ class CafeDataProvider with ChangeNotifier {
         if (aNum != null && bNum != null) {
           compare = aNum.compareTo(bNum);
         } else {
-          // Essayer de parser comme date
           final aDate = _tryParseDate(aStr);
           final bDate = _tryParseDate(bStr);
 
@@ -226,12 +245,10 @@ class CafeDataProvider with ChangeNotifier {
     }
     notifyListeners();
   }
-  
+
   Future<List<List<dynamic>>> loadStockData() async {
     return await _cafeRepository.getGenericTable(AppConstants.stockTable) ?? [];
   }
-
-  // --- Gestion de la visibilité des colonnes et préférences ---
 
   Future<void> saveResponsableName(String name) async {
     final userId = _sheetsService.currentUser?.id;
@@ -258,13 +275,12 @@ class CafeDataProvider with ChangeNotifier {
     final targetTable = tableName ?? _selectedTable;
     if (_columnVisibility[targetTable] != null &&
         columnIndex < _columnVisibility[targetTable]!.length) {
-      
       final newVisibilityList = List<bool>.from(_columnVisibility[targetTable]!);
       newVisibilityList[columnIndex] = isVisible;
-      
+
       final newVisibilityMap = Map<String, List<bool>>.from(_columnVisibility);
       newVisibilityMap[targetTable] = newVisibilityList;
-      
+
       _columnVisibility = newVisibilityMap;
       notifyListeners();
       _saveColumnVisibility();
@@ -277,23 +293,22 @@ class CafeDataProvider with ChangeNotifier {
       _columnVisibility = {};
       return;
     }
-    
+
     final prefs = await SharedPreferences.getInstance();
     final key = 'column_visibility_$userId';
     final jsonString = prefs.getString(key);
-    
+
     if (jsonString != null) {
       try {
         final Map<String, dynamic> decodedMap = json.decode(jsonString);
         _columnVisibility = decodedMap.map(
           (key, value) => MapEntry(key, List<bool>.from(value)),
         );
-      } catch(e) {
+      } catch (e) {
         _columnVisibility = {};
         await prefs.remove(key);
       }
-    }
-    else {
+    } else {
       _columnVisibility = {};
     }
     notifyListeners();
@@ -309,8 +324,6 @@ class CafeDataProvider with ChangeNotifier {
     await prefs.setString(key, jsonString);
   }
 
-  // --- Transactions ---
-
   Future<String?> _executeTransaction(Future<void> Function() action) async {
     _isLoading = true;
     _errorMessage = '';
@@ -320,13 +333,13 @@ class CafeDataProvider with ChangeNotifier {
       await action();
       return null;
     } catch (e) {
-        if (e is DetailedApiRequestError && e.status == 403) {
-          _errorMessage = 'PERMISSION_DENIED';
-          clearData(); // Vide les données locales en cas de perte de droits
-        } else {
-          _errorMessage = e.toString();
-        }
-        return _errorMessage;
+      if (e is DetailedApiRequestError && e.status == 403) {
+        _errorMessage = 'PERMISSION_DENIED';
+        clearData();
+      } else {
+        _errorMessage = e.toString();
+      }
+      return _errorMessage;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -339,7 +352,7 @@ class CafeDataProvider with ChangeNotifier {
       await readTable(forceRefresh: true);
     });
   }
-  
+
   Future<String?> handleCreditSubmission(Map<String, dynamic> formData) async {
     return _executeTransaction(() async {
       await _cafeRepository.addCreditRecord(formData);
@@ -359,7 +372,7 @@ class CafeDataProvider with ChangeNotifier {
       }
     });
   }
-  
+
   Future<List<List<dynamic>>> searchStudent(String searchTerm) async {
     if (searchTerm.isEmpty) {
       _searchResults = [];
@@ -368,9 +381,7 @@ class CafeDataProvider with ChangeNotifier {
 
     final results = _studentsData.skip(1).where((row) {
       return row.any(
-        (cell) =>
-            cell != null &&
-            cell.toString().toLowerCase().contains(searchTerm.toLowerCase()),
+        (cell) => cell != null && cell.toString().toLowerCase().contains(searchTerm.toLowerCase()),
       );
     }).toList();
 
@@ -386,12 +397,10 @@ class CafeDataProvider with ChangeNotifier {
     }
 
     final dataToSearch = _sheetData.length > 1 ? _sheetData.sublist(1) : <List<dynamic>>[];
-    
+
     final results = dataToSearch.where((row) {
       return row.any(
-        (cell) =>
-            cell != null &&
-            cell.toString().toLowerCase().contains(searchTerm.toLowerCase()),
+        (cell) => cell != null && cell.toString().toLowerCase().contains(searchTerm.toLowerCase()),
       );
     }).toList();
 
@@ -409,12 +418,12 @@ class CafeDataProvider with ChangeNotifier {
     }
 
     final oldValue = _sheetData[dataRowIndex][colIndex];
-    
+
     final newSheetData = _sheetData.map((row) => List<dynamic>.from(row)).toList();
     newSheetData[dataRowIndex][colIndex] = newValue;
     _sheetData = newSheetData;
     notifyListeners();
-    
+
     try {
       await _cafeRepository.updateCellValue(tableName, rowIndex, colIndex, newValue);
       return null;

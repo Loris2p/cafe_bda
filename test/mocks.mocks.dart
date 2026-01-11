@@ -109,9 +109,16 @@ class MockGoogleSheetsService extends _i1.Mock
           as _i6.Future<bool>);
 
   @override
-  _i6.Future<List<List<dynamic>>?> readTable(String? rangeName) =>
+  _i6.Future<List<List<dynamic>>?> readTable(
+    String? rangeName, {
+    String? valueRenderOption,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#readTable, [rangeName]),
+            Invocation.method(
+              #readTable,
+              [rangeName],
+              {#valueRenderOption: valueRenderOption},
+            ),
             returnValue: _i6.Future<List<List<dynamic>>?>.value(),
             returnValueForMissingStub: _i6.Future<List<List<dynamic>>?>.value(),
           )
@@ -242,9 +249,16 @@ class MockCafeRepository extends _i1.Mock implements _i9.CafeRepository {
           as _i6.Future<void>);
 
   @override
-  _i6.Future<List<List<dynamic>>?> getGenericTable(String? tableName) =>
+  _i6.Future<List<List<dynamic>>?> getGenericTable(
+    String? tableName, {
+    String? renderOption,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#getGenericTable, [tableName]),
+            Invocation.method(
+              #getGenericTable,
+              [tableName],
+              {#renderOption: renderOption},
+            ),
             returnValue: _i6.Future<List<List<dynamic>>?>.value(),
             returnValueForMissingStub: _i6.Future<List<List<dynamic>>?>.value(),
           )
@@ -284,6 +298,15 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
           as List<List<dynamic>>);
 
   @override
+  List<List<dynamic>> get formulaData =>
+      (super.noSuchMethod(
+            Invocation.getter(#formulaData),
+            returnValue: <List<dynamic>>[],
+            returnValueForMissingStub: <List<dynamic>>[],
+          )
+          as List<List<dynamic>>);
+
+  @override
   List<List<dynamic>> get searchResults =>
       (super.noSuchMethod(
             Invocation.getter(#searchResults),
@@ -311,18 +334,51 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
           as List<_i8.PaymentConfig>);
 
   @override
-  bool get isLoading =>
+  List<String> get availableTables =>
       (super.noSuchMethod(
-            Invocation.getter(#isLoading),
-            returnValue: false,
-            returnValueForMissingStub: false,
+            Invocation.getter(#availableTables),
+            returnValue: <String>[],
+            returnValueForMissingStub: <String>[],
           )
-          as bool);
+          as List<String>);
 
   @override
-  bool get isAdminMode =>
+  String get selectedTable =>
       (super.noSuchMethod(
-            Invocation.getter(#isAdminMode),
+            Invocation.getter(#selectedTable),
+            returnValue: _i5.dummyValue<String>(
+              this,
+              Invocation.getter(#selectedTable),
+            ),
+            returnValueForMissingStub: _i5.dummyValue<String>(
+              this,
+              Invocation.getter(#selectedTable),
+            ),
+          )
+          as String);
+
+  @override
+  Map<String, List<String>> get tableHeaders =>
+      (super.noSuchMethod(
+            Invocation.getter(#tableHeaders),
+            returnValue: <String, List<String>>{},
+            returnValueForMissingStub: <String, List<String>>{},
+          )
+          as Map<String, List<String>>);
+
+  @override
+  Map<String, List<bool>> get columnVisibility =>
+      (super.noSuchMethod(
+            Invocation.getter(#columnVisibility),
+            returnValue: <String, List<bool>>{},
+            returnValueForMissingStub: <String, List<bool>>{},
+          )
+          as Map<String, List<bool>>);
+
+  @override
+  bool get sortAscending =>
+      (super.noSuchMethod(
+            Invocation.getter(#sortAscending),
             returnValue: false,
             returnValueForMissingStub: false,
           )
@@ -344,55 +400,22 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
           as String);
 
   @override
-  String get selectedTable =>
+  bool get isAdminMode =>
       (super.noSuchMethod(
-            Invocation.getter(#selectedTable),
-            returnValue: _i5.dummyValue<String>(
-              this,
-              Invocation.getter(#selectedTable),
-            ),
-            returnValueForMissingStub: _i5.dummyValue<String>(
-              this,
-              Invocation.getter(#selectedTable),
-            ),
-          )
-          as String);
-
-  @override
-  List<String> get availableTables =>
-      (super.noSuchMethod(
-            Invocation.getter(#availableTables),
-            returnValue: <String>[],
-            returnValueForMissingStub: <String>[],
-          )
-          as List<String>);
-
-  @override
-  bool get sortAscending =>
-      (super.noSuchMethod(
-            Invocation.getter(#sortAscending),
+            Invocation.getter(#isAdminMode),
             returnValue: false,
             returnValueForMissingStub: false,
           )
           as bool);
 
   @override
-  Map<String, List<bool>> get columnVisibility =>
+  bool get isLoading =>
       (super.noSuchMethod(
-            Invocation.getter(#columnVisibility),
-            returnValue: <String, List<bool>>{},
-            returnValueForMissingStub: <String, List<bool>>{},
+            Invocation.getter(#isLoading),
+            returnValue: false,
+            returnValueForMissingStub: false,
           )
-          as Map<String, List<bool>>);
-
-  @override
-  Map<String, List<String>> get tableHeaders =>
-      (super.noSuchMethod(
-            Invocation.getter(#tableHeaders),
-            returnValue: <String, List<String>>{},
-            returnValueForMissingStub: <String, List<String>>{},
-          )
-          as Map<String, List<String>>);
+          as bool);
 
   @override
   set isAdminMode(bool? value) => super.noSuchMethod(
@@ -413,6 +436,15 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
   _i6.Future<void> initData() =>
       (super.noSuchMethod(
             Invocation.method(#initData, []),
+            returnValue: _i6.Future<void>.value(),
+            returnValueForMissingStub: _i6.Future<void>.value(),
+          )
+          as _i6.Future<void>);
+
+  @override
+  _i6.Future<void> fetchAppConfig() =>
+      (super.noSuchMethod(
+            Invocation.method(#fetchAppConfig, []),
             returnValue: _i6.Future<void>.value(),
             returnValueForMissingStub: _i6.Future<void>.value(),
           )
@@ -453,6 +485,15 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
             returnValueForMissingStub: _i6.Future<void>.value(),
           )
           as _i6.Future<void>);
+
+  @override
+  bool isCellFormula(int? rowIndex, int? colIndex) =>
+      (super.noSuchMethod(
+            Invocation.method(#isCellFormula, [rowIndex, colIndex]),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
 
   @override
   void sortData(int? columnIndex) => super.noSuchMethod(

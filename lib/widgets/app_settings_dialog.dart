@@ -27,6 +27,9 @@ class AppSettingsWidget extends StatefulWidget {
   /// Mode administrateur activé ou non.
   final bool isAdminMode;
 
+  /// Code PIN administrateur attendu (si configuré).
+  final String? expectedAdminPin;
+
   /// Callback appelé lors du changement du mode administrateur.
   final ValueChanged<bool>? onAdminModeChanged;
 
@@ -40,6 +43,7 @@ class AppSettingsWidget extends StatefulWidget {
     required this.onResponsableNameSaved,
     this.onRevokeAccess,
     this.isAdminMode = false,
+    this.expectedAdminPin,
     this.onAdminModeChanged,
   });
 
@@ -68,6 +72,72 @@ class _AppSettingsWidgetState extends State<AppSettingsWidget> {
     widget.onResponsableNameSaved(_responsableController.text);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Nom du responsable enregistré !'), duration: Duration(seconds: 2)),
+    );
+  }
+
+  Future<void> _handleAdminToggle(bool value) async {
+    if (!value) {
+      // Désactivation directe
+      widget.onAdminModeChanged?.call(false);
+      return;
+    }
+
+    // Demande du code PIN pour activation
+    final pinEntered = await _showPinDialog();
+    // Priorité au PIN configuré dans le Sheets, sinon celui en dur
+    final correctPin = widget.expectedAdminPin ?? AppConstants.adminPin;
+
+    if (pinEntered == correctPin) {
+      widget.onAdminModeChanged?.call(true);
+    } else if (pinEntered != null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Code PIN incorrect'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<String?> _showPinDialog() {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Mode Administrateur'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Veuillez saisir le code PIN pour activer le mode édition.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              maxLength: 4,
+              decoration: const InputDecoration(
+                labelText: 'Code PIN',
+                counterText: '',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (val) => Navigator.pop(context, val),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: const Text('Valider'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -208,7 +278,7 @@ class _AppSettingsWidgetState extends State<AppSettingsWidget> {
             value: widget.isAdminMode,
             activeThumbColor: Colors.deepOrange,
             activeTrackColor: Colors.deepOrange.withValues(alpha: 0.4),
-            onChanged: widget.onAdminModeChanged,
+            onChanged: _handleAdminToggle,
           ),
 
           const SizedBox(height: 16),

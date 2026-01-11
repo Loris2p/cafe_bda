@@ -749,6 +749,7 @@ class _SettingsTabState extends State<_SettingsTab> {
               responsableName: provider.responsableName,
               appVersion: version,
               isAdminMode: provider.isAdminMode,
+              expectedAdminPin: provider.appConfig?.adminPin,
               onAdminModeChanged: (bool value) {
                 provider.isAdminMode = value;
               },
@@ -1239,6 +1240,14 @@ class _SearchSectionState extends State<_SearchSection> {
                // sheetData[0] est header. row est une référence dans sheetData.
                final originalRowIndex = provider.sheetData.indexOf(row);
                if (originalRowIndex > 0) {
+                 // Check formula
+                 if (provider.isCellFormula(originalRowIndex - 1, colIndex)) {
+                    if (context.mounted) {
+                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Impossible de modifier une cellule calculée (formule).")));
+                    }
+                    return;
+                 }
+                 
                  // updateCellValue attend un index relatif aux données (sans header)
                  // Donc index - 1.
                  final error = await provider.updateCellValue(originalRowIndex - 1, colIndex, newValue);
@@ -1394,6 +1403,22 @@ class _DataDisplay extends StatelessWidget {
               onSort: (visibleIndex) {
                 final originalIndex = visibleOriginalIndices[visibleIndex];
                 provider.sortData(originalIndex);
+              },
+              isCellEditable: (rowIndex, visibleIndex) {
+                 if (!canEdit) return false;
+                 // On doit mapper l'index visible vers l'index original (réel) de la colonne
+                 if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return false;
+                 final originalColIndex = visibleOriginalIndices[visibleIndex];
+                 
+                 // Vérifier si c'est une formule
+                 // Note: rowIndex ici est relatif aux données affichées (triées).
+                 // Pour être parfait, il faudrait mapper le rowIndex trié vers le rowIndex original du provider.
+                 // MAIS, DataTableWidget reçoit 'visibleData' qui est DÉJÀ trié.
+                 // Le provider a _sheetData qui est trié aussi.
+                 // Donc rowIndex correspond bien à _sheetData (sans header).
+                 
+                 // ATTENTION: isCellFormula s'attend à un index de ligne dans _sheetData.
+                 return !provider.isCellFormula(rowIndex, originalColIndex);
               },
               onCellUpdate: canEdit
                   ? (rowIndex, visibleIndex, newValue) async {

@@ -1,3 +1,17 @@
+# Version 6.10.1 - Sécurité & Intégrité 🔐
+
+Cette mise à jour mineure renforce le **Mode Administrateur** introduit en 6.10.0 en ajoutant des couches de sécurité et de protection des données.
+
+### 🔐 Sécurisation de l'Accès Admin
+*   **Code PIN Obligatoire** : L'activation du mode administrateur nécessite désormais la saisie d'un code PIN (par défaut `1234`). Ce code peut être personnalisé directement dans l'onglet `Application` de votre Google Sheets (`admin_pin`).
+
+### 🛡️ Protection des Calculs
+*   **Verrouillage des Formules** : L'application détecte maintenant les cellules contenant des formules (comme les calculs de solde ou de fidélité) et empêche leur modification manuelle pour éviter de casser la logique du tableur.
+*   **Indication Visuelle** : Les cellules non modifiables apparaissent en gris dans les tableaux.
+
+### 🐛 Correctifs
+*   Correction de bugs internes liés à la gestion des données.
+
 # Version 6.10.0 - Mode Administrateur & Édition 🛠️
 
 Cette version majeure introduit un **Mode Administrateur** complet pour faciliter la gestion et la correction des données directement depuis l'application, sans avoir besoin d'accéder au fichier Google Sheets.

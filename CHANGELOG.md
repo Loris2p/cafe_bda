@@ -1,3 +1,16 @@
+## [6.10.1] - 2026-01-11
+
+### Added
+- **Sécurisation du Mode Admin** : 
+  - Ajout d'une demande de code PIN (par défaut `1234` ou configurable via Google Sheets) lors de l'activation du mode administrateur.
+- **Protection des Formules** :
+  - Détection automatique des cellules contenant des formules Excel.
+  - Interdiction de modifier ces cellules pour préserver l'intégrité des calculs automatiques.
+  - Feedback visuel (texte grisé) pour les cellules non éditables.
+
+### Fixed
+- **Stabilité** : Correction d'une instabilité majeure dans le fournisseur de données (`CafeDataProvider`) suite à une refactorisation incomplète.
+
 ## [6.10.0] - 2026-01-11
 
 ### Added

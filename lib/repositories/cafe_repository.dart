@@ -151,9 +151,10 @@ class CafeRepository {
   /// Utilisée pour charger les stocks, l'historique des paiements, etc.
   ///
   /// * [tableName] - Le nom de la table ou plage nommée.
+  /// * [renderOption] - Option de rendu (ex: 'FORMULA').
   /// * Returns - Les données brutes ou null.
-  Future<List<List<dynamic>>?> getGenericTable(String tableName) async {
-    return await _sheetsService.readTable(tableName);
+  Future<List<List<dynamic>>?> getGenericTable(String tableName, {String? renderOption}) async {
+    return await _sheetsService.readTable(tableName, valueRenderOption: renderOption);
   }
 
   /// Met à jour la valeur d'une cellule spécifique.
