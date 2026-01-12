@@ -176,4 +176,9 @@ class CafeRepository {
   Future<void> deleteRow(String tableName, int rowIndex) async {
     await _sheetsService.deleteRow(tableName, rowIndex);
   }
+
+  /// Ajoute une ligne générique à une table.
+  Future<void> addGenericRow(String tableName, List<dynamic> rowData) async {
+    await _sheetsService.appendToTable(tableName, rowData, valueInputOption: 'USER_ENTERED');
+  }
 }

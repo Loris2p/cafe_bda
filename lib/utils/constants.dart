@@ -9,6 +9,7 @@ class AppConstants {
   static const String creditsTable = 'Credits';
   static const String paymentsTable = 'Paiements';
   static const String stockTable = 'Stocks';
+  static const String infosPaiementTable = 'InfosPaiement';
 
   // --- Clés des champs du formulaire d'inscription ---
   

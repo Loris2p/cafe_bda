@@ -17,6 +17,7 @@ import '../widgets/data_table_widget.dart';
 import '../widgets/registration_form.dart';
 import '../widgets/credit_form.dart';
 import '../widgets/order_form.dart';
+import '../widgets/generic_add_row_dialog.dart';
 import 'dart:developer' as developer;
 
 class GoogleSheetsScreen extends StatefulWidget {
@@ -153,33 +154,75 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final destinations = <NavigationDestination>[
-      const NavigationDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: 'Accueil',
-      ),
-      const NavigationDestination(
-        icon: Icon(Icons.shopping_cart_outlined),
-        selectedIcon: Icon(Icons.shopping_cart),
-        label: 'Commander',
-      ),
-      const NavigationDestination(
-        icon: Icon(Icons.account_balance_wallet_outlined),
-        selectedIcon: Icon(Icons.account_balance_wallet),
-        label: 'Créditer',
-      ),
-      const NavigationDestination(
-        icon: Icon(Icons.qr_code_2_outlined),
-        selectedIcon: Icon(Icons.qr_code_2),
-        label: 'Lydia',
-      ),
-      const NavigationDestination(
-        icon: Icon(Icons.settings_outlined),
-        selectedIcon: Icon(Icons.settings),
-        label: 'Paramètres',
-      ),
-    ];
+    final isAdminMode = context.watch<CafeDataProvider>().isAdminMode;
+
+    final List<NavigationDestination> destinations;
+    final List<Widget> pages;
+
+    if (isAdminMode) {
+      destinations = const [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: 'Accueil',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.edit_note_outlined),
+          selectedIcon: Icon(Icons.edit_note),
+          label: 'Lydia (Édition)',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.settings_outlined),
+          selectedIcon: Icon(Icons.settings),
+          label: 'Paramètres',
+        ),
+      ];
+      pages = [
+        _HomeTab(key: _homeTabKey),
+        const _AdminPaymentTab(),
+        const _SettingsTab(),
+      ];
+    } else {
+      destinations = const [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: 'Accueil',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.shopping_cart_outlined),
+          selectedIcon: Icon(Icons.shopping_cart),
+          label: 'Commander',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.account_balance_wallet_outlined),
+          selectedIcon: Icon(Icons.account_balance_wallet),
+          label: 'Créditer',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.qr_code_2_outlined),
+          selectedIcon: Icon(Icons.qr_code_2),
+          label: 'Lydia',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.settings_outlined),
+          selectedIcon: Icon(Icons.settings),
+          label: 'Paramètres',
+        ),
+      ];
+      pages = [
+        _HomeTab(key: _homeTabKey),
+        const _OrderTab(),
+        const _CreditTab(),
+        const _PaymentTab(),
+        const _SettingsTab(),
+      ];
+    }
+
+    // Sécurité pour l'index si on change de mode
+    if (_selectedIndex >= destinations.length) {
+      _selectedIndex = 0;
+    }
 
     final railDestinations = destinations.map((d) {
       return NavigationRailDestination(
@@ -188,14 +231,6 @@ class _MainScaffoldState extends State<MainScaffold> {
         label: Text(d.label),
       );
     }).toList();
-
-    final pages = [
-      _HomeTab(key: _homeTabKey),
-      const _OrderTab(),
-      const _CreditTab(),
-      const _PaymentTab(),
-      const _SettingsTab(),
-    ];
 
     return PopScope(
       canPop: _history.length <= 1,
@@ -240,6 +275,94 @@ class _MainScaffoldState extends State<MainScaffold> {
             );
           }
         },
+      ),
+    );
+  }
+}
+
+class _AdminPaymentTab extends StatefulWidget {
+  const _AdminPaymentTab();
+
+  @override
+  State<_AdminPaymentTab> createState() => _AdminPaymentTabState();
+}
+
+class _AdminPaymentTabState extends State<_AdminPaymentTab> {
+  @override
+  void initState() {
+    super.initState();
+    // Charger la table InfosPaiement dès l'affichage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CafeDataProvider>().readTable(tableName: AppConstants.infosPaiementTable);
+    });
+  }
+
+  void _showAddRowDialog(BuildContext context) async {
+    final provider = context.read<CafeDataProvider>();
+    final tableName = provider.selectedTable;
+    final headers = provider.tableHeaders[tableName] ?? [];
+
+    if (headers.isEmpty) {
+      _showSnack(context, "Impossible de récupérer les en-têtes du tableau.", null);
+      return;
+    }
+
+    final rowData = await showDialog<List<dynamic>>(
+      context: context,
+      builder: (context) => GenericAddRowDialog(
+        columnNames: headers,
+        tableName: tableName,
+      ),
+    );
+
+    if (rowData != null && context.mounted) {
+      final error = await provider.addRow(rowData);
+      if (context.mounted) _showSnack(context, error, 'Ligne ajoutée avec succès !');
+    }
+  }
+
+  void _showSnack(BuildContext context, String? error, String? successMsg) {
+    if (error == null) {
+      if (successMsg != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMsg)));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Theme.of(context).colorScheme.error));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 800),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Consumer<CafeDataProvider>(
+                    builder: (context, provider, _) {
+                      return ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepOrange,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: provider.isLoading ? null : () => _showAddRowDialog(context),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Ajouter une option de paiement'),
+                      );
+                    }
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Expanded(child: _DataDisplay()),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -419,6 +542,14 @@ class _DashboardViewState extends State<_DashboardView> {
                  if (context.mounted) {
                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Erreur: Ligne introuvable. Avez-vous changé de tableau ?")));
                  }
+               }
+            } : null,
+            onDelete: canEdit ? () async {
+               final error = await provider.deleteRow(row);
+               if (error != null && context.mounted) {
+                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+               } else if (context.mounted) {
+                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ligne supprimée avec succès.")));
                }
             } : null,
           );
@@ -1242,12 +1373,13 @@ class _ActionButtonsGroup extends StatelessWidget {
 
          return Row(
           children: [
-            ElevatedButton.icon(
-              style: buttonStyle,
-              onPressed: canAct ? () => _showRegistrationForm(context) : null,
-              icon: const Icon(Icons.person_add),
-              label: const Text('Nouvel Étudiant'),
-            ),
+            if (provider.selectedTable == AppConstants.studentsTable)
+              ElevatedButton.icon(
+                style: buttonStyle,
+                onPressed: canAct ? () => _showRegistrationForm(context) : null,
+                icon: const Icon(Icons.person_add),
+                label: const Text('Nouvel Étudiant'),
+              ),
           ],
         );
       }
@@ -1336,6 +1468,14 @@ class _SearchSectionState extends State<_SearchSection> {
                  if (context.mounted) {
                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Erreur: Ligne introuvable dans les données originales.")));
                  }
+               }
+            } : null,
+            onDelete: canEdit ? () async {
+               final error = await provider.deleteRow(row);
+               if (error != null && context.mounted) {
+                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+               } else if (context.mounted) {
+                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ligne supprimée avec succès.")));
                }
             } : null,
           );

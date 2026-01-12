@@ -1,3 +1,16 @@
+## [6.10.5] - 2026-01-12
+
+### Added
+- **Mode Admin** :
+  - Bouton "Ajouter Ligne" disponible pour la table "InfosPaiement".
+  - Formulaire d'ajout dynamique selon les colonnes.
+  - Masquage des onglets "Commander" et "Créditer".
+  - Onglet "Lydia" en mode édition directe.
+
+### Fixed
+- **UI** : Correction layout onglet admin sur Desktop.
+- **Data** : Correction chargement en-têtes table "InfosPaiement".
+
 ## [6.10.4] - 2026-01-12
 
 ### Added

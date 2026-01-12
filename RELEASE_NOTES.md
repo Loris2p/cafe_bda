@@ -1,3 +1,14 @@
+# Version 6.10.5
+
+### Fonctionnalités Admin
+*   **Ajout de Ligne** : Ajout d'un bouton pour insérer une nouvelle ligne dans la table active (ex: "InfosPaiement").
+*   **Navigation** : Masquage des onglets "Commander" et "Créditer" en mode administrateur.
+*   **Édition Paiements** : L'onglet "Lydia" permet l'édition directe de la table de configuration des paiements.
+
+### Correctifs
+*   Correction de l'affichage de l'onglet admin sur grand écran.
+*   Correction du chargement des en-têtes pour l'ajout de ligne.
+
 # Version 6.10.4 - Nettoyage Administrateur 🧹
 
 Cette mise à jour ajoute une fonctionnalité clé pour la gestion des données en **Mode Administrateur**, permettant de maintenir la base de données propre directement depuis l'application.

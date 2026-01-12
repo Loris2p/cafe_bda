@@ -135,6 +135,7 @@ class SearchDialog {
   /// * [visibleColumns] - Liste optionnelle de booléens indiquant la visibilité de chaque colonne.
   /// * [canEdit] - Si vrai, permet de modifier les valeurs.
   /// * [onEdit] - Callback (colIndex, newValue) appelé lors d'une modification.
+  /// * [onDelete] - Callback optionnel pour la suppression de la ligne.
   static void showRowDetails(
     BuildContext context, {
     required List<dynamic> row,
@@ -142,6 +143,7 @@ class SearchDialog {
     List<bool>? visibleColumns,
     bool canEdit = false,
     Function(int colIndex, dynamic newValue)? onEdit,
+    VoidCallback? onDelete,
     EditType Function(int colIndex)? getEditType,
     List<String> Function(int colIndex)? getDropdownOptions,
     bool Function(int colIndex)? isCellEditable,
@@ -255,6 +257,40 @@ class SearchDialog {
                         ),
                       ),
                     ),
+                    if (onDelete != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text('Confirmer la suppression'),
+                                content: const Text('Voulez-vous vraiment supprimer cette ligne ?\nCette action est irréversible.'),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                    child: const Text('Supprimer'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              if (context.mounted) Navigator.of(context).pop();
+                              onDelete();
+                            }
+                          },
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          label: const Text('Supprimer la ligne'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            minimumSize: const Size(double.infinity, 40),
+                          ),
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Align(

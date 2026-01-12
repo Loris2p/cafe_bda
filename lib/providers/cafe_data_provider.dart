@@ -29,6 +29,7 @@ class CafeDataProvider with ChangeNotifier {
     AppConstants.creditsTable,
     AppConstants.paymentsTable,
     AppConstants.stockTable,
+    AppConstants.infosPaiementTable,
   ];
 
   String _selectedTable = AppConstants.studentsTable;
@@ -465,6 +466,13 @@ class CafeDataProvider with ChangeNotifier {
       await _cafeRepository.deleteRow(_selectedTable, index);
       
       // Rafraîchir les données
+      await readTable(forceRefresh: true);
+    });
+  }
+
+  Future<String?> addRow(List<dynamic> rowData) async {
+    return _executeTransaction(() async {
+      await _cafeRepository.addGenericRow(_selectedTable, rowData);
       await readTable(forceRefresh: true);
     });
   }
