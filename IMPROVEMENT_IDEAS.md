@@ -50,7 +50,7 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 *   **Sécurisation Mode Admin** : Ajouter un code PIN (4 chiffres) obligatoire pour activer le mode administrateur afin d'éviter les activations accidentelles. (Fait)
 *   **Protection des Formules** : Empêcher l'édition manuelle des cellules contenant des formules pour préserver l'intégrité des données. (Fait)
 *   **Édition Typée (Mode Admin)** : Utiliser des sélecteurs adaptés selon la colonne (Clavier numérique pour les prix, Calendrier pour les dates, Liste déroulante pour les paiements) pour garantir l'intégrité des données. (Fait)
-*   **Suppression de Ligne** : Ajouter la possibilité de supprimer une ligne (étudiant, transaction, etc.) en mode administrateur. [2]
+*   **Suppression de Ligne** : Ajouter la possibilité de supprimer une ligne (étudiant, transaction, etc.) en mode administrateur. (Fait)
 *   **Journalisation (Logs)** : Créer une feuille "Logs" pour tracer automatiquement toutes les modifications manuelles (Date, Auteur, Valeur changée). [3]
 *   **Mode Hors Ligne (Consultation)** : Permettre la consultation des données mises en cache (Dernière version connue) sans connexion internet. [3]
 *   **Historique des transactions détaillé**: Pour chaque étudiant, voir un historique complet de ses achats et rechargements. [3]
