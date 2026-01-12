@@ -308,6 +308,51 @@ class GoogleSheetsService {
     }
   }
 
+  /// Supprime une ligne entière de la feuille spécifiée.
+  ///
+  /// * [rangeName] - Le nom de la feuille (ex: 'Étudiants').
+  /// * [rowIndex] - L'index de la ligne à supprimer (base 0, correspond à l'index physique dans la grille).
+  ///
+  /// * Throws - [Exception] si non authentifié, feuille introuvable ou erreur API.
+  Future<void> deleteRow(String rangeName, int rowIndex) async {
+    final spreadsheetId = dotenv.env['GOOGLE_SPREADSHEET_ID'] ?? '';
+    if (spreadsheetId.isEmpty || sheetsApi == null) {
+      throw Exception('Spreadsheet ID manquant ou non authentifié');
+    }
+
+    try {
+      // 1. Récupérer l'ID de la feuille (sheetId) à partir de son nom
+      final spreadsheet = await sheetsApi!.spreadsheets.get(spreadsheetId);
+      final sheet = spreadsheet.sheets?.firstWhere(
+        (s) => s.properties?.title == rangeName,
+        orElse: () => throw Exception('Feuille "$rangeName" introuvable'),
+      );
+      final sheetId = sheet?.properties?.sheetId;
+
+      if (sheetId == null) {
+        throw Exception('ID de feuille introuvable pour "$rangeName"');
+      }
+
+      // 2. Créer la requête de suppression
+      final request = Request(
+        deleteDimension: DeleteDimensionRequest(
+          range: DimensionRange(
+            sheetId: sheetId,
+            dimension: 'ROWS',
+            startIndex: rowIndex,
+            endIndex: rowIndex + 1,
+          ),
+        ),
+      );
+
+      // 3. Exécuter le batchUpdate
+      final batchRequest = BatchUpdateSpreadsheetRequest(requests: [request]);
+      await sheetsApi!.spreadsheets.batchUpdate(batchRequest, spreadsheetId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Récupère la configuration de l'application (versions, url) depuis la feuille 'Application'.
   ///
   /// Lit les colonnes A (Clé) et B (Valeur) de la feuille 'Application'.

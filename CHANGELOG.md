@@ -1,3 +1,14 @@
+## [6.10.4] - 2026-01-12
+
+### Added
+- **Suppression de Ligne (Mode Admin)** :
+  - Ajout d'une colonne "Actions" dans les tableaux lorsque le mode administrateur est activé.
+  - Possibilité de supprimer n'importe quelle ligne (Étudiant, Transaction, Stock) via un bouton dédié.
+  - Mécanisme de confirmation sécurisé avant suppression.
+  - Mise à jour automatique de l'interface après suppression.
+- **Interface Admin** :
+  - Ajout d'un bouton "Quitter le mode Admin" (Croix) dans la barre d'application lorsque le mode est actif, pour une désactivation rapide.
+
 ## [6.10.3] - 2026-01-11
 
 ### Fixed

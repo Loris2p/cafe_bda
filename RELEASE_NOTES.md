@@ -1,3 +1,15 @@
+# Version 6.10.4 - Nettoyage Administrateur 🧹
+
+Cette mise à jour ajoute une fonctionnalité clé pour la gestion des données en **Mode Administrateur**, permettant de maintenir la base de données propre directement depuis l'application.
+
+### 🗑️ Suppression de Ligne
+Les administrateurs peuvent désormais supprimer une entrée obsolète ou erronée (étudiant, transaction, ligne de stock) directement depuis l'interface.
+*   **Action Sécurisée** : Un bouton "Supprimer" (Corbeille) apparaît dans la colonne "Actions" lorsque le mode Admin est actif.
+*   **Confirmation** : Une fenêtre de dialogue demande une confirmation explicite avant toute suppression définitive pour éviter les accidents.
+
+### ⚡ Accès Rapide
+*   **Quitter le Mode Admin** : Un nouveau bouton dans la barre d'outils permet de désactiver le mode administrateur en un clic, sans repasser par les paramètres.
+
 # Version 6.10.3 - Intégrité & Précision 🎯
 
 Cette mise à jour corrective résout un problème important de correspondance des données lors de l'utilisation des fonctions de tri et de recherche.

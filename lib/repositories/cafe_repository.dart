@@ -166,4 +166,14 @@ class CafeRepository {
   Future<void> updateCellValue(String tableName, int rowIndex, int colIndex, dynamic newValue) async {
     await _sheetsService.updateCell(tableName, rowIndex, colIndex, newValue);
   }
+
+  /// Supprime une ligne d'une table donnée.
+  ///
+  /// * [tableName] - Le nom de la feuille.
+  /// * [rowIndex] - L'index absolu de la ligne à supprimer (base 0, incluant l'en-tête si présent dans le contexte d'appel, mais ici attend l'index physique de la feuille).
+  ///
+  /// Note: Si la ligne index est 0 (header), cela supprimera le header.
+  Future<void> deleteRow(String tableName, int rowIndex) async {
+    await _sheetsService.deleteRow(tableName, rowIndex);
+  }
 }

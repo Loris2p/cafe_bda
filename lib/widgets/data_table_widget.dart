@@ -53,6 +53,10 @@ class DataTableWidget extends StatefulWidget {
   /// Callback pour obtenir les options d'une liste déroulante (si getEditType retourne dropdown).
   final List<String> Function(int rowIndex, int colIndex)? getDropdownOptions;
 
+  /// Callback pour la suppression d'une ligne.
+  /// Si fourni, une colonne "Actions" avec un bouton de suppression sera ajoutée.
+  final Function(int rowIndex)? onDeleteRow;
+
   const DataTableWidget({
     super.key,
     required this.data,
@@ -70,6 +74,7 @@ class DataTableWidget extends StatefulWidget {
     this.isCellEditable,
     this.getEditType,
     this.getDropdownOptions,
+    this.onDeleteRow,
   });
 
   @override
@@ -146,6 +151,19 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       );
     }).toList();
 
+    if (widget.onDeleteRow != null) {
+      columns.add(DataColumn(
+        label: Text(
+          'Actions',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: effectiveHeaderTextColor,
+            fontSize: 14,
+          ),
+        ),
+      ));
+    }
+
     // Source de données
     final source = _DataSource(
       data: widget.data, // Passe toutes les données
@@ -157,6 +175,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       isCellEditable: widget.isCellEditable,
       getEditType: widget.getEditType,
       getDropdownOptions: widget.getDropdownOptions,
+      onDeleteRow: widget.onDeleteRow,
     );
 
     return LayoutBuilder(
@@ -245,6 +264,7 @@ class _DataSource extends DataTableSource {
   final bool Function(int rowIndex, int colIndex)? isCellEditable;
   final EditType Function(int rowIndex, int colIndex)? getEditType;
   final List<String> Function(int rowIndex, int colIndex)? getDropdownOptions;
+  final Function(int rowIndex)? onDeleteRow;
 
   _DataSource({
     required this.data,
@@ -256,6 +276,7 @@ class _DataSource extends DataTableSource {
     this.isCellEditable,
     this.getEditType,
     this.getDropdownOptions,
+    this.onDeleteRow,
   });
 
   @override
@@ -268,15 +289,7 @@ class _DataSource extends DataTableSource {
     final row = data[realIndex];
     final theme = Theme.of(context);
 
-    return DataRow.byIndex(
-      index: index,
-      color: WidgetStateProperty.resolveWith<Color?>((states) {
-        if (!showZebraStriping) return null;
-        return index % 2 == 0
-            ? rowColor1 ?? theme.colorScheme.surface
-            : rowColor2 ?? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
-      }),
-      cells: row.asMap().entries.map((cellEntry) {
+    final List<DataCell> cells = row.asMap().entries.map((cellEntry) {
         final dynamic cellValue = cellEntry.value;
         final String cellString = cellValue?.toString() ?? '';
         final int colIndex = cellEntry.key;
@@ -384,7 +397,26 @@ class _DataSource extends DataTableSource {
              }
           } : null,
         );
-      }).toList(),
+      }).toList();
+
+      if (onDeleteRow != null) {
+        cells.add(DataCell(
+          IconButton(
+            icon: Icon(Icons.delete, color: theme.colorScheme.error),
+            onPressed: () => onDeleteRow!(index),
+          ),
+        ));
+      }
+
+    return DataRow.byIndex(
+      index: index,
+      color: WidgetStateProperty.resolveWith<Color?>((states) {
+        if (!showZebraStriping) return null;
+        return index % 2 == 0
+            ? rowColor1 ?? theme.colorScheme.surface
+            : rowColor2 ?? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
+      }),
+      cells: cells,
     );
   }
 

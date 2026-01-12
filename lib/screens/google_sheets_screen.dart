@@ -74,6 +74,7 @@ class _GoogleSheetsScreenState extends State<GoogleSheetsScreen> {
       appBar: AppBar(
         title: const Text('Gestion Café - BDA', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: const [
+          _ExitAdminButton(),
           _RefreshButton(),
           _LogoutButton(),
           _AuthLoadingIndicator(),
@@ -816,6 +817,30 @@ class _SettingsTabState extends State<_SettingsTab> {
 
 // --- Boutons de lAppBar ---
 
+class _ExitAdminButton extends StatelessWidget {
+  const _ExitAdminButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<CafeDataProvider, bool>(
+      selector: (_, p) => p.isAdminMode,
+      builder: (_, isAdminMode, __) {
+        if (!isAdminMode) return const SizedBox.shrink();
+        return IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: 'Quitter le mode Admin',
+          onPressed: () {
+            context.read<CafeDataProvider>().isAdminMode = false;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Mode Administrateur désactivé')),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
 class _RefreshButton extends StatelessWidget {
   const _RefreshButton();
 
@@ -1481,11 +1506,15 @@ class _DataDisplay extends StatelessWidget {
               },
               isCellEditable: (rowIndex, visibleIndex) {
                  if (!canEdit) return false;
-                 // rowIndex provient de visibleData, donc correspond à l'index dans _sheetData (trié)
-                 if (rowIndex < 0 || rowIndex >= sheetData.length) return false;
+                 // rowIndex provient de visibleData (qui contient le header en 0), 
+                 // MAIS le DataTableWidget appelle ce callback avec un index de ligne de données (0-based)
+                 // Donc rowIndex 0 correspond à la première ligne de DONNÉES.
+                 // sheetData[0] est le header.
+                 // Donc on doit accéder à sheetData[rowIndex + 1]
+                 if (rowIndex + 1 >= sheetData.length) return false;
                  
                  // On récupère l'objet ligne depuis les données affichées
-                 final row = sheetData[rowIndex];
+                 final row = sheetData[rowIndex + 1];
                  
                  // On retrouve son index réel dans les données originales (non triées) pour vérifier la formule
                  final realIndex = provider.originalSheetData.indexOf(row);
@@ -1501,8 +1530,8 @@ class _DataDisplay extends StatelessWidget {
               },
               onCellUpdate: canEdit
                   ? (rowIndex, visibleIndex, newValue) async {
-                      if (rowIndex < 0 || rowIndex >= sheetData.length) return;
-                      final row = sheetData[rowIndex];
+                      if (rowIndex + 1 >= sheetData.length) return;
+                      final row = sheetData[rowIndex + 1];
                       final realIndex = provider.originalSheetData.indexOf(row);
                       
                       if (realIndex <= 0) return;
@@ -1518,6 +1547,48 @@ class _DataDisplay extends StatelessWidget {
                           ),
                         );
                       }
+                    }
+                  : null,
+              onDeleteRow: provider.isAdminMode
+                  ? (rowIndex) {
+                      // rowIndex est 0-based par rapport aux DONNÉES affichées (hors header)
+                      // sheetData[0] est le header.
+                      // Donc la donnée est à sheetData[rowIndex + 1]
+                      if (rowIndex + 1 >= sheetData.length) return;
+                      final rowObject = sheetData[rowIndex + 1];
+
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Confirmer la suppression'),
+                          content: const Text('Voulez-vous vraiment supprimer cette ligne ?\nCette action est irréversible.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text('Annuler'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.of(ctx).pop();
+                                final error = await provider.deleteRow(rowObject);
+                                if (context.mounted) {
+                                  if (error != null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(error), backgroundColor: Colors.red),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Ligne supprimée avec succès.')),
+                                    );
+                                  }
+                                }
+                              },
+                              style: TextButton.styleFrom(foregroundColor: Colors.red),
+                              child: const Text('Supprimer'),
+                            ),
+                          ],
+                        ),
+                      );
                     }
                   : null,
             ),

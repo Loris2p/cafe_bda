@@ -442,4 +442,30 @@ class CafeDataProvider with ChangeNotifier {
       return _errorMessage;
     }
   }
+
+  Future<String?> deleteRow(List<dynamic> rowObject) async {
+    return _executeTransaction(() async {
+      // Trouver l'index dans les données originales (non triées)
+      final index = _originalSheetData.indexOf(rowObject);
+      
+      if (index == -1) {
+        throw Exception("Ligne introuvable dans les données originales. Impossible de supprimer.");
+      }
+      
+      // index correspond à l'index physique de la ligne dans Google Sheets (0-based)
+      // car _originalSheetData contient [Header, Row1, Row2...]
+      // _originalSheetData[0] est le Header (Ligne 1, index 0)
+      // _originalSheetData[1] est la Row 1 (Ligne 2, index 1)
+      
+      // Précaution : Ne pas supprimer le header
+      if (index == 0) {
+         throw Exception("Impossible de supprimer l'en-tête.");
+      }
+
+      await _cafeRepository.deleteRow(_selectedTable, index);
+      
+      // Rafraîchir les données
+      await readTable(forceRefresh: true);
+    });
+  }
 }
