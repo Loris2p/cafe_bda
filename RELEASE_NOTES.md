@@ -1,3 +1,24 @@
+# Version 6.10.3 - Intégrité & Précision 🎯
+
+Cette mise à jour corrective résout un problème important de correspondance des données lors de l'utilisation des fonctions de tri et de recherche.
+
+### 🛡️ Indexation Absolue
+Désormais, peu importe si votre tableau est trié (ex: par solde) ou filtré (via la recherche), l'application garantit que la modification effectuée cible la bonne ligne dans le Google Sheets. Cette correction renforce également la **protection des formules**, qui ne peuvent plus être contournées via une vue filtrée.
+
+### 🔍 Recherche Unifiée
+Les deux barres de recherche (Accueil et Contextuelle) offrent maintenant les mêmes capacités : recherche intelligente, édition directe (si Admin) et sélecteurs adaptés. Si vous recherchez un étudiant depuis l'accueil, l'application bascule automatiquement sur le tableau pour vous permettre d'agir.
+
+# Version 6.10.2 - Édition Intelligente 🧠
+
+Cette mise à jour améliore considérablement le confort d'utilisation du **Mode Administrateur** en rendant l'édition des cellules plus intelligente et moins propice aux erreurs.
+
+### ✨ Éditeurs Adaptés
+Fini la saisie manuelle de texte pour tout ! L'application reconnaît désormais le type de données que vous modifiez :
+
+*   📅 **Dates** : Un calendrier s'ouvre pour choisir la date (plus de soucis de format `JJ/MM/AAAA`).
+*   🔻 **Listes** : Pour les "Moyens de Paiement", choisissez directement parmi les options valides (Lydia, Espèces, Crédit) dans une liste déroulante.
+*   🔢 **Chiffres** : Le clavier numérique s'ouvre automatiquement pour les prix et les quantités.
+
 # Version 6.10.1 - Sécurité & Intégrité 🔐
 
 Cette mise à jour mineure renforce le **Mode Administrateur** introduit en 6.10.0 en ajoutant des couches de sécurité et de protection des données.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'edit_cell_dialog.dart';
 
 /// Une classe utilitaire fournissant des méthodes statiques pour afficher les dialogues de recherche.
 class SearchDialog {
@@ -141,6 +142,9 @@ class SearchDialog {
     List<bool>? visibleColumns,
     bool canEdit = false,
     Function(int colIndex, dynamic newValue)? onEdit,
+    EditType Function(int colIndex)? getEditType,
+    List<String> Function(int colIndex)? getDropdownOptions,
+    bool Function(int colIndex)? isCellEditable,
   }) {
     showDialog(
       context: context,
@@ -204,44 +208,41 @@ class SearchDialog {
                                                     style: Theme.of(context).textTheme.bodyLarge,
                                                   ),
                                                 ),
-                                                if (canEdit && onEdit != null)
+                                                if (canEdit && onEdit != null && (isCellEditable == null || isCellEditable(i)))
                                                   IconButton(
                                                     icon: const Icon(Icons.edit, size: 18),
                                                     color: Theme.of(context).colorScheme.secondary,
-                                                    onPressed: () {
+                                                    onPressed: () async {
                                                       final currentVal = row[i]?.toString() ?? '';
-                                                      showDialog(
+                                                      
+                                                      EditType editType = EditType.text;
+                                                      List<String>? options;
+                                                      if (getEditType != null) {
+                                                        editType = getEditType(i);
+                                                      }
+                                                      if (getDropdownOptions != null && editType == EditType.dropdown) {
+                                                        options = getDropdownOptions(i);
+                                                      }
+
+                                                      final newVal = await showDialog(
                                                         context: context,
                                                         builder: (ctx) {
-                                                          final controller = TextEditingController(text: currentVal);
-                                                          return AlertDialog(
-                                                            title: Text('Modifier ${columnNames[i]}'),
-                                                            content: TextField(
-                                                              controller: controller,
-                                                              autofocus: true,
-                                                            ),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () => Navigator.pop(ctx),
-                                                                child: const Text('Annuler'),
-                                                              ),
-                                                              FilledButton(
-                                                                onPressed: () {
-                                                                  final newVal = controller.text;
-                                                                  Navigator.pop(ctx);
-                                                                  // Update UI locale
-                                                                  setState(() {
-                                                                     row[i] = newVal;
-                                                                  });
-                                                                  // Call backend
-                                                                  onEdit(i, newVal);
-                                                                },
-                                                                child: const Text('Sauvegarder'),
-                                                              ),
-                                                            ],
+                                                          return EditCellDialog(
+                                                            initialValue: currentVal,
+                                                            editType: editType,
+                                                            dropdownOptions: options,
                                                           );
                                                         }
                                                       );
+
+                                                      if (newVal != null) {
+                                                        // Update UI locale
+                                                        setState(() {
+                                                           row[i] = newVal;
+                                                        });
+                                                        // Call backend
+                                                        onEdit(i, newVal);
+                                                      }
                                                     },
                                                   ),
                                               ],

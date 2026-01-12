@@ -298,6 +298,15 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
           as List<List<dynamic>>);
 
   @override
+  List<List<dynamic>> get originalSheetData =>
+      (super.noSuchMethod(
+            Invocation.getter(#originalSheetData),
+            returnValue: <List<dynamic>>[],
+            returnValueForMissingStub: <List<dynamic>>[],
+          )
+          as List<List<dynamic>>);
+
+  @override
   List<List<dynamic>> get formulaData =>
       (super.noSuchMethod(
             Invocation.getter(#formulaData),
@@ -592,12 +601,16 @@ class MockCafeDataProvider extends _i1.Mock implements _i10.CafeDataProvider {
 
   @override
   _i6.Future<String?> updateCellValue(
-    int? rowIndex,
+    int? originalRowIndex,
     int? colIndex,
     dynamic newValue,
   ) =>
       (super.noSuchMethod(
-            Invocation.method(#updateCellValue, [rowIndex, colIndex, newValue]),
+            Invocation.method(#updateCellValue, [
+              originalRowIndex,
+              colIndex,
+              newValue,
+            ]),
             returnValue: _i6.Future<String?>.value(),
             returnValueForMissingStub: _i6.Future<String?>.value(),
           )

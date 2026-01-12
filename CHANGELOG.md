@@ -1,3 +1,20 @@
+## [6.10.3] - 2026-01-11
+
+### Fixed
+- **Intégrité des Données (Tri & Recherche)** : Correction d'un bug critique où le tri ou la recherche d'un tableau pouvait entraîner la modification de la mauvaise cellule ou le contournement de la protection des formules. L'application utilise désormais un indexage absolu pour garantir que la cellule modifiée correspond toujours à celle du fichier source.
+
+### Changed
+- **Recherche Unifiée** : La barre de recherche de l'accueil (Dashboard) permet désormais l'édition des étudiants (si Admin) et bascule automatiquement sur le tableau "Étudiants", offrant une expérience identique à la barre de recherche contextuelle.
+
+## [6.10.2] - 2026-01-11
+
+### Added
+- **Édition Typée (Mode Admin)** :
+  - **Sélecteurs Intelligents** : L'interface d'édition s'adapte désormais automatiquement au type de la colonne :
+    - **Dates** : Ouvre un sélecteur de date (Calendrier) pour éviter les erreurs de format.
+    - **Listes Déroulantes** : Pour les colonnes comme "Moyen Paiement", propose les choix valides (Lydia, Espèces, etc.).
+    - **Numérique** : Affiche automatiquement le clavier numérique pour les prix et quantités.
+
 ## [6.10.1] - 2026-01-11
 
 ### Added

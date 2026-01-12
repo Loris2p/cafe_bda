@@ -49,7 +49,7 @@ Ce document liste des suggestions pour les futures évolutions et améliorations
 *   **Rapports et Statistiques**: Afficher des graphiques ou des résumés sur les ventes, les crédits, la popularité des cafés, etc. [2]
 *   **Sécurisation Mode Admin** : Ajouter un code PIN (4 chiffres) obligatoire pour activer le mode administrateur afin d'éviter les activations accidentelles. (Fait)
 *   **Protection des Formules** : Empêcher l'édition manuelle des cellules contenant des formules pour préserver l'intégrité des données. (Fait)
-*   **Édition Typée (Mode Admin)** : Utiliser des sélecteurs adaptés selon la colonne (Clavier numérique pour les prix, Calendrier pour les dates, Liste déroulante pour les paiements) pour garantir l'intégrité des données. [2]
+*   **Édition Typée (Mode Admin)** : Utiliser des sélecteurs adaptés selon la colonne (Clavier numérique pour les prix, Calendrier pour les dates, Liste déroulante pour les paiements) pour garantir l'intégrité des données. (Fait)
 *   **Suppression de Ligne** : Ajouter la possibilité de supprimer une ligne (étudiant, transaction, etc.) en mode administrateur. [2]
 *   **Journalisation (Logs)** : Créer une feuille "Logs" pour tracer automatiquement toutes les modifications manuelles (Date, Auteur, Valeur changée). [3]
 *   **Mode Hors Ligne (Consultation)** : Permettre la consultation des données mises en cache (Dernière version connue) sans connexion internet. [3]

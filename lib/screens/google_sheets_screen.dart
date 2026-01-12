@@ -4,6 +4,8 @@ import 'package:cafe_bda/services/google_sheets_service.dart';
 import 'package:cafe_bda/services/version_check_service.dart'; // Ajout
 import 'package:cafe_bda/widgets/update_dialog.dart'; // Ajout
 import 'package:cafe_bda/widgets/payment_dialog.dart'; // Ajout
+import 'package:cafe_bda/widgets/edit_cell_dialog.dart'; // Ajout
+import 'package:cafe_bda/utils/column_helpers.dart'; // Ajout
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -352,8 +354,10 @@ class _DashboardViewState extends State<_DashboardView> {
 
     final provider = context.read<CafeDataProvider>();
     
-    // Si les données étudiants ne sont pas encore chargées, on tente de les charger
-    if (provider.studentsData.isEmpty) {
+    // Si on n'est pas sur la table Étudiants, on bascule dessus pour permettre l'édition et la cohérence
+    if (provider.selectedTable != AppConstants.studentsTable) {
+      await provider.readTable(tableName: AppConstants.studentsTable);
+    } else if (provider.studentsData.isEmpty) {
       await provider.readTable(tableName: AppConstants.studentsTable);
     }
 
@@ -372,13 +376,50 @@ class _DashboardViewState extends State<_DashboardView> {
         results: results,
         fullData: provider.studentsData,
         onRowSelected: (row) {
+          final canEdit = provider.isAdminMode;
+          final headers = provider.sheetData.isNotEmpty ? provider.sheetData[0] : [];
+
           SearchDialog.showRowDetails(
             context,
             row: row,
-            columnNames: provider.studentsData.isNotEmpty
-                ? provider.studentsData[0]
-                : [],
+            columnNames: headers,
             visibleColumns: provider.columnVisibility[AppConstants.studentsTable],
+            canEdit: canEdit,
+            getEditType: (colIndex) {
+               if (colIndex >= headers.length) return EditType.text;
+               return ColumnHelpers.getEditType(headers[colIndex].toString());
+            },
+            getDropdownOptions: (colIndex) {
+               if (colIndex >= headers.length) return [];
+               return ColumnHelpers.getDropdownOptions(headers[colIndex].toString(), provider);
+            },
+            isCellEditable: (colIndex) {
+               final originalRowIndex = provider.originalSheetData.indexOf(row);
+               if (originalRowIndex <= 0) return false;
+               return !provider.isCellFormula(originalRowIndex - 1, colIndex);
+            },
+            onEdit: canEdit ? (colIndex, newValue) async {
+               // Retrouver l'index original de la ligne pour l'édition sécurisée
+               final originalRowIndex = provider.originalSheetData.indexOf(row);
+               
+               if (originalRowIndex > 0) {
+                 if (provider.isCellFormula(originalRowIndex - 1, colIndex)) {
+                    if (context.mounted) {
+                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Impossible de modifier une cellule calculée (formule).")));
+                    }
+                    return;
+                 }
+                 
+                 final error = await provider.updateCellValue(originalRowIndex - 1, colIndex, newValue);
+                 if (error != null && context.mounted) {
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+                 }
+               } else {
+                 if (context.mounted) {
+                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Erreur: Ligne introuvable. Avez-vous changé de tableau ?")));
+                 }
+               }
+            } : null,
           );
         },
       );
@@ -1223,24 +1264,37 @@ class _SearchSectionState extends State<_SearchSection> {
         searchTerm: searchTerm,
         results: results,
         fullData: provider.sheetData, // Utiliser sheetData pour être générique
-        onRowSelected: (row) {
-          // Si Admin, on active l'édition dans les détails
-          final canEdit = provider.isAdminMode;
-          
-          SearchDialog.showRowDetails(
-            context,
-            row: row,
-            columnNames: provider.sheetData.isNotEmpty
-                ? provider.sheetData[0]
-                : [],
-            visibleColumns: provider.columnVisibility[provider.selectedTable],
-            canEdit: canEdit,
-            onEdit: canEdit ? (colIndex, newValue) async {
-               // Retrouver l'index original de la ligne
-               // sheetData[0] est header. row est une référence dans sheetData.
-               final originalRowIndex = provider.sheetData.indexOf(row);
+                    onRowSelected: (row) {
+                  // Si Admin, on active l'édition dans les détails
+                  final canEdit = provider.isAdminMode;
+                  final headers = provider.sheetData.isNotEmpty ? provider.sheetData[0] : [];
+                  
+                  SearchDialog.showRowDetails(
+                    context,
+                    row: row,
+                    columnNames: headers,
+                    visibleColumns: provider.columnVisibility[provider.selectedTable],
+                    canEdit: canEdit,
+                    getEditType: (colIndex) {
+                       if (colIndex >= headers.length) return EditType.text;
+                       return ColumnHelpers.getEditType(headers[colIndex].toString());
+                    },
+                                getDropdownOptions: (colIndex) {
+                                   if (colIndex >= headers.length) return [];
+                                   return ColumnHelpers.getDropdownOptions(headers[colIndex].toString(), provider);
+                                },
+                                isCellEditable: (colIndex) {
+                                   final originalRowIndex = provider.originalSheetData.indexOf(row);
+                                   if (originalRowIndex <= 0) return false;
+                                   return !provider.isCellFormula(originalRowIndex - 1, colIndex);
+                                },
+                                onEdit: canEdit ? (colIndex, newValue) async {                       // Retrouver l'index original de la ligne pour l'édition sécurisée
+                       // On cherche l'objet row dans _originalSheetData car c'est la référence de vérité (non triée)
+                       final originalRowIndex = provider.originalSheetData.indexOf(row);
+               
                if (originalRowIndex > 0) {
                  // Check formula
+                 // originalRowIndex est l'index dans la liste (avec header), donc -1 pour l'index de donnée
                  if (provider.isCellFormula(originalRowIndex - 1, colIndex)) {
                     if (context.mounted) {
                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Impossible de modifier une cellule calculée (formule).")));
@@ -1249,10 +1303,13 @@ class _SearchSectionState extends State<_SearchSection> {
                  }
                  
                  // updateCellValue attend un index relatif aux données (sans header)
-                 // Donc index - 1.
                  final error = await provider.updateCellValue(originalRowIndex - 1, colIndex, newValue);
                  if (error != null && context.mounted) {
                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
+                 }
+               } else {
+                 if (context.mounted) {
+                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Erreur: Ligne introuvable dans les données originales.")));
                  }
                }
             } : null,
@@ -1404,26 +1461,55 @@ class _DataDisplay extends StatelessWidget {
                 final originalIndex = visibleOriginalIndices[visibleIndex];
                 provider.sortData(originalIndex);
               },
+              getEditType: (rowIndex, visibleIndex) {
+                 if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return EditType.text;
+                 final originalColIndex = visibleOriginalIndices[visibleIndex];
+                 
+                 // Récupérer le nom de la colonne
+                 if (sheetData.isEmpty || originalColIndex >= sheetData[0].length) return EditType.text;
+                 final headerName = sheetData[0][originalColIndex].toString();
+                 
+                 return ColumnHelpers.getEditType(headerName);
+              },
+              getDropdownOptions: (rowIndex, visibleIndex) {
+                 if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return [];
+                 final originalColIndex = visibleOriginalIndices[visibleIndex];
+                 if (sheetData.isEmpty || originalColIndex >= sheetData[0].length) return [];
+                 final headerName = sheetData[0][originalColIndex].toString();
+
+                 return ColumnHelpers.getDropdownOptions(headerName, provider);
+              },
               isCellEditable: (rowIndex, visibleIndex) {
                  if (!canEdit) return false;
-                 // On doit mapper l'index visible vers l'index original (réel) de la colonne
+                 // rowIndex provient de visibleData, donc correspond à l'index dans _sheetData (trié)
+                 if (rowIndex < 0 || rowIndex >= sheetData.length) return false;
+                 
+                 // On récupère l'objet ligne depuis les données affichées
+                 final row = sheetData[rowIndex];
+                 
+                 // On retrouve son index réel dans les données originales (non triées) pour vérifier la formule
+                 final realIndex = provider.originalSheetData.indexOf(row);
+                 
+                 if (realIndex <= 0) return false; // Ne devrait pas arriver, ou c'est le header
+
+                 // On mappe l'index visible vers l'index original (réel) de la colonne
                  if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return false;
                  final originalColIndex = visibleOriginalIndices[visibleIndex];
                  
-                 // Vérifier si c'est une formule
-                 // Note: rowIndex ici est relatif aux données affichées (triées).
-                 // Pour être parfait, il faudrait mapper le rowIndex trié vers le rowIndex original du provider.
-                 // MAIS, DataTableWidget reçoit 'visibleData' qui est DÉJÀ trié.
-                 // Le provider a _sheetData qui est trié aussi.
-                 // Donc rowIndex correspond bien à _sheetData (sans header).
-                 
-                 // ATTENTION: isCellFormula s'attend à un index de ligne dans _sheetData.
-                 return !provider.isCellFormula(rowIndex, originalColIndex);
+                 // Check formula avec l'index réel
+                 return !provider.isCellFormula(realIndex - 1, originalColIndex);
               },
               onCellUpdate: canEdit
                   ? (rowIndex, visibleIndex, newValue) async {
-                      final originalIndex = visibleOriginalIndices[visibleIndex];
-                      final error = await provider.updateCellValue(rowIndex, originalIndex, newValue);
+                      if (rowIndex < 0 || rowIndex >= sheetData.length) return;
+                      final row = sheetData[rowIndex];
+                      final realIndex = provider.originalSheetData.indexOf(row);
+                      
+                      if (realIndex <= 0) return;
+
+                      final originalColIndex = visibleOriginalIndices[visibleIndex];
+                      
+                      final error = await provider.updateCellValue(realIndex - 1, originalColIndex, newValue);
                       if (error != null && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

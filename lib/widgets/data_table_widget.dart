@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'edit_cell_dialog.dart';
 
 /// Un widget réutilisable pour afficher des données sous forme de tableau dynamique.
 /// Utilise PaginatedDataTable pour optimiser les performances sur les grands jeux de données.
@@ -46,6 +47,12 @@ class DataTableWidget extends StatefulWidget {
   /// Retourne true si éditable, false sinon.
   final bool Function(int rowIndex, int colIndex)? isCellEditable;
 
+  /// Callback pour déterminer le type d'éditeur pour une cellule donnée.
+  final EditType Function(int rowIndex, int colIndex)? getEditType;
+
+  /// Callback pour obtenir les options d'une liste déroulante (si getEditType retourne dropdown).
+  final List<String> Function(int rowIndex, int colIndex)? getDropdownOptions;
+
   const DataTableWidget({
     super.key,
     required this.data,
@@ -61,6 +68,8 @@ class DataTableWidget extends StatefulWidget {
     this.sortAscending = true,
     this.onSort,
     this.isCellEditable,
+    this.getEditType,
+    this.getDropdownOptions,
   });
 
   @override
@@ -146,6 +155,8 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       rowColor2: widget.rowColor2,
       onCellUpdate: widget.onCellUpdate,
       isCellEditable: widget.isCellEditable,
+      getEditType: widget.getEditType,
+      getDropdownOptions: widget.getDropdownOptions,
     );
 
     return LayoutBuilder(
@@ -232,6 +243,8 @@ class _DataSource extends DataTableSource {
   final Color? rowColor2;
   final Function(int rowIndex, int colIndex, dynamic newValue)? onCellUpdate;
   final bool Function(int rowIndex, int colIndex)? isCellEditable;
+  final EditType Function(int rowIndex, int colIndex)? getEditType;
+  final List<String> Function(int rowIndex, int colIndex)? getDropdownOptions;
 
   _DataSource({
     required this.data,
@@ -241,6 +254,8 @@ class _DataSource extends DataTableSource {
     this.rowColor2,
     this.onCellUpdate,
     this.isCellEditable,
+    this.getEditType,
+    this.getDropdownOptions,
   });
 
   @override
@@ -338,45 +353,35 @@ class _DataSource extends DataTableSource {
               ),
             ),
           ),
-          onTap: (canEdit && !isFormula) ? () {
-             showDialog(
+          onTap: (canEdit && !isFormula) ? () async {
+             // Déterminer le type d'éditeur
+             EditType editType = EditType.text;
+             List<String>? options;
+             
+             if (getEditType != null) {
+               editType = getEditType!(index, colIndex);
+             } else if (isNumeric) {
+               editType = EditType.numeric;
+             }
+             
+             if (getDropdownOptions != null && editType == EditType.dropdown) {
+               options = getDropdownOptions!(index, colIndex);
+             }
+
+             final result = await showDialog(
                context: context,
                builder: (context) {
-                 final controller = TextEditingController(text: cellString);
-                 return AlertDialog(
-                   title: Text('Modifier la cellule'),
-                   content: TextField(
-                     controller: controller,
-                     keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
-                     autofocus: true,
-                     decoration: const InputDecoration(
-                       labelText: 'Nouvelle valeur',
-                       border: OutlineInputBorder(),
-                     ),
-                   ),
-                   actions: [
-                     TextButton(
-                       onPressed: () => Navigator.pop(context),
-                       child: const Text('Annuler'),
-                     ),
-                     FilledButton(
-                       onPressed: () {
-                         final newValue = controller.text;
-                         // Tentative de conversion si c'était numérique
-                         dynamic finalValue = newValue;
-                         if (isNumeric) {
-                            final numValue = num.tryParse(newValue);
-                            if (numValue != null) finalValue = numValue;
-                         }
-                         onCellUpdate!(index, colIndex, finalValue);
-                         Navigator.pop(context);
-                       },
-                       child: const Text('Sauvegarder'),
-                     ),
-                   ],
+                 return EditCellDialog(
+                   initialValue: cellString,
+                   editType: editType,
+                   dropdownOptions: options,
                  );
                }
              );
+             
+             if (result != null) {
+                onCellUpdate!(index, colIndex, result);
+             }
           } : null,
         );
       }).toList(),

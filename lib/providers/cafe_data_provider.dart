@@ -17,6 +17,7 @@ class CafeDataProvider with ChangeNotifier {
   CafeDataProvider(this._cafeRepository, this._sheetsService);
 
   List<List<dynamic>> _sheetData = [];
+  List<List<dynamic>> _originalSheetData = [];
   List<List<dynamic>> _formulaData = [];
   List<List<dynamic>> _searchResults = [];
   List<List<dynamic>> _studentsData = [];
@@ -42,6 +43,7 @@ class CafeDataProvider with ChangeNotifier {
 
   // Getters
   List<List<dynamic>> get sheetData => _sheetData;
+  List<List<dynamic>> get originalSheetData => _originalSheetData;
   List<List<dynamic>> get formulaData => _formulaData;
   List<List<dynamic>> get searchResults => _searchResults;
   List<List<dynamic>> get studentsData => _studentsData;
@@ -119,6 +121,7 @@ class CafeDataProvider with ChangeNotifier {
   /// Vide les données locales (lors de la déconnexion).
   void clearData() {
     _sheetData = [];
+    _originalSheetData = [];
     _searchResults = [];
     _studentsData = [];
     _tableHeaders = {};
@@ -150,6 +153,7 @@ class CafeDataProvider with ChangeNotifier {
       ]);
 
       _sheetData = results[0] ?? [];
+      _originalSheetData = List.from(_sheetData);
       _formulaData = results[1] ?? [];
 
       if (_selectedTable == AppConstants.studentsTable) {
@@ -409,29 +413,30 @@ class CafeDataProvider with ChangeNotifier {
     return results;
   }
 
-  Future<String?> updateCellValue(int rowIndex, int colIndex, dynamic newValue) async {
+  Future<String?> updateCellValue(int originalRowIndex, int colIndex, dynamic newValue) async {
     final tableName = _selectedTable;
-    final dataRowIndex = rowIndex + 1;
+    // originalRowIndex est l'index des DONNÉES (0-based, hors header).
+    // Dans _originalSheetData, le header est à l'index 0, donc la donnée est à originalRowIndex + 1.
+    final listIndex = originalRowIndex + 1;
 
-    if (dataRowIndex >= _sheetData.length || colIndex >= _sheetData[dataRowIndex].length) {
+    if (listIndex >= _originalSheetData.length || colIndex >= _originalSheetData[listIndex].length) {
       return "Erreur : Index hors limites.";
     }
 
-    final oldValue = _sheetData[dataRowIndex][colIndex];
-
-    final newSheetData = _sheetData.map((row) => List<dynamic>.from(row)).toList();
-    newSheetData[dataRowIndex][colIndex] = newValue;
-    _sheetData = newSheetData;
+    final row = _originalSheetData[listIndex];
+    final oldValue = row[colIndex];
+    
+    // Mise à jour optimiste via référence (met à jour _sheetData et _originalSheetData car ils partagent les objets row)
+    row[colIndex] = newValue;
     notifyListeners();
-
+    
     try {
-      await _cafeRepository.updateCellValue(tableName, rowIndex, colIndex, newValue);
+      await _cafeRepository.updateCellValue(tableName, originalRowIndex, colIndex, newValue);
       return null;
     } catch (e) {
-      final revertedSheetData = _sheetData.map((row) => List<dynamic>.from(row)).toList();
-      revertedSheetData[dataRowIndex][colIndex] = oldValue;
-      _sheetData = revertedSheetData;
-
+      // Revert en cas d'erreur
+      row[colIndex] = oldValue;
+      
       _errorMessage = "La mise à jour a échoué: ${e.toString()}";
       notifyListeners();
       return _errorMessage;
