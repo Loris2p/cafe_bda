@@ -84,7 +84,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusS),
-          borderSide: const BorderSide(color: primary, width: 2),
+          borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         labelStyle: const TextStyle(color: textSecondary),
       ),
@@ -92,7 +92,7 @@ class AppTheme {
       // 3. Boutons (ElevatedButton)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: secondary,
+          backgroundColor: secondaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: spacingL, vertical: spacingM),
@@ -104,14 +104,14 @@ class AppTheme {
       // 4. Boutons Texte (TextButton)
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primary,
+          foregroundColor: primaryColor,
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       
       // 5. AppBar
-      appBarTheme: const AppBarTheme(
-        backgroundColor: primary,
+      appBarTheme: AppBarTheme(
+        backgroundColor: primaryColor,
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: false,
@@ -119,7 +119,7 @@ class AppTheme {
       
       // 6. Floating Action Button & Icon Buttons
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(foregroundColor: primary),
+        style: IconButton.styleFrom(foregroundColor: primaryColor),
       ),
     );
   }
