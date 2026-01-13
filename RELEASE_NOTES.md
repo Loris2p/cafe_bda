@@ -1,3 +1,11 @@
+# Version 6.10.6
+
+### Fonctionnalités Admin
+*   **Historique des Actions** : Ajout d'un nouvel onglet **Historique** accessible uniquement en mode administrateur.
+    *   Suivi chronologique des actions effectuées (Inscriptions, Crédits, Commandes).
+    *   Affichage des détails de chaque opération (Qui a fait quoi, montants, etc.).
+    *   Nécessite la création d'un onglet `Logs` dans le Google Sheet.
+
 # Version 6.10.5
 
 ### Fonctionnalités Admin

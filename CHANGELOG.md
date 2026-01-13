@@ -1,3 +1,11 @@
+## [6.10.6] - 2026-01-13
+
+### Added
+- **Historique (Mode Admin)** :
+  - Ajout d'une fonctionnalité de logs automatique pour tracer les actions (Inscription, Commande, Crédit).
+  - Nouvel onglet "Historique" visible uniquement par les administrateurs.
+  - Sauvegarde des actions dans la feuille `Logs` du Google Sheet.
+
 ## [6.10.5] - 2026-01-12
 
 ### Added
@@ -36,7 +44,7 @@
 - **Édition Typée (Mode Admin)** :
   - **Sélecteurs Intelligents** : L'interface d'édition s'adapte désormais automatiquement au type de la colonne :
     - **Dates** : Ouvre un sélecteur de date (Calendrier) pour éviter les erreurs de format.
-    - **Listes Déroulantes** : Pour les colonnes comme "Moyen Paiement", propose les choix valides (Lydia, Espèces, etc.).
+    - **Listes Déroulantes** : Pour les colonnes comme "Moyen Paiement", propose les choix valides (Lydia, Espèces, Crédit) dans une liste déroulante.
     - **Numérique** : Affiche automatiquement le clavier numérique pour les prix et quantités.
 
 ## [6.10.1] - 2026-01-11

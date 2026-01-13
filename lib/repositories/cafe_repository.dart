@@ -1,6 +1,7 @@
 import '../services/google_sheets_service.dart';
 import '../models/payment_config.dart';
 import '../utils/constants.dart';
+import 'package:intl/intl.dart';
 
 /// La classe CafeRepository est responsable de la logique métier de l'application.
 ///
@@ -107,6 +108,9 @@ class CafeRepository {
     
     // Le cache est obsolète car une ligne a été ajoutée
     invalidateCache();
+
+    // Log de l'action
+    await logAction('Inscription', '${formData['Nom']} ${formData['Prenom']}');
   }
 
   /// Ajoute une transaction de crédit (rechargement) dans la feuille 'Credits'.
@@ -127,6 +131,9 @@ class CafeRepository {
     ];
 
     await _sheetsService.appendToTable(AppConstants.creditsTable, rowData, valueInputOption: 'USER_ENTERED');
+    
+    // Log de l'action
+    await logAction('Crédit', '${formData['Nom']} ${formData['Prenom']} : ${formData['Valeur (€)']}€ (${formData['Moyen Paiement']})');
   }
 
   /// Ajoute une commande (consommation) dans la feuille 'Paiements'.
@@ -144,6 +151,9 @@ class CafeRepository {
       formData['Café pris'],
     ];
     await _sheetsService.appendToTable(AppConstants.paymentsTable, rowData, valueInputOption: 'USER_ENTERED');
+
+    // Log de l'action
+    await logAction('Commande', '${formData['Nom de famille']} ${formData['Prénom']} : ${formData['Nb de Cafés']} café(s)');
   }
 
   /// Méthode générique pour lire n'importe quelle table sans logique métier spécifique.
@@ -180,5 +190,31 @@ class CafeRepository {
   /// Ajoute une ligne générique à une table.
   Future<void> addGenericRow(String tableName, List<dynamic> rowData) async {
     await _sheetsService.appendToTable(tableName, rowData, valueInputOption: 'USER_ENTERED');
+  }
+
+  /// Enregistre une action dans la table 'Logs'.
+  ///
+  /// * [action] - Le type d'action (ex: "Ajout Étudiant").
+  /// * [details] - Détails supplémentaires (ex: "Nom Prénom").
+  Future<void> logAction(String action, String details) async {
+    try {
+      final now = DateTime.now();
+      final dateStr = DateFormat('dd/MM/yyyy HH:mm:ss').format(now);
+      
+      // Essayer de récupérer l'email de l'utilisateur connecté
+      String user = 'Inconnu';
+      if (_sheetsService.currentUser != null) {
+        user = _sheetsService.currentUser!.email;
+      }
+
+      await _sheetsService.appendToTable(
+        AppConstants.logsTable,
+        [dateStr, user, action, details],
+        valueInputOption: 'USER_ENTERED',
+      );
+    } catch (e) {
+      // On ne veut pas que l'échec du log bloque l'action principale
+      print('Erreur lors du logging: $e');
+    }
   }
 }

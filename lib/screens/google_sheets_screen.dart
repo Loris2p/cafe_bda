@@ -5,6 +5,7 @@ import 'package:cafe_bda/services/version_check_service.dart'; // Ajout
 import 'package:cafe_bda/widgets/update_dialog.dart'; // Ajout
 import 'package:cafe_bda/widgets/payment_dialog.dart'; // Ajout
 import 'package:cafe_bda/widgets/edit_cell_dialog.dart'; // Ajout
+import 'package:cafe_bda/screens/history_tab.dart'; // Ajout
 import 'package:cafe_bda/utils/column_helpers.dart'; // Ajout
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -172,6 +173,11 @@ class _MainScaffoldState extends State<MainScaffold> {
           label: 'Lydia (Édition)',
         ),
         NavigationDestination(
+          icon: Icon(Icons.history_outlined),
+          selectedIcon: Icon(Icons.history),
+          label: 'Historique',
+        ),
+        NavigationDestination(
           icon: Icon(Icons.settings_outlined),
           selectedIcon: Icon(Icons.settings),
           label: 'Paramètres',
@@ -180,6 +186,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       pages = [
         _HomeTab(key: _homeTabKey),
         const _AdminPaymentTab(),
+        const HistoryTab(),
         const _SettingsTab(),
       ];
     } else {
