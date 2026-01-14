@@ -100,7 +100,7 @@ class _StatsTabState extends State<StatsTab> {
                                   height: 300,
                                   child: _ChartCard(
                                     title: "Moyens de Paiement",
-                                    child: _PaymentMethodsPieChart(data: stats.coffeesByPaymentMethod),
+                                    child: _PaymentMethodsChart(data: stats.coffeesByPaymentMethod),
                                   ),
                                 ),
                                 if (isWide) const SizedBox(width: 16) else const SizedBox(height: 16),
@@ -110,7 +110,7 @@ class _StatsTabState extends State<StatsTab> {
                                     height: 300,
                                     child: _ChartCard(
                                       title: "Top Cafés",
-                                      child: _PopularCoffeesBarChart(data: stats.popularCoffees),
+                                      child: _PopularCoffeesChart(data: stats.popularCoffees),
                                     ),
                                   ),
                                 ),
@@ -203,107 +203,355 @@ class _ChartCard extends StatelessWidget {
 
 // --- Charts Implementations ---
 
-class _PaymentMethodsPieChart extends StatelessWidget {
+class _PaymentMethodsChart extends StatefulWidget {
   final Map<String, int> data;
 
-  const _PaymentMethodsPieChart({required this.data});
+  const _PaymentMethodsChart({required this.data});
 
   @override
-  Widget build(BuildContext context) {
-    if (data.isEmpty) return const Center(child: Text("Pas de données"));
+  State<_PaymentMethodsChart> createState() => _PaymentMethodsChartState();
+}
 
-    final total = data.values.fold(0, (sum, val) => sum + val);
-    int index = 0;
-    
+class _PaymentMethodsChartState extends State<_PaymentMethodsChart> {
+
+  bool _showPieChart = true;
+
+  int touchedIndex = -1;
+
+
+
+  @override
+
+  Widget build(BuildContext context) {
+
+    if (widget.data.isEmpty) return const Center(child: Text("Pas de données"));
+
+
+
+    final total = widget.data.values.fold(0, (sum, val) => sum + val);
+
     // Palette
+
     final colors = [
+
       Colors.blue, Colors.green, Colors.orange, Colors.red, Colors.purple, Colors.teal
+
     ];
 
-    return PieChart(
-      PieChartData(
-        sections: data.entries.map((entry) {
-          final percentage = (entry.value / total * 100).toStringAsFixed(1);
-          final color = colors[index % colors.length];
-          index++;
-          
-          return PieChartSectionData(
-            color: color,
-            value: entry.value.toDouble(),
-            title: '${entry.key}\n$percentage%',
-            radius: 100,
-            titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-          );
-        }).toList(),
-        sectionsSpace: 2,
-        centerSpaceRadius: 40,
-      ),
+
+
+    // Conversion des données en liste pour indexation stable
+
+    final entries = widget.data.entries.toList();
+
+
+
+    return Stack(
+
+      children: [
+
+        _showPieChart 
+
+                                    ? PieChart(
+
+                                        PieChartData(
+
+                                          pieTouchData: PieTouchData(
+
+                                            touchCallback: (FlTouchEvent event, pieTouchResponse) {
+
+                                              setState(() {
+
+                                                if (!event.isInterestedForInteractions ||
+
+                                                    pieTouchResponse == null ||
+
+                                                    pieTouchResponse.touchedSection == null) {
+
+                                                  touchedIndex = -1;
+
+                                                  return;
+
+                                                }
+
+                                                touchedIndex = pieTouchResponse
+
+                                                    .touchedSection!.touchedSectionIndex;
+
+                                              });
+
+                                            },
+
+                                          ),
+
+                                          sections: entries.asMap().entries.map((entryIndex) {
+
+                                            final index = entryIndex.key;
+
+                                            final entry = entryIndex.value;
+
+                                            final isTouched = index == touchedIndex;
+
+                                            final fontSize = isTouched ? 14.0 : 12.0;
+
+                                            final radius = isTouched ? 90.0 : 80.0;
+
+                                            final percentage = (entry.value / total * 100).toStringAsFixed(1);
+
+                                            final color = colors[index % colors.length];
+
+                                            
+
+                                            final title = isTouched 
+
+                                                ? '${entry.key}\n${entry.value} (${percentage}%)' 
+
+                                                : '${entry.key}\n$percentage%';
+
+                        
+
+                                            return PieChartSectionData(
+
+                                              color: color,
+
+                                              value: entry.value.toDouble(),
+
+                                              title: title,
+
+                                              radius: radius,
+
+                                              titleStyle: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: Colors.white),
+
+                                            );
+
+                                          }).toList(),
+
+                                          sectionsSpace: 2,
+
+                                          centerSpaceRadius: 30,
+
+                                        ),
+
+                                      )
+
+                                    : BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: (entries.map((e) => e.value).reduce((curr, next) => curr > next ? curr : next) * 1.2).toDouble(),
+                barTouchData: BarTouchData(
+                  touchTooltipData: BarTouchTooltipData(
+                     getTooltipColor: (_) => Colors.blueGrey,
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        if (value.toInt() >= 0 && value.toInt() < entries.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              entries[value.toInt()].key,
+                              style: const TextStyle(fontSize: 10),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                barGroups: entries.asMap().entries.map((entryIndex) {
+                  final index = entryIndex.key;
+                  final entry = entryIndex.value;
+                  final color = colors[index % colors.length];
+
+                  return BarChartGroupData(
+                    x: index,
+                    barRods: [
+                      BarChartRodData(
+                        toY: entry.value.toDouble(),
+                        color: color,
+                        width: 30,
+                        borderRadius: BorderRadius.circular(4),
+                      )
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+        // Bouton de bascule
+        Positioned(
+          right: 0,
+          top: 0,
+          child: IconButton(
+            icon: Icon(
+              _showPieChart ? Icons.bar_chart : Icons.pie_chart, 
+              color: Colors.grey,
+            ),
+            tooltip: _showPieChart ? "Voir en diagramme à barres" : "Voir en camembert",
+            onPressed: () {
+              setState(() {
+                _showPieChart = !_showPieChart;
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _PopularCoffeesBarChart extends StatelessWidget {
+class _PopularCoffeesChart extends StatefulWidget {
   final Map<String, int> data;
 
-  const _PopularCoffeesBarChart({required this.data});
+  const _PopularCoffeesChart({required this.data});
+
+  @override
+  State<_PopularCoffeesChart> createState() => _PopularCoffeesChartState();
+}
+
+class _PopularCoffeesChartState extends State<_PopularCoffeesChart> {
+  bool _showBarChart = true;
+  int touchedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
-    if (data.isEmpty) return const Center(child: Text("Pas de données"));
+    if (widget.data.isEmpty) return const Center(child: Text("Pas de données"));
 
     // Sort by popularity and take top 5
-    final sortedEntries = data.entries.toList()
+    final sortedEntries = widget.data.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value)); // Descending
     final topEntries = sortedEntries.take(5).toList();
+    final total = topEntries.fold(0, (sum, e) => sum + e.value);
 
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: (topEntries.first.value * 1.2).toDouble(),
-        barTouchData: BarTouchData(
-          touchTooltipData: BarTouchTooltipData(
-             getTooltipColor: (_) => Colors.blueGrey,
-          ),
-        ),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                if (value.toInt() >= 0 && value.toInt() < topEntries.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      topEntries[value.toInt()].key,
-                      style: const TextStyle(fontSize: 10),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                }
-                return const Text('');
-              },
+    // Palette cohérente
+    final colors = [
+      Theme.of(context).primaryColor,
+      Colors.orange,
+      Colors.green,
+      Colors.purple,
+      Colors.redAccent,
+    ];
+
+    return Stack(
+      children: [
+        _showBarChart 
+        ? BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: (topEntries.first.value * 1.2).toDouble(),
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                   getTooltipColor: (_) => Colors.blueGrey,
+                ),
+              ),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      if (value.toInt() >= 0 && value.toInt() < topEntries.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            topEntries[value.toInt()].key,
+                            style: const TextStyle(fontSize: 10),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),
+                leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              borderData: FlBorderData(show: false),
+              barGroups: topEntries.asMap().entries.map((entry) {
+                return BarChartGroupData(
+                  x: entry.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: entry.value.value.toDouble(),
+                      color: colors[entry.key % colors.length],
+                      width: 20,
+                      borderRadius: BorderRadius.circular(4),
+                    )
+                  ],
+                );
+              }).toList(),
+            ),
+          )
+        : PieChart(
+            PieChartData(
+              pieTouchData: PieTouchData(
+                touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                  setState(() {
+                    if (!event.isInterestedForInteractions ||
+                        pieTouchResponse == null ||
+                        pieTouchResponse.touchedSection == null) {
+                      touchedIndex = -1;
+                      return;
+                    }
+                    touchedIndex = pieTouchResponse
+                        .touchedSection!.touchedSectionIndex;
+                  });
+                },
+              ),
+              sections: topEntries.asMap().entries.map((entryIndex) {
+                final index = entryIndex.key;
+                final entry = entryIndex.value;
+                final isTouched = index == touchedIndex;
+                final fontSize = isTouched ? 14.0 : 12.0;
+                final radius = isTouched ? 90.0 : 80.0;
+                final percentage = (entry.value / total * 100).toStringAsFixed(1);
+                final color = colors[index % colors.length];
+                
+                final title = isTouched 
+                    ? '${entry.key}\n${entry.value} (${percentage}%)' 
+                    : '${entry.key}\n$percentage%';
+                
+                return PieChartSectionData(
+                  color: color,
+                  value: entry.value.toDouble(),
+                  title: title,
+                  radius: radius,
+                  titleStyle: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: Colors.white),
+                );
+              }).toList(),
+              sectionsSpace: 2,
+              centerSpaceRadius: 30,
             ),
           ),
-          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        // Bouton de bascule
+        Positioned(
+          right: 0,
+          top: 0,
+          child: IconButton(
+            icon: Icon(
+              _showBarChart ? Icons.pie_chart : Icons.bar_chart, 
+              color: Colors.grey,
+            ),
+            tooltip: _showBarChart ? "Voir en camembert" : "Voir en diagramme à barres",
+            onPressed: () {
+              setState(() {
+                _showBarChart = !_showBarChart;
+              });
+            },
+          ),
         ),
-        borderData: FlBorderData(show: false),
-        barGroups: topEntries.asMap().entries.map((entry) {
-          return BarChartGroupData(
-            x: entry.key,
-            barRods: [
-              BarChartRodData(
-                toY: entry.value.value.toDouble(),
-                color: Theme.of(context).primaryColor,
-                width: 20,
-                borderRadius: BorderRadius.circular(4),
-              )
-            ],
-          );
-        }).toList(),
-      ),
+      ],
     );
   }
 }
