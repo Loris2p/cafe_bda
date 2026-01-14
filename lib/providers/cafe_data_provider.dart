@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cafe_bda/models/app_config.dart';
 import 'package:cafe_bda/models/payment_config.dart';
+import 'package:cafe_bda/models/stats_data.dart';
 import 'package:cafe_bda/repositories/cafe_repository.dart';
 import 'package:cafe_bda/services/google_sheets_service.dart';
 import 'package:cafe_bda/utils/constants.dart';
@@ -131,6 +132,118 @@ class CafeDataProvider with ChangeNotifier {
     _responsableName = null;
     _errorMessage = '';
     notifyListeners();
+  }
+
+  Future<StatsData> getStats() async {
+    try {
+      // Charger les données de paiements et crédits en parallèle
+      // On utilise getGenericTable directement pour ne pas affecter l'état de la vue actuelle
+      final results = await Future.wait([
+        _cafeRepository.getGenericTable(AppConstants.paymentsTable),
+        _cafeRepository.getGenericTable(AppConstants.creditsTable),
+      ]);
+
+      final paymentsData = results[0] ?? [];
+      final creditsData = results[1] ?? [];
+
+      // --- 1. Total Credits Amount ---
+      double totalCredits = 0.0;
+      final creditsByDay = <DateTime, double>{};
+      
+      if (creditsData.length > 1) {
+        // Headers: Date, Responsable, Num Etu, Nom, Prenom, Classe, Valeur (€), Nb Cafés, Moyen Paiement
+        // On cherche l'index de 'Valeur (€)' et 'Date'
+        final headers = creditsData[0].map((e) => e.toString()).toList();
+        final valIndex = headers.indexOf(AppConstants.creditFormValue);
+        final dateIndex = headers.indexOf(AppConstants.creditFormDate);
+
+        if (valIndex != -1) {
+           for (var i = 1; i < creditsData.length; i++) {
+             final row = creditsData[i];
+             if (row.length > valIndex) {
+                final val = double.tryParse(row[valIndex].toString().replaceAll(',', '.')) ?? 0.0;
+                totalCredits += val;
+
+                if (dateIndex != -1 && row.length > dateIndex) {
+                   final date = _tryParseDate(row[dateIndex].toString());
+                   if (date != null) {
+                     final day = DateTime(date.year, date.month, date.day);
+                     creditsByDay[day] = (creditsByDay[day] ?? 0) + val;
+                   }
+                }
+             }
+           }
+        }
+      }
+
+      // --- 2. Sales Analysis (Payments) ---
+      int totalCoffees = 0;
+      final coffeesByMethod = <String, int>{};
+      final popularCoffees = <String, int>{};
+      final salesByDay = <DateTime, int>{};
+
+      if (paymentsData.length > 1) {
+        // Headers: Date, Moyen Paiement, Nom, Prénom, Numéro étudiant, Nb de Cafés, Café pris
+        final headers = paymentsData[0].map((e) => e.toString()).toList();
+        final countIndex = headers.indexOf(AppConstants.orderFormCoffees);
+        final methodIndex = headers.indexOf(AppConstants.orderFormPaymentMethod);
+        final coffeeIndex = headers.indexOf('Café pris'); // Magic string from OrderForm
+        final dateIndex = headers.indexOf(AppConstants.orderFormDate);
+
+        if (countIndex != -1) {
+          for (var i = 1; i < paymentsData.length; i++) {
+            final row = paymentsData[i];
+            if (row.length > countIndex) {
+              final count = int.tryParse(row[countIndex].toString()) ?? 0;
+              totalCoffees += count;
+
+              // Payment Method
+              if (methodIndex != -1 && row.length > methodIndex) {
+                final method = row[methodIndex]?.toString() ?? 'Inconnu';
+                coffeesByMethod[method] = (coffeesByMethod[method] ?? 0) + count;
+              }
+
+              // Popular Coffees
+              if (coffeeIndex != -1 && row.length > coffeeIndex) {
+                final coffee = row[coffeeIndex]?.toString() ?? 'Inconnu';
+                if (coffee.isNotEmpty) {
+                   popularCoffees[coffee] = (popularCoffees[coffee] ?? 0) + count;
+                }
+              }
+
+              // Sales Over Time
+              if (dateIndex != -1 && row.length > dateIndex) {
+                final date = _tryParseDate(row[dateIndex].toString());
+                if (date != null) {
+                  final day = DateTime(date.year, date.month, date.day);
+                  salesByDay[day] = (salesByDay[day] ?? 0) + count;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Sort Time Data
+      final sortedSales = salesByDay.entries.map((e) => DailyStat(e.key, e.value.toDouble())).toList()
+        ..sort((a, b) => a.date.compareTo(b.date));
+      
+      final sortedCredits = creditsByDay.entries.map((e) => DailyStat(e.key, e.value)).toList()
+        ..sort((a, b) => a.date.compareTo(b.date));
+
+      return StatsData(
+        totalCreditsAmount: totalCredits,
+        totalCoffeesServed: totalCoffees,
+        coffeesByPaymentMethod: coffeesByMethod,
+        popularCoffees: popularCoffees,
+        salesOverTime: sortedSales,
+        creditsOverTime: sortedCredits,
+      );
+
+    } catch (e) {
+      debugPrint("Error calculating stats: $e");
+      return StatsData.empty();
+    }
   }
 
   /// Charge les données de la table sélectionnée ou demandée.

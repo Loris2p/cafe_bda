@@ -1,3 +1,15 @@
+# Version 6.11.0 - Statistiques 📊
+
+Cette version introduit un tout nouvel onglet dédié à l'analyse de l'activité du café, accessible aux administrateurs.
+
+### 📊 Tableau de Bord Statistiques
+*   **KPIs en direct** : Visualisez instantanément le nombre total de cafés servis et le montant total des crédits rechargés.
+*   **Graphiques Interactifs** :
+    *   🥧 **Moyens de Paiement** : Répartition des ventes par méthode (Crédit, Espèces, Lydia...).
+    *   📊 **Top Cafés** : Classement des produits les plus populaires.
+    *   📈 **Évolution des Ventes** : Courbe temporelle des consommations pour suivre les tendances.
+*   L'onglet **Stats** est disponible dans la barre de navigation lorsque le mode administrateur est actif.
+
 # Version 6.10.6
 
 ### Fonctionnalités Admin

@@ -1,3 +1,12 @@
+## [6.11.0] - 2026-01-14
+
+### Added
+- **Module Statistiques (Admin)** :
+  - Nouvel onglet "Stats" dans le menu administrateur.
+  - Calcul et affichage des KPIs (Cafés servis, Crédits totaux).
+  - Graphiques interactifs : Camembert des moyens de paiement, Histogramme des produits populaires, Courbe d'évolution des ventes.
+  - Intégration de la librairie `fl_chart`.
+
 ## [6.10.6] - 2026-01-13
 
 ### Added
@@ -279,4 +288,4 @@
 - **Avertissements d'Analyse Statique**: Correction de plusieurs avertissements, incluant l'utilisation de membres dépréciés (`withOpacity`, `dataRowHeight`) et des importations inutilisées.
 
 ### Bugs
-- **Barres de défilement**: les barres de défilement on un comportement étrange
+- **Barres de défilement**: les barres de défilement on un comportement étrange.

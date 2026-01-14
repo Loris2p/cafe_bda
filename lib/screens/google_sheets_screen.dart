@@ -6,6 +6,7 @@ import 'package:cafe_bda/widgets/update_dialog.dart'; // Ajout
 import 'package:cafe_bda/widgets/payment_dialog.dart'; // Ajout
 import 'package:cafe_bda/widgets/edit_cell_dialog.dart'; // Ajout
 import 'package:cafe_bda/screens/history_tab.dart'; // Ajout
+import 'package:cafe_bda/screens/stats_tab.dart'; // Ajout
 import 'package:cafe_bda/utils/column_helpers.dart'; // Ajout
 import 'package:cafe_bda/utils/constants.dart';
 import 'package:flutter/material.dart';
@@ -178,6 +179,11 @@ class _MainScaffoldState extends State<MainScaffold> {
           label: 'Historique',
         ),
         NavigationDestination(
+          icon: Icon(Icons.bar_chart_outlined),
+          selectedIcon: Icon(Icons.bar_chart),
+          label: 'Stats',
+        ),
+        NavigationDestination(
           icon: Icon(Icons.settings_outlined),
           selectedIcon: Icon(Icons.settings),
           label: 'Paramètres',
@@ -187,6 +193,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         _HomeTab(key: _homeTabKey),
         const _AdminPaymentTab(),
         const HistoryTab(),
+        const StatsTab(),
         const _SettingsTab(),
       ];
     } else {
