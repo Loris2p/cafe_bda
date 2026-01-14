@@ -42,6 +42,7 @@ class CafeDataProvider with ChangeNotifier {
   String _errorMessage = '';
   bool _isAdminMode = false;
   bool _isLoading = false;
+  int _dataVersion = 0;
 
   // Getters
   List<List<dynamic>> get sheetData => _sheetData;
@@ -61,6 +62,7 @@ class CafeDataProvider with ChangeNotifier {
   String get errorMessage => _errorMessage;
   bool get isAdminMode => _isAdminMode;
   bool get isLoading => _isLoading;
+  int get dataVersion => _dataVersion;
 
   set isAdminMode(bool value) {
     _isAdminMode = value;
@@ -131,6 +133,7 @@ class CafeDataProvider with ChangeNotifier {
     _columnVisibility = {};
     _responsableName = null;
     _errorMessage = '';
+    _dataVersion++;
     notifyListeners();
   }
 
@@ -271,6 +274,7 @@ class CafeDataProvider with ChangeNotifier {
       _sheetData = results[0] ?? [];
       _originalSheetData = List.from(_sheetData);
       _formulaData = results[1] ?? [];
+      _dataVersion++;
 
       if (_selectedTable == AppConstants.studentsTable) {
         _studentsData = _sheetData;
@@ -362,6 +366,7 @@ class CafeDataProvider with ChangeNotifier {
       });
 
       _sheetData = [header, ...rows];
+      _dataVersion++;
     }
     notifyListeners();
   }
@@ -544,6 +549,7 @@ class CafeDataProvider with ChangeNotifier {
     
     // Mise à jour optimiste via référence (met à jour _sheetData et _originalSheetData car ils partagent les objets row)
     row[colIndex] = newValue;
+    _dataVersion++;
     notifyListeners();
     
     try {
@@ -552,6 +558,7 @@ class CafeDataProvider with ChangeNotifier {
     } catch (e) {
       // Revert en cas d'erreur
       row[colIndex] = oldValue;
+      _dataVersion++;
       
       _errorMessage = "La mise à jour a échoué: ${e.toString()}";
       notifyListeners();

@@ -318,6 +318,7 @@ class _DataSource extends DataTableSource {
           return DataCell(
             Center(
               child: Checkbox(
+                key: ValueKey('cb_${index}_${colIndex}_$boolValue'),
                 value: boolValue,
                 onChanged: canEdit ? (bool? newValue) {
                   if (newValue != null) {

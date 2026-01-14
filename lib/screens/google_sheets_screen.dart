@@ -1573,14 +1573,15 @@ class _DataDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<CafeDataProvider>();
-    return Selector<CafeDataProvider, (List<List<dynamic>>, String, int?, bool, Map<String, List<bool>>)>(
-      selector: (_, p) => (p.sheetData, p.selectedTable, p.sortColumnIndex, p.sortAscending, p.columnVisibility),
+    return Selector<CafeDataProvider, (List<List<dynamic>>, String, int?, bool, Map<String, List<bool>>, int)>(
+      selector: (_, p) => (p.sheetData, p.selectedTable, p.sortColumnIndex, p.sortAscending, p.columnVisibility, p.dataVersion),
       builder: (context, data, _) {
         final sheetData = data.$1;
         final selectedTable = data.$2;
         final sortColumnIndex = data.$3;
         final sortAscending = data.$4;
         final columnVisibility = data.$5;
+        // dataVersion ($6) sert uniquement à forcer le rebuild quand les données changent in-place
 
         if (sheetData.isEmpty) {
           return const Center(child: Text("Pas de données à afficher."));
@@ -1671,7 +1672,13 @@ class _DataDisplay extends StatelessWidget {
                  final row = sheetData[rowIndex + 1];
                  
                  // On retrouve son index réel dans les données originales (non triées) pour vérifier la formule
-                 final realIndex = provider.originalSheetData.indexOf(row);
+                 int realIndex = provider.originalSheetData.indexOf(row);
+
+                 // Fallback: si l'objet n'est pas trouvé (rare) et qu'il n'y a pas de tri,
+                 // on peut supposer que l'ordre est conservé.
+                 if (realIndex == -1 && sortColumnIndex == null) {
+                   realIndex = rowIndex + 1;
+                 }
                  
                  if (realIndex <= 0) return false; // Ne devrait pas arriver, ou c'est le header
 
@@ -1680,13 +1687,21 @@ class _DataDisplay extends StatelessWidget {
                  final originalColIndex = visibleOriginalIndices[visibleIndex];
                  
                  // Check formula avec l'index réel
+                 // Exception : Pour la table Stocks, on autorise toujours l'édition (bypass formula check)
+                 // pour s'assurer que les CheckBox fonctionnent même si Sheets renvoie des métadonnées bizarres.
+                 if (isStockTable) return true;
+
                  return !provider.isCellFormula(realIndex - 1, originalColIndex);
               },
               onCellUpdate: canEdit
                   ? (rowIndex, visibleIndex, newValue) async {
                       if (rowIndex + 1 >= sheetData.length) return;
                       final row = sheetData[rowIndex + 1];
-                      final realIndex = provider.originalSheetData.indexOf(row);
+                      
+                      int realIndex = provider.originalSheetData.indexOf(row);
+                      if (realIndex == -1 && sortColumnIndex == null) {
+                         realIndex = rowIndex + 1;
+                      }
                       
                       if (realIndex <= 0) return;
 
