@@ -161,7 +161,9 @@ class CafeDataProvider with ChangeNotifier {
            for (var i = 1; i < creditsData.length; i++) {
              final row = creditsData[i];
              if (row.length > valIndex) {
-                final val = double.tryParse(row[valIndex].toString().replaceAll(',', '.')) ?? 0.0;
+                // Nettoyage de la valeur : on ne garde que chiffres, virgule, point et moins
+                final valStr = row[valIndex].toString().replaceAll(RegExp(r'[^0-9,.-]'), '').replaceAll(',', '.');
+                final val = double.tryParse(valStr) ?? 0.0;
                 totalCredits += val;
 
                 if (dateIndex != -1 && row.length > dateIndex) {

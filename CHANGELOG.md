@@ -1,3 +1,8 @@
+## [6.11.1] - 2026-01-14
+
+### Fixed
+- **Statistiques** : Correction du calcul des crédits totaux. Le parseur gère désormais les symboles monétaires (€) et les formats de nombres spécifiques à Google Sheets.
+
 ## [6.11.0] - 2026-01-14
 
 ### Added

@@ -1,3 +1,7 @@
+# Version 6.11.1 - Correctif Stats 🔧
+
+*   **Correction des Crédits** : Résolution d'un bug où le total des crédits restait à 0 si les valeurs dans Google Sheets contenaient des symboles monétaires (€) ou des espaces.
+
 # Version 6.11.0 - Statistiques 📊
 
 Cette version introduit un tout nouvel onglet dédié à l'analyse de l'activité du café, accessible aux administrateurs.
