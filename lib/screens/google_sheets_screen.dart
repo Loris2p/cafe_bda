@@ -1619,151 +1619,157 @@ class _DataDisplay extends StatelessWidget {
         final bool isStockTable = selectedTable == AppConstants.stockTable;
         final bool canEdit = isStockTable || provider.isAdminMode;
 
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              )
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: DataTableWidget(
-              data: visibleData,
-              sortColumnIndex: visibleSortColumnIndex,
-              sortAscending: sortAscending,
-              onSort: (visibleIndex) {
-                final originalIndex = visibleOriginalIndices[visibleIndex];
-                provider.sortData(originalIndex);
-              },
-              getEditType: (rowIndex, visibleIndex) {
-                 if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return EditType.text;
-                 final originalColIndex = visibleOriginalIndices[visibleIndex];
-                 
-                 // Récupérer le nom de la colonne
-                 if (sheetData.isEmpty || originalColIndex >= sheetData[0].length) return EditType.text;
-                 final headerName = sheetData[0][originalColIndex].toString();
-                 
-                 return ColumnHelpers.getEditType(headerName);
-              },
-              getDropdownOptions: (rowIndex, visibleIndex) {
-                 if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return [];
-                 final originalColIndex = visibleOriginalIndices[visibleIndex];
-                 if (sheetData.isEmpty || originalColIndex >= sheetData[0].length) return [];
-                 final headerName = sheetData[0][originalColIndex].toString();
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1000), // Limite la largeur max pour éviter le vide
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: DataTableWidget(
+                data: visibleData,
+                sortColumnIndex: visibleSortColumnIndex,
+                sortAscending: sortAscending,
+                onSort: (visibleIndex) {
+                  final originalIndex = visibleOriginalIndices[visibleIndex];
+                  provider.sortData(originalIndex);
+                },
+                getEditType: (rowIndex, visibleIndex) {
+                   if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return EditType.text;
+                   final originalColIndex = visibleOriginalIndices[visibleIndex];
+                   
+                   // Récupérer le nom de la colonne
+                   if (sheetData.isEmpty || originalColIndex >= sheetData[0].length) return EditType.text;
+                   final headerName = sheetData[0][originalColIndex].toString();
+                   
+                   return ColumnHelpers.getEditType(headerName);
+                },
+                getDropdownOptions: (rowIndex, visibleIndex) {
+                   if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return [];
+                   final originalColIndex = visibleOriginalIndices[visibleIndex];
+                   if (sheetData.isEmpty || originalColIndex >= sheetData[0].length) return [];
+                   final headerName = sheetData[0][originalColIndex].toString();
 
-                 return ColumnHelpers.getDropdownOptions(headerName, provider);
-              },
-              isCellEditable: (rowIndex, visibleIndex) {
-                 if (!canEdit) return false;
-                 // rowIndex provient de visibleData (qui contient le header en 0), 
-                 // MAIS le DataTableWidget appelle ce callback avec un index de ligne de données (0-based)
-                 // Donc rowIndex 0 correspond à la première ligne de DONNÉES.
-                 // sheetData[0] est le header.
-                 // Donc on doit accéder à sheetData[rowIndex + 1]
-                 if (rowIndex + 1 >= sheetData.length) return false;
-                 
-                 // On récupère l'objet ligne depuis les données affichées
-                 final row = sheetData[rowIndex + 1];
-                 
-                 // On retrouve son index réel dans les données originales (non triées) pour vérifier la formule
-                 int realIndex = provider.originalSheetData.indexOf(row);
+                   return ColumnHelpers.getDropdownOptions(headerName, provider);
+                },
+                isCellEditable: (rowIndex, visibleIndex) {
+                   if (!canEdit) return false;
+                   // rowIndex provient de visibleData (qui contient le header en 0), 
+                   // MAIS le DataTableWidget appelle ce callback avec un index de ligne de données (0-based)
+                   // Donc rowIndex 0 correspond à la première ligne de DONNÉES.
+                   // sheetData[0] est le header.
+                   // Donc on doit accéder à sheetData[rowIndex + 1]
+                   if (rowIndex + 1 >= sheetData.length) return false;
+                   
+                   // On récupère l'objet ligne depuis les données affichées
+                   final row = sheetData[rowIndex + 1];
+                   
+                   // On retrouve son index réel dans les données originales (non triées) pour vérifier la formule
+                   int realIndex = provider.originalSheetData.indexOf(row);
 
-                 // Fallback: si l'objet n'est pas trouvé (rare) et qu'il n'y a pas de tri,
-                 // on peut supposer que l'ordre est conservé.
-                 if (realIndex == -1 && sortColumnIndex == null) {
-                   realIndex = rowIndex + 1;
-                 }
-                 
-                 if (realIndex <= 0) return false; // Ne devrait pas arriver, ou c'est le header
+                   // Fallback: si l'objet n'est pas trouvé (rare) et qu'il n'y a pas de tri,
+                   // on peut supposer que l'ordre est conservé.
+                   if (realIndex == -1 && sortColumnIndex == null) {
+                     realIndex = rowIndex + 1;
+                   }
+                   
+                   if (realIndex <= 0) return false; // Ne devrait pas arriver, ou c'est le header
 
-                 // On mappe l'index visible vers l'index original (réel) de la colonne
-                 if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return false;
-                 final originalColIndex = visibleOriginalIndices[visibleIndex];
-                 
-                 // Check formula avec l'index réel
-                 // Exception : Pour la table Stocks, on autorise toujours l'édition (bypass formula check)
-                 // pour s'assurer que les CheckBox fonctionnent même si Sheets renvoie des métadonnées bizarres.
-                 if (isStockTable) return true;
+                   // On mappe l'index visible vers l'index original (réel) de la colonne
+                   if (visibleIndex < 0 || visibleIndex >= visibleOriginalIndices.length) return false;
+                   final originalColIndex = visibleOriginalIndices[visibleIndex];
+                   
+                   // Check formula avec l'index réel
+                   // Exception : Pour la table Stocks, on autorise toujours l'édition (bypass formula check)
+                   // pour s'assurer que les CheckBox fonctionnent même si Sheets renvoie des métadonnées bizarres.
+                   if (isStockTable) return true;
 
-                 return !provider.isCellFormula(realIndex - 1, originalColIndex);
-              },
-              onCellUpdate: canEdit
-                  ? (rowIndex, visibleIndex, newValue) async {
-                      if (rowIndex + 1 >= sheetData.length) return;
-                      final row = sheetData[rowIndex + 1];
-                      
-                      int realIndex = provider.originalSheetData.indexOf(row);
-                      if (realIndex == -1 && sortColumnIndex == null) {
-                         realIndex = rowIndex + 1;
+                   return !provider.isCellFormula(realIndex - 1, originalColIndex);
+                },
+                onCellUpdate: canEdit
+                    ? (rowIndex, visibleIndex, newValue) async {
+                        if (rowIndex + 1 >= sheetData.length) return;
+                        final row = sheetData[rowIndex + 1];
+                        
+                        int realIndex = provider.originalSheetData.indexOf(row);
+                        if (realIndex == -1 && sortColumnIndex == null) {
+                           realIndex = rowIndex + 1;
+                        }
+                        
+                        if (realIndex <= 0) return;
+
+                        final originalColIndex = visibleOriginalIndices[visibleIndex];
+                        
+                        final error = await provider.updateCellValue(realIndex - 1, originalColIndex, newValue);
+                        if (error != null && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(error),
+                              backgroundColor: Theme.of(context).colorScheme.error,
+                            ),
+                          );
+                        }
                       }
-                      
-                      if (realIndex <= 0) return;
+                    : null,
+                onDeleteRow: provider.isAdminMode
+                    ? (rowIndex) {
+                        // rowIndex est 0-based par rapport aux DONNÉES affichées (hors header)
+                        // sheetData[0] est le header.
+                        // Donc la donnée est à sheetData[rowIndex + 1]
+                        if (rowIndex + 1 >= sheetData.length) return;
+                        final rowObject = sheetData[rowIndex + 1];
 
-                      final originalColIndex = visibleOriginalIndices[visibleIndex];
-                      
-                      final error = await provider.updateCellValue(realIndex - 1, originalColIndex, newValue);
-                      if (error != null && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(error),
-                            backgroundColor: Theme.of(context).colorScheme.error,
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Confirmer la suppression'),
+                            content: const Text('Voulez-vous vraiment supprimer cette ligne ?\nCette action est irréversible.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(ctx).pop(),
+                                child: const Text('Annuler'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.of(ctx).pop();
+                                  final error = await provider.deleteRow(rowObject);
+                                  if (context.mounted) {
+                                    if (error != null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(error), backgroundColor: Colors.red),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Ligne supprimée avec succès.')),
+                                      );
+                                    }
+                                  }
+                                },
+                                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                child: const Text('Supprimer'),
+                              ),
+                            ],
                           ),
                         );
                       }
-                    }
-                  : null,
-              onDeleteRow: provider.isAdminMode
-                  ? (rowIndex) {
-                      // rowIndex est 0-based par rapport aux DONNÉES affichées (hors header)
-                      // sheetData[0] est le header.
-                      // Donc la donnée est à sheetData[rowIndex + 1]
-                      if (rowIndex + 1 >= sheetData.length) return;
-                      final rowObject = sheetData[rowIndex + 1];
-
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: const Text('Confirmer la suppression'),
-                          content: const Text('Voulez-vous vraiment supprimer cette ligne ?\nCette action est irréversible.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text('Annuler'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.of(ctx).pop();
-                                final error = await provider.deleteRow(rowObject);
-                                if (context.mounted) {
-                                  if (error != null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(error), backgroundColor: Colors.red),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Ligne supprimée avec succès.')),
-                                    );
-                                  }
-                                }
-                              },
-                              style: TextButton.styleFrom(foregroundColor: Colors.red),
-                              child: const Text('Supprimer'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  : null,
+                    : null,
+              ),
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 }

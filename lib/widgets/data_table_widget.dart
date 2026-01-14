@@ -133,17 +133,15 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       final isNumeric = isColumnNumeric(entry.key);
 
       return DataColumn(
-        label: Expanded(
-          child: Text(
-            headerText,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: effectiveHeaderTextColor,
-              fontSize: 14,
-            ),
-            overflow: TextOverflow.ellipsis,
-            textAlign: isNumeric ? TextAlign.right : TextAlign.left,
+        label: Text(
+          headerText,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: effectiveHeaderTextColor,
+            fontSize: 14,
           ),
+          overflow: TextOverflow.ellipsis,
+          textAlign: isNumeric ? TextAlign.right : TextAlign.left,
         ),
         numeric: isNumeric,
         tooltip: headerText,
