@@ -1,3 +1,7 @@
+# Version 6.11.2 - Détails Graphiques 📈
+
+*   **Courbe des Ventes** : En survolant (ou cliquant sur) un point du graphique "Évolution des Ventes", la date précise s'affiche désormais dans l'infobulle, en plus du nombre de cafés vendus.
+
 # Version 6.11.1 - Correctif Stats 🔧
 
 *   **Correction des Crédits** : Résolution d'un bug où le total des crédits restait à 0 si les valeurs dans Google Sheets contenaient des symboles monétaires (€) ou des espaces.

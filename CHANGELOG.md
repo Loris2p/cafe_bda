@@ -1,3 +1,8 @@
+## [6.11.2] - 2026-01-14
+
+### Improved
+- **Statistiques** : Affichage de la date précise au survol de la courbe d'évolution des ventes.
+
 ## [6.11.1] - 2026-01-14
 
 ### Fixed

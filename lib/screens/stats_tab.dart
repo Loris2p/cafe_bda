@@ -326,6 +326,43 @@ class _SalesLineChart extends StatelessWidget {
 
     return LineChart(
       LineChartData(
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipColor: (_) => Colors.blueGrey,
+            getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+              return touchedBarSpots.map((barSpot) {
+                final flSpot = barSpot;
+                final index = flSpot.x.toInt();
+                if (index < 0 || index >= data.length) return null;
+
+                final date = DateFormat('dd/MM/yyyy').format(data[index].date);
+                return LineTooltipItem(
+                  '$date \n',
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: flSpot.y.toInt().toString(),
+                      style: const TextStyle(
+                        color: Colors.yellow,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                    const TextSpan(
+                      text: ' cafés',
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList();
+            },
+          ),
+        ),
         gridData: const FlGridData(show: true, drawVerticalLine: false),
         titlesData: FlTitlesData(
           bottomTitles: AxisTitles(
