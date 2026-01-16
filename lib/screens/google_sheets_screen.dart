@@ -447,6 +447,7 @@ class _HomeTabState extends State<_HomeTab> {
             ),
             const SizedBox(height: 16),
             const _UnifiedToolbar(),
+            const _StockToolbar(),
             const SizedBox(height: 20),
             const _StatusAndErrorSection(),
             Expanded(child: Builder(
@@ -1393,6 +1394,72 @@ class _ActionButtonsGroup extends StatelessWidget {
                 onPressed: canAct ? () => _showRegistrationForm(context) : null,
                 icon: const Icon(Icons.person_add),
                 label: const Text('Nouvel Étudiant'),
+              ),
+          ],
+        );
+      }
+    );
+  }
+}
+
+class _StockToolbar extends StatelessWidget {
+  const _StockToolbar();
+
+  void _showAddStockRow(BuildContext context) async {
+    final provider = context.read<CafeDataProvider>();
+    final tableName = provider.selectedTable;
+    final headers = provider.tableHeaders[tableName] ?? [];
+
+    if (headers.isEmpty) {
+      _showSnack(context, "Impossible de récupérer les en-têtes du tableau.", null);
+      return;
+    }
+
+    final rowData = await showDialog<List<dynamic>>(
+      context: context,
+      builder: (context) => GenericAddRowDialog(
+        columnNames: headers,
+        tableName: tableName,
+      ),
+    );
+
+    if (rowData != null && context.mounted) {
+      final error = await provider.addRow(rowData);
+      if (context.mounted) _showSnack(context, error, 'Produit ajouté avec succès !');
+    }
+  }
+
+  void _showSnack(BuildContext context, String? error, String? successMsg) {
+    if (error == null) {
+      if (successMsg != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMsg)));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Theme.of(context).colorScheme.error));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Selector<CafeDataProvider, (String, bool)>(
+      selector: (_, p) => (p.selectedTable, p.isAdminMode),
+      builder: (context, data, _) {
+        final selectedTable = data.$1;
+        final isAdminMode = data.$2;
+        
+        if (selectedTable != AppConstants.stockTable || isAdminMode) return const SizedBox.shrink();
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+             ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.tertiary,
+                  foregroundColor: Theme.of(context).colorScheme.onTertiary,
+                ),
+                onPressed: () => _showAddStockRow(context),
+                icon: const Icon(Icons.add_box),
+                label: const Text('Nouveau Produit'),
               ),
           ],
         );

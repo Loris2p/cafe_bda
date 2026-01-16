@@ -1,3 +1,7 @@
+# Version 6.11.4 - Gestion Stocks 📦
+
+*   **Nouveau Produit** : Vous pouvez désormais ajouter de nouvelles références de cafés ou produits directement depuis l'onglet Stocks de l'accueil, sans passer par le mode administrateur.
+
 # Version 6.11.3 - Plus de Stats 💰
 
 *   **Revenu Total** : Suivez le chiffre d'affaires estimé (basé sur 0,50€ / café).

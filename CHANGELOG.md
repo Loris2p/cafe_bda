@@ -1,3 +1,8 @@
+## [6.11.4] - 2026-01-16
+
+### Added
+- **Gestion des Stocks** : Possibilité d'ajouter un nouveau produit (ligne) dans le tableau "Stocks" directement depuis le mode classique (non-admin).
+
 ## [6.11.3] - 2026-01-16
 
 ### Added
