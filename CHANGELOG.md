@@ -1,3 +1,14 @@
+## [6.11.3] - 2026-01-16
+
+### Added
+- **Statistiques** :
+  - Ajout du KPI "Revenu Total" calculé sur la base de 0,50€ par café.
+  - Ajout du KPI "Cafés Offerts" qui comptabilise les cafés de fidélité obtenus par les étudiants.
+  - Intégration de ces nouveaux indicateurs dans le tableau de bord des statistiques.
+
+### Fixed
+- **Interface Admin** : Correction de la couleur du texte dans les tableaux éditables (ex: Lydia) qui pouvait être illisible sur fond blanc.
+
 ## [6.11.2] - 2026-01-14
 
 ### Improved

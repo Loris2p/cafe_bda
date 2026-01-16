@@ -77,10 +77,22 @@ class _StatsTabState extends State<StatsTab> {
                               color: Colors.brown,
                             ),
                             _KpiCard(
+                              title: "Revenu Total",
+                              value: "${stats.totalRevenue.toStringAsFixed(2)} €",
+                              icon: Icons.attach_money,
+                              color: Colors.blue,
+                            ),
+                            _KpiCard(
                               title: "Crédits Chargés",
                               value: "${stats.totalCreditsAmount.toStringAsFixed(2)} €",
                               icon: Icons.euro,
                               color: Colors.green,
+                            ),
+                            _KpiCard(
+                              title: "Cafés Offerts",
+                              value: stats.totalFidelityCoffees.toString(),
+                              icon: Icons.card_giftcard,
+                              color: Colors.purple,
                             ),
                           ],
                         ),

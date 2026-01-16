@@ -1,3 +1,8 @@
+# Version 6.11.3 - Plus de Stats 💰
+
+*   **Revenu Total** : Suivez le chiffre d'affaires estimé (basé sur 0,50€ / café).
+*   **Fidélité** : Visualisez le nombre total de cafés offerts aux étudiants grâce à leur fidélité.
+
 # Version 6.11.2 - Détails Graphiques 📈
 
 *   **Courbe des Ventes** : En survolant (ou cliquant sur) un point du graphique "Évolution des Ventes", la date précise s'affiche désormais dans l'infobulle, en plus du nombre de cafés vendus.

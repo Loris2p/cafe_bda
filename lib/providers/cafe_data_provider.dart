@@ -139,15 +139,16 @@ class CafeDataProvider with ChangeNotifier {
 
   Future<StatsData> getStats() async {
     try {
-      // Charger les données de paiements et crédits en parallèle
-      // On utilise getGenericTable directement pour ne pas affecter l'état de la vue actuelle
+      // Charger les données de paiements, crédits et étudiants en parallèle
       final results = await Future.wait([
         _cafeRepository.getGenericTable(AppConstants.paymentsTable),
         _cafeRepository.getGenericTable(AppConstants.creditsTable),
+        _cafeRepository.getStudentsTable(forceRefresh: false), // Utiliser le cache si possible
       ]);
 
       final paymentsData = results[0] ?? [];
       final creditsData = results[1] ?? [];
+      final studentsData = results[2] ?? [];
 
       // --- 1. Total Credits Amount ---
       double totalCredits = 0.0;
@@ -155,7 +156,6 @@ class CafeDataProvider with ChangeNotifier {
       
       if (creditsData.length > 1) {
         // Headers: Date, Responsable, Num Etu, Nom, Prenom, Classe, Valeur (€), Nb Cafés, Moyen Paiement
-        // On cherche l'index de 'Valeur (€)' et 'Date'
         final headers = creditsData[0].map((e) => e.toString()).toList();
         final valIndex = headers.indexOf(AppConstants.creditFormValue);
         final dateIndex = headers.indexOf(AppConstants.creditFormDate);
@@ -164,7 +164,6 @@ class CafeDataProvider with ChangeNotifier {
            for (var i = 1; i < creditsData.length; i++) {
              final row = creditsData[i];
              if (row.length > valIndex) {
-                // Nettoyage de la valeur : on ne garde que chiffres, virgule, point et moins
                 final valStr = row[valIndex].toString().replaceAll(RegExp(r'[^0-9,.-]'), '').replaceAll(',', '.');
                 final val = double.tryParse(valStr) ?? 0.0;
                 totalCredits += val;
@@ -229,6 +228,31 @@ class CafeDataProvider with ChangeNotifier {
         }
       }
 
+      // --- 3. Fidelity Analysis (Students) ---
+      int totalFidelity = 0;
+      if (studentsData.length > 1) {
+        final headers = studentsData[0].map((e) => e.toString()).toList();
+        // Chercher la colonne fidélité (soit par nom, soit index 8 par défaut)
+        int fidelityIndex = headers.indexWhere((h) => h.toLowerCase().contains('fidélité') || h.toLowerCase().contains('fidelite'));
+        if (fidelityIndex == -1 && headers.length > 8) {
+          fidelityIndex = 8; // Fallback
+        }
+
+        if (fidelityIndex != -1) {
+          for (var i = 1; i < studentsData.length; i++) {
+            final row = studentsData[i];
+            if (row.length > fidelityIndex) {
+              final fidVal = int.tryParse(row[fidelityIndex].toString()) ?? 0;
+              totalFidelity += fidVal;
+            }
+          }
+        }
+      }
+
+      // --- 4. Revenue Calculation ---
+      // 0.50€ par café
+      final double totalRevenue = totalCoffees * 0.50;
+
       // Sort Time Data
       final sortedSales = salesByDay.entries.map((e) => DailyStat(e.key, e.value.toDouble())).toList()
         ..sort((a, b) => a.date.compareTo(b.date));
@@ -239,6 +263,8 @@ class CafeDataProvider with ChangeNotifier {
       return StatsData(
         totalCreditsAmount: totalCredits,
         totalCoffeesServed: totalCoffees,
+        totalRevenue: totalRevenue,
+        totalFidelityCoffees: totalFidelity,
         coffeesByPaymentMethod: coffeesByMethod,
         popularCoffees: popularCoffees,
         salesOverTime: sortedSales,

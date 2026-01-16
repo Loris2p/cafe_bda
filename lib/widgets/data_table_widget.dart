@@ -354,7 +354,7 @@ class _DataSource extends DataTableSource {
                         ? theme.colorScheme.secondary
                         : isBoolean
                             ? Colors.green.shade700
-                            : canEdit ? theme.textTheme.bodyMedium?.color : Colors.grey.shade600, // Grisé si non éditable
+                            : canEdit ? Colors.black87 : Colors.grey.shade600, // Noir si éditable, Grisé sinon
                     fontWeight: cellString == 'N/A'
                         ? FontWeight.bold
                         : FontWeight.normal,
