@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/student.dart';
+import '../models/cafe_transaction.dart';
 
 class FirebaseService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -59,6 +60,16 @@ class FirebaseService {
       await _db.collection('students').doc(student.studentId).set(student.toFirestore());
     } catch (e) {
       print('Erreur Firestore (addStudent): $e');
+      rethrow;
+    }
+  }
+
+  /// Ajoute une transaction dans Firestore
+  Future<void> addTransaction(CafeTransaction transaction) async {
+    try {
+      await _db.collection('transactions').add(transaction.toFirestore());
+    } catch (e) {
+      print('Erreur Firestore (addTransaction): $e');
       rethrow;
     }
   }

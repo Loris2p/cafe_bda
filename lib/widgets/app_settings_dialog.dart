@@ -33,6 +33,12 @@ class AppSettingsWidget extends StatefulWidget {
   /// Callback appelé lors du changement du mode administrateur.
   final ValueChanged<bool>? onAdminModeChanged;
 
+  /// Callback pour lancer la migration Firestore (Mode Admin uniquement).
+  final VoidCallback? onMigrationRequested;
+
+  /// État de la migration en cours.
+  final bool isMigrating;
+
   const AppSettingsWidget({
     super.key,
     required this.allHeaders,
@@ -45,6 +51,8 @@ class AppSettingsWidget extends StatefulWidget {
     this.isAdminMode = false,
     this.expectedAdminPin,
     this.onAdminModeChanged,
+    this.onMigrationRequested,
+    this.isMigrating = false,
   });
 
   @override
@@ -370,6 +378,25 @@ class _AppSettingsWidgetState extends State<AppSettingsWidget> {
           ),
           
           const SizedBox(height: 32),
+          
+          if (widget.isAdminMode && widget.onMigrationRequested != null) ...[
+            Center(
+              child: widget.isMigrating 
+                ? const Column(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 8),
+                      Text('Migration en cours...', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    ],
+                  )
+                : OutlinedButton.icon(
+                    onPressed: widget.onMigrationRequested,
+                    icon: const Icon(Icons.cloud_upload_outlined, color: Colors.grey),
+                    label: const Text('Maintenance : Migration Firestore', style: TextStyle(color: Colors.grey)),
+                  ),
+            ),
+            const SizedBox(height: 32),
+          ],
           
           Center(
             child: Text(

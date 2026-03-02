@@ -2,6 +2,7 @@ import '../services/google_sheets_service.dart';
 import '../services/firebase_service.dart';
 import '../models/payment_config.dart';
 import '../models/student.dart';
+import '../models/cafe_transaction.dart';
 import '../utils/constants.dart';
 import 'package:intl/intl.dart';
 
@@ -132,22 +133,37 @@ class CafeRepository {
   Future<void> addCreditRecord(Map<String, dynamic> formData) async {
     final studentId = formData['Numéro étudiant'].toString();
     final nbCafes = double.tryParse(formData['Nb de Cafés'].toString()) ?? 0.0;
+    final date = _tryParseDate(formData['Date'].toString()) ?? DateTime.now();
 
-    // --- 1. Mise à jour Firestore ---
+    // --- 1. Mise à jour Firestore (Solde + Historique) ---
     final student = await _firebaseService.getStudentById(studentId);
     if (student != null) {
+      // Mise à jour du solde de l'étudiant
       final updatedStudent = Student(
         studentId: student.studentId,
         lastName: student.lastName,
         firstName: student.firstName,
         classGroup: student.classGroup,
-        balance: student.balance + nbCafes, // Mise à jour du solde
+        balance: student.balance + nbCafes,
         totalCredited: student.totalCredited + nbCafes,
         totalConsumedOnCredit: student.totalConsumedOnCredit,
         totalPaidCash: student.totalPaidCash,
-        loyaltyBonus: _calculateLoyalty(student.totalConsumedOnCredit, student.totalPaidCash + 0.0), // On garde le calcul de fidélité
+        loyaltyBonus: _calculateLoyalty(student.totalConsumedOnCredit, student.totalPaidCash),
       );
       await _firebaseService.updateStudent(updatedStudent);
+
+      // Enregistrement de l'historique de transaction
+      final transaction = CafeTransaction(
+        id: '', // Firestore générera l'ID
+        type: TransactionType.topUp,
+        date: date,
+        studentId: studentId,
+        studentName: '${student.firstName} ${student.lastName}',
+        amount: nbCafes,
+        paymentMethod: formData['Moyen Paiement'].toString(),
+        responsible: formData['Responsable'].toString(),
+      );
+      await _firebaseService.addTransaction(transaction);
     }
 
     // --- 2. Google Sheets ---
@@ -174,6 +190,23 @@ class CafeRepository {
     return ((consumedOnCredit + paidCash) / 10).floor();
   }
 
+  /// Tente de parser une date à partir de différents formats.
+  DateTime? _tryParseDate(String value) {
+    final formats = [
+      DateFormat('dd/MM/yyyy HH:mm:ss'),
+      DateFormat('dd/MM/yyyy'),
+      DateFormat('yyyy-MM-dd HH:mm:ss'),
+      DateFormat('yyyy-MM-dd'),
+    ];
+
+    for (var format in formats) {
+      try {
+        return format.parseLoose(value);
+      } catch (_) {}
+    }
+    return null;
+  }
+
   /// Ajoute une commande (consommation) dans la feuille 'Paiements' et Firestore.
   ///
   /// * [formData] - Map contenant les infos de la commande (Café pris, quantité, étudiant...).
@@ -181,8 +214,9 @@ class CafeRepository {
     final studentId = formData['Numéro étudiant'].toString();
     final nbCafes = double.tryParse(formData['Nb de Cafés'].toString()) ?? 0.0;
     final moyenPaiement = formData['Moyen Paiement'].toString();
+    final date = _tryParseDate(formData['Date'].toString()) ?? DateTime.now();
 
-    // --- 1. Mise à jour Firestore ---
+    // --- 1. Mise à jour Firestore (Solde + Historique) ---
     final student = await _firebaseService.getStudentById(studentId);
     if (student != null) {
       double newBalance = student.balance;
@@ -208,6 +242,20 @@ class CafeRepository {
         loyaltyBonus: _calculateLoyalty(newConsumedOnCredit, newPaidCash),
       );
       await _firebaseService.updateStudent(updatedStudent);
+
+      // Enregistrement de l'historique de transaction
+      final transaction = CafeTransaction(
+        id: '', // Firestore générera l'ID
+        type: TransactionType.purchase,
+        date: date,
+        studentId: studentId,
+        studentName: '${student.firstName} ${student.lastName}',
+        amount: nbCafes,
+        paymentMethod: moyenPaiement,
+        productName: formData['Café pris']?.toString() ?? '',
+        responsible: _sheetsService.currentUser?.displayName ?? 'Inconnu',
+      );
+      await _firebaseService.addTransaction(transaction);
     }
 
     // --- 2. Google Sheets ---

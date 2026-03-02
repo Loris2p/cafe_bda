@@ -478,40 +478,11 @@ class _DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<_DashboardView> {
   final TextEditingController _searchController = TextEditingController();
-  bool _isMigrating = false;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _performMigration() async {
-    if (_isMigrating) return;
-    
-    setState(() => _isMigrating = true);
-    
-    final sheetsService = context.read<GoogleSheetsService>();
-    final script = MigrationScript(sheetsService);
-    
-    try {
-      await script.migrateStudents();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Migration terminée avec succès !'), backgroundColor: Colors.green),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur lors de la migration : $e'), backgroundColor: Colors.red),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isMigrating = false);
-      }
-    }
   }
 
   Future<void> _performSearch() async {
@@ -723,16 +694,7 @@ class _DashboardViewState extends State<_DashboardView> {
                     );
                   }
                 ),
-                const SizedBox(height: 64),
-                // Bouton temporaire de migration
-                _isMigrating 
-                  ? const CircularProgressIndicator()
-                  : TextButton.icon(
-                      onPressed: _performMigration,
-                      icon: const Icon(Icons.cloud_upload_outlined, color: Colors.grey),
-                      label: const Text('Lancer la migration Firestore (Étudiants)', style: TextStyle(color: Colors.grey)),
-                    ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 48),
               ],
             ),
           ),
@@ -939,6 +901,7 @@ class _SettingsTab extends StatefulWidget {
 
 class _SettingsTabState extends State<_SettingsTab> {
   late Future<void> _headersFuture;
+  bool _isMigrating = false;
 
   @override
   void initState() {
@@ -949,6 +912,34 @@ class _SettingsTabState extends State<_SettingsTab> {
       _headersFuture = provider.fetchAllTableHeaders();
     } else {
       _headersFuture = Future.value();
+    }
+  }
+
+  Future<void> _performMigration() async {
+    if (_isMigrating) return;
+    
+    setState(() => _isMigrating = true);
+    
+    final sheetsService = context.read<GoogleSheetsService>();
+    final script = MigrationScript(sheetsService);
+    
+    try {
+      await script.migrateStudents();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Migration terminée avec succès !'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la migration : $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isMigrating = false);
+      }
     }
   }
 
@@ -978,6 +969,8 @@ class _SettingsTabState extends State<_SettingsTab> {
               appVersion: version,
               isAdminMode: provider.isAdminMode,
               expectedAdminPin: provider.appConfig?.adminPin,
+              isMigrating: _isMigrating,
+              onMigrationRequested: _performMigration,
               onAdminModeChanged: (bool value) {
                 provider.isAdminMode = value;
               },
