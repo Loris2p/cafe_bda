@@ -2,6 +2,7 @@ import 'package:cafe_bda/providers/auth_provider.dart';
 import 'package:cafe_bda/providers/cafe_data_provider.dart';
 import 'package:cafe_bda/repositories/cafe_repository.dart';
 import 'package:cafe_bda/services/google_sheets_service.dart';
+import 'package:cafe_bda/services/firebase_service.dart';
 import 'package:cafe_bda/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -30,13 +31,15 @@ Future<void> main() async {
 
   // Initialisation des services et repositories (Singletons)
   final sheetsService = GoogleSheetsService();
-  final cafeRepository = CafeRepository(sheetsService);
+  final firebaseService = FirebaseService();
+  final cafeRepository = CafeRepository(sheetsService, firebaseService);
 
   runApp(
     MultiProvider(
       providers: [
         // Injection du Service et du Repository pour un accès direct si besoin (ex: currentUser)
         Provider<GoogleSheetsService>.value(value: sheetsService),
+        Provider<FirebaseService>.value(value: firebaseService),
         Provider<CafeRepository>.value(value: cafeRepository),
         
         // Providers gérant l'état
