@@ -20,6 +20,7 @@ import '../widgets/registration_form.dart';
 import '../widgets/credit_form.dart';
 import '../widgets/order_form.dart';
 import '../widgets/generic_add_row_dialog.dart';
+import '../utils/migration_script.dart';
 import 'dart:developer' as developer;
 
 class GoogleSheetsScreen extends StatefulWidget {
@@ -693,6 +694,7 @@ class _DashboardViewState extends State<_DashboardView> {
                     );
                   }
                 ),
+                const SizedBox(height: 48),
               ],
             ),
           ),
@@ -899,6 +901,7 @@ class _SettingsTab extends StatefulWidget {
 
 class _SettingsTabState extends State<_SettingsTab> {
   late Future<void> _headersFuture;
+  bool _isMigrating = false;
 
   @override
   void initState() {
@@ -909,6 +912,34 @@ class _SettingsTabState extends State<_SettingsTab> {
       _headersFuture = provider.fetchAllTableHeaders();
     } else {
       _headersFuture = Future.value();
+    }
+  }
+
+  Future<void> _performMigration() async {
+    if (_isMigrating) return;
+    
+    setState(() => _isMigrating = true);
+    
+    final sheetsService = context.read<GoogleSheetsService>();
+    final script = MigrationScript(sheetsService);
+    
+    try {
+      await script.migrateStudents();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Migration terminée avec succès !'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la migration : $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isMigrating = false);
+      }
     }
   }
 
@@ -938,6 +969,8 @@ class _SettingsTabState extends State<_SettingsTab> {
               appVersion: version,
               isAdminMode: provider.isAdminMode,
               expectedAdminPin: provider.appConfig?.adminPin,
+              isMigrating: _isMigrating,
+              onMigrationRequested: _performMigration,
               onAdminModeChanged: (bool value) {
                 provider.isAdminMode = value;
               },

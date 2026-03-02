@@ -1,6 +1,7 @@
 import 'package:cafe_bda/models/app_config.dart';
 import 'package:cafe_bda/models/payment_config.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -82,8 +83,8 @@ class GoogleSheetsService {
   ///
   /// * Returns - `true` si l'authentification silencieuse réussit, `false` sinon.
   Future<bool> tryAutoAuthenticate() async {
-    // Pour mobile, on tente une connexion silencieuse
-    if (Platform.isAndroid || Platform.isIOS) {
+    // Pour mobile ou web, on tente une connexion silencieuse
+    if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
       try {
         // Migration v7 : Initialisation avec serverClientId requis sur Android.
         // IMPORTANT : Le serverClientId DOIT être l'ID Client de type "WEB APPLICATION"
@@ -91,8 +92,8 @@ class GoogleSheetsService {
         final serverClientId = dotenv.env['GOOGLE_SERVER_CLIENT_ID'] ?? dotenv.env['GOOGLE_CLIENT_ID'];
         
         await _googleSignIn.initialize(
-          serverClientId: Platform.isAndroid ? serverClientId : null,
-          clientId: Platform.isIOS ? serverClientId : null, 
+          serverClientId: (kIsWeb || Platform.isAndroid) ? serverClientId : null,
+          clientId: (!kIsWeb && Platform.isIOS) ? serverClientId : null, 
         );
         
         // Tentative de connexion silencieuse
@@ -157,7 +158,7 @@ class GoogleSheetsService {
   ///
   /// * Returns - `null` si succès, ou un message d'erreur [String] en cas d'échec.
   Future<String?> authenticate() async {
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
       return _authenticateMobile();
     } else {
       return _authenticateDesktop();
@@ -170,7 +171,7 @@ class GoogleSheetsService {
   /// * Utilise `signOut` : le compte reste connu du système pour une reconnexion rapide.
   Future<void> signOut() async {
     await _clearStoredAuth();
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
       try {
         await _googleSignIn.signOut();
       } catch (_) {
@@ -189,7 +190,7 @@ class GoogleSheetsService {
   /// * Utile pour changer de compte ou nettoyer complètement l'accès.
   Future<void> disconnect() async {
     await _clearStoredAuth();
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (kIsWeb || Platform.isAndroid || Platform.isIOS) {
       try {
         // disconnect() révoque l'accès, ce qui force le sélecteur de compte au prochain login
         await _googleSignIn.disconnect(); 

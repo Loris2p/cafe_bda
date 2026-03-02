@@ -8,10 +8,12 @@ import '../mocks.mocks.dart';
 void main() {
   late CafeRepository repository;
   late MockGoogleSheetsService mockSheetsService;
+  late MockFirebaseService mockFirebaseService;
 
   setUp(() {
     mockSheetsService = MockGoogleSheetsService();
-    repository = CafeRepository(mockSheetsService);
+    mockFirebaseService = MockFirebaseService();
+    repository = CafeRepository(mockSheetsService, mockFirebaseService);
   });
 
   group('CafeRepository - Schema Compliance', () {

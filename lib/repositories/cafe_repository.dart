@@ -1,12 +1,15 @@
 import '../services/google_sheets_service.dart';
+import '../services/firebase_service.dart';
 import '../models/payment_config.dart';
+import '../models/student.dart';
+import '../models/cafe_transaction.dart';
 import '../utils/constants.dart';
 import 'package:intl/intl.dart';
 
 /// La classe CafeRepository est responsable de la logique métier de l'application.
 ///
 /// Elle agit comme une couche d'abstraction entre l'interface utilisateur (via le Provider)
-/// et le service de données brut ([GoogleSheetsService]).
+/// et le service de données brut ([GoogleSheetsService]) ou Firestore ([FirebaseService]).
 ///
 /// Ses responsabilités incluent :
 /// * La mise en forme des données avant envoi (ordre des colonnes, formules Excel).
@@ -14,6 +17,7 @@ import 'package:intl/intl.dart';
 /// * Le calcul des indices de ligne pour les insertions.
 class CafeRepository {
   final GoogleSheetsService _sheetsService;
+  final FirebaseService _firebaseService;
 
   // Cache en mémoire pour réduire les appels API redondants
   List<List<dynamic>>? _cachedStudents;
@@ -22,8 +26,8 @@ class CafeRepository {
   // Durée de validité du cache (5 minutes par défaut)
   static const Duration _cacheDuration = Duration(minutes: 5);
 
-  /// Crée une instance de [CafeRepository] avec le service injecté.
-  CafeRepository(this._sheetsService);
+  /// Crée une instance de [CafeRepository] avec les services injectés.
+  CafeRepository(this._sheetsService, this._firebaseService);
 
   /// Vérifie si le cache local des étudiants est toujours valide.
   ///
@@ -45,6 +49,8 @@ class CafeRepository {
 
   /// Récupère la liste des étudiants, en utilisant le cache si possible.
   ///
+  /// Désormais, utilise Firestore via [_firebaseService] pour plus de rapidité.
+  ///
   /// * [forceRefresh] - Si `true`, ignore le cache et force un appel API.
   /// * Returns - Une liste de lignes (chaque ligne étant une liste de cellules).
   Future<List<List<dynamic>>?> getStudentsTable({bool forceRefresh = false}) async {
@@ -52,8 +58,10 @@ class CafeRepository {
       return _cachedStudents;
     }
 
-    final data = await _sheetsService.readTable(AppConstants.studentsTable);
-    if (data != null) {
+    // MIGRATION: On récupère les données depuis Firestore au lieu de Google Sheets
+    final data = await _firebaseService.getStudentsForTable();
+    
+    if (data.isNotEmpty) {
       _cachedStudents = data;
       _lastFetchTime = DateTime.now();
     }
@@ -65,39 +73,48 @@ class CafeRepository {
     return await _sheetsService.getPaymentConfigs();
   }
 
-  /// Ajoute un nouvel étudiant à la feuille 'Étudiants'.
+  /// Ajoute un nouvel étudiant à la feuille 'Étudiants' et à Firestore.
   ///
-  /// Cette méthode complexe gère :
-  /// 1. Le calcul du numéro de la prochaine ligne disponible (basé sur le cache ou un fetch).
-  /// 2. La construction de la ligne avec les formules Excel dynamiques (Calcul solde, fidélité...).
-  /// 3. L'invalidation du cache après insertion.
+  /// Cette méthode gère :
+  /// 1. L'insertion dans Google Sheets avec les formules (pour l'historique historique).
+  /// 2. L'insertion dans Firestore via le modèle Student.
   ///
   /// * [formData] - Map contenant les clés 'Nom', 'Prenom', 'Num etudiant', etc.
   Future<void> addStudent(Map<String, dynamic> formData) async {
+    // --- 1. Insertion Firestore (Nouveau flux) ---
+    final newStudent = Student(
+      studentId: formData['Num etudiant'].toString(),
+      lastName: formData['Nom'].toString(),
+      firstName: formData['Prenom'].toString(),
+      classGroup: formData['Cycle + groupe'].toString(),
+      balance: 0.0,
+      totalCredited: 0.0,
+      totalConsumedOnCredit: 0.0,
+      totalPaidCash: 0.0,
+      loyaltyBonus: 0,
+    );
+    await _firebaseService.addStudent(newStudent);
+
+    // --- 2. Insertion Google Sheets (Rétrocompatibilité) ---
     // Déterminer le numéro de ligne pour les formules
     int nextRow = 1;
-    final currentData = await getStudentsTable();
+    final currentData = await getStudentsTable(); // Utilise Firestore maintenant
     if (currentData != null && currentData.isNotEmpty) {
-       // +1 pour l'index 0-based, +1 pour la nouvelle ligne
-       // On suppose que la plage nommée inclut les en-têtes.
        nextRow = currentData.length + 1; 
     } else {
-       // Fallback : on assume ligne 2 (la ligne 1 étant l'en-tête)
        nextRow = 2;
     }
 
-    // Préparation des données avec injection des formules Excel
-    // Les formules font référence à la ligne courante (nextRow)
     final List<dynamic> rowData = [
       formData['Nom'],
       formData['Prenom'],
       formData['Num etudiant'],
       formData['Cycle + groupe'],
-      '=F$nextRow-G$nextRow+I$nextRow', // Solde Restant (Crédit - Dépense + Bonus)
-      '=SIERREUR(SOMME.SI(Credit[Numéro étudiant];C$nextRow; Credit[Nb de Cafés]); 0)', // Total Crédité
-      '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$nextRow; Paiements[Moyen Paiement]; "Crédit");0)', // Total Consommé sur Crédit
-      '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$nextRow; Paiements[Moyen Paiement]; "<>Crédit"); 0)', // Total Payé Cash
-      '=ENT((G$nextRow+H$nextRow)/10)', // Fidélité (1 café offert tous les 10)
+      '=F$nextRow-G$nextRow+I$nextRow',
+      '=SIERREUR(SOMME.SI(Credit[Numéro étudiant];C$nextRow; Credit[Nb de Cafés]); 0)',
+      '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$nextRow; Paiements[Moyen Paiement]; "Crédit");0)',
+      '=SIERREUR(SOMME.SI.ENS(Paiements[Nb de Cafés]; Paiements[Numéro étudiant]; C$nextRow; Paiements[Moyen Paiement]; "<>Crédit"); 0)',
+      '=ENT((G$nextRow+H$nextRow)/10)',
     ];
 
     await _sheetsService.appendToTable(
@@ -106,18 +123,50 @@ class CafeRepository {
       valueInputOption: 'USER_ENTERED',
     );
     
-    // Le cache est obsolète car une ligne a été ajoutée
     invalidateCache();
-
-    // Log de l'action
     await logAction('Inscription', '${formData['Nom']} ${formData['Prenom']}');
   }
 
-  /// Ajoute une transaction de crédit (rechargement) dans la feuille 'Credits'.
+  /// Ajoute une transaction de crédit (rechargement) dans la feuille 'Credits' et Firestore.
   ///
   /// * [formData] - Map contenant les infos du crédit (Montant, date, responsable...).
   Future<void> addCreditRecord(Map<String, dynamic> formData) async {
-     // Mappe les données du formulaire vers l'ordre exact des colonnes du Google Sheet
+    final studentId = formData['Numéro étudiant'].toString();
+    final nbCafes = double.tryParse(formData['Nb de Cafés'].toString()) ?? 0.0;
+    final date = _tryParseDate(formData['Date'].toString()) ?? DateTime.now();
+
+    // --- 1. Mise à jour Firestore (Solde + Historique) ---
+    final student = await _firebaseService.getStudentById(studentId);
+    if (student != null) {
+      // Mise à jour du solde de l'étudiant
+      final updatedStudent = Student(
+        studentId: student.studentId,
+        lastName: student.lastName,
+        firstName: student.firstName,
+        classGroup: student.classGroup,
+        balance: student.balance + nbCafes,
+        totalCredited: student.totalCredited + nbCafes,
+        totalConsumedOnCredit: student.totalConsumedOnCredit,
+        totalPaidCash: student.totalPaidCash,
+        loyaltyBonus: _calculateLoyalty(student.totalConsumedOnCredit, student.totalPaidCash),
+      );
+      await _firebaseService.updateStudent(updatedStudent);
+
+      // Enregistrement de l'historique de transaction
+      final transaction = CafeTransaction(
+        id: '', // Firestore générera l'ID
+        type: TransactionType.topUp,
+        date: date,
+        studentId: studentId,
+        studentName: '${student.firstName} ${student.lastName}',
+        amount: nbCafes,
+        paymentMethod: formData['Moyen Paiement'].toString(),
+        responsible: formData['Responsable'].toString(),
+      );
+      await _firebaseService.addTransaction(transaction);
+    }
+
+    // --- 2. Google Sheets ---
     final List<dynamic> rowData = [
       formData['Date'],
       formData['Responsable'],
@@ -132,15 +181,84 @@ class CafeRepository {
 
     await _sheetsService.appendToTable(AppConstants.creditsTable, rowData, valueInputOption: 'USER_ENTERED');
     
-    // Log de l'action
+    invalidateCache();
     await logAction('Crédit', '${formData['Nom']} ${formData['Prenom']} : ${formData['Valeur (€)']}€ (${formData['Moyen Paiement']})');
   }
 
-  /// Ajoute une commande (consommation) dans la feuille 'Paiements'.
+  /// Calcule le bonus de fidélité (1 café offert tous les 10 consommés).
+  int _calculateLoyalty(double consumedOnCredit, double paidCash) {
+    return ((consumedOnCredit + paidCash) / 10).floor();
+  }
+
+  /// Tente de parser une date à partir de différents formats.
+  DateTime? _tryParseDate(String value) {
+    final formats = [
+      DateFormat('dd/MM/yyyy HH:mm:ss'),
+      DateFormat('dd/MM/yyyy'),
+      DateFormat('yyyy-MM-dd HH:mm:ss'),
+      DateFormat('yyyy-MM-dd'),
+    ];
+
+    for (var format in formats) {
+      try {
+        return format.parseLoose(value);
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  /// Ajoute une commande (consommation) dans la feuille 'Paiements' et Firestore.
   ///
   /// * [formData] - Map contenant les infos de la commande (Café pris, quantité, étudiant...).
   Future<void> addOrderRecord(Map<String, dynamic> formData) async {
-    // Mappe les données vers l'ordre des colonnes de la table Paiements
+    final studentId = formData['Numéro étudiant'].toString();
+    final nbCafes = double.tryParse(formData['Nb de Cafés'].toString()) ?? 0.0;
+    final moyenPaiement = formData['Moyen Paiement'].toString();
+    final date = _tryParseDate(formData['Date'].toString()) ?? DateTime.now();
+
+    // --- 1. Mise à jour Firestore (Solde + Historique) ---
+    final student = await _firebaseService.getStudentById(studentId);
+    if (student != null) {
+      double newBalance = student.balance;
+      double newConsumedOnCredit = student.totalConsumedOnCredit;
+      double newPaidCash = student.totalPaidCash;
+
+      if (moyenPaiement == 'Crédit') {
+        newBalance -= nbCafes;
+        newConsumedOnCredit += nbCafes;
+      } else {
+        newPaidCash += nbCafes;
+      }
+
+      final updatedStudent = Student(
+        studentId: student.studentId,
+        lastName: student.lastName,
+        firstName: student.firstName,
+        classGroup: student.classGroup,
+        balance: newBalance,
+        totalCredited: student.totalCredited,
+        totalConsumedOnCredit: newConsumedOnCredit,
+        totalPaidCash: newPaidCash,
+        loyaltyBonus: _calculateLoyalty(newConsumedOnCredit, newPaidCash),
+      );
+      await _firebaseService.updateStudent(updatedStudent);
+
+      // Enregistrement de l'historique de transaction
+      final transaction = CafeTransaction(
+        id: '', // Firestore générera l'ID
+        type: TransactionType.purchase,
+        date: date,
+        studentId: studentId,
+        studentName: '${student.firstName} ${student.lastName}',
+        amount: nbCafes,
+        paymentMethod: moyenPaiement,
+        productName: formData['Café pris']?.toString() ?? '',
+        responsible: _sheetsService.currentUser?.displayName ?? 'Inconnu',
+      );
+      await _firebaseService.addTransaction(transaction);
+    }
+
+    // --- 2. Google Sheets ---
     final List<dynamic> rowData = [
       formData['Date'],
       formData['Moyen Paiement'],
@@ -152,7 +270,7 @@ class CafeRepository {
     ];
     await _sheetsService.appendToTable(AppConstants.paymentsTable, rowData, valueInputOption: 'USER_ENTERED');
 
-    // Log de l'action
+    invalidateCache();
     await logAction('Commande', '${formData['Nom de famille']} ${formData['Prénom']} : ${formData['Nb de Cafés']} café(s)');
   }
 
