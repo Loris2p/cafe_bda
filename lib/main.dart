@@ -8,6 +8,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'screens/google_sheets_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 /// Point d'entrée de l'application Gestion Café BDA.
 ///
@@ -15,6 +17,10 @@ import 'screens/google_sheets_screen.dart';
 /// et configure l'injection de dépendances globale via le package `provider`.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   try {
     await dotenv.load(fileName: ".env");
