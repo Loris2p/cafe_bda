@@ -9,12 +9,16 @@
 - [x] **Écran d'infos Paiement :** QR Codes Lydia et numéros de téléphone.
 
 ## 3. Sécurité & Rôles
-- [ ] **Règles Firestore :** Configurer les règles de sécurité.
-- [ ] **Gestion des Admins :** Restreindre l'accès au menu "Administration" par email ou flag Firestore.
+- [x] **Gestion des Admins :** Restreinte par email dans les paramètres.
+- [ ] **Règles Firestore :** Configurer les règles de sécurité sur la console Firebase.
 
 ## 4. Import des données
 - [x] **Migration :** Script d'import depuis l'ancien Google Sheets fonctionnel.
 
-## 5. Finition UI
-- [ ] **Recherche sur le Dashboard :** Activer la barre de recherche centrale pour ouvrir les détails étudiant.
-- [ ] **Dialogues de confirmation :** Harmoniser les feedbacks (SnackBars, Dialogues).
+## 5. Finition & Stabilité
+- [x] **Recherche sur le Dashboard :** Barre de recherche centrale opérationnelle.
+- [x] **Persistance de Session :** Reconnexion automatique sur toutes les plateformes.
+- [x] **Paramètres :** Panneau de configuration restauré et fonctionnel.
+- [x] **Déconnexion :** Système de logout unifié (Hybride).
+- [ ] **Boutons "Rafraîchir" :** Les ajouter sur les écrans Historique et Produits (nécessaire pour Linux).
+- [ ] **Harmonisation UI :** S'assurer que tous les messages de succès/erreur utilisent le même style moderne.

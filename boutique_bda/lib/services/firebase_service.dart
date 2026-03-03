@@ -14,7 +14,6 @@ class FirebaseService {
     if (isLinuxNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('students').get()).map(
             (docs) {
-              print('🔥 Firedart: ${docs.length} étudiants récupérés');
               return docs.map((doc) => _studentFromFiredart(doc)).toList();
             },
           );

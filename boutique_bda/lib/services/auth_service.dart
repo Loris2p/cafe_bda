@@ -59,7 +59,7 @@ class AuthService {
 
   Future<void> signOut() async {
     if (isLinuxNative) {
-      // Pour firedart, on peut vider le store ou selon la version utiliser une méthode interne
+      fd_auth.FirebaseAuth.instance.signOut();
     } else {
       await fb_auth.FirebaseAuth.instance.signOut();
     }

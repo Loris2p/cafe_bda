@@ -3,8 +3,6 @@ import 'package:firedart/firedart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HiveStore extends TokenStore {
-  static const String _key = 'auth_token';
-
   @override
   Token? read() {
     // Note: shared_preferences est asynchrone, 
