@@ -4,14 +4,15 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_service.dart';
+import 'services/prefs_token_store.dart';
 import 'screens/home_screen.dart';
 import 'models/app_user.dart';
 import 'core/app_theme.dart';
 
-// Petit provider pour gérer le mode admin visuel
 class AdminProvider with ChangeNotifier {
   bool _isAdmin = false;
   bool get isAdmin => _isAdmin;
@@ -25,9 +26,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   if (!kIsWeb && Platform.isLinux) {
-    fd.FirebaseAuth.initialize(DefaultFirebaseOptions.windows.apiKey, fd.VolatileStore());
+    // Initialisation persistante pour Linux Native
+    final prefs = await SharedPreferences.getInstance();
+    fd.FirebaseAuth.initialize(
+      DefaultFirebaseOptions.windows.apiKey, 
+      PrefsTokenStore(prefs)
+    );
     fd.Firestore.initialize(DefaultFirebaseOptions.windows.projectId);
   } else {
+    // Initialisation standard pour Web/Mobile
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -71,7 +78,20 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AppUser?>();
-    return user == null ? const LoginScreen() : const HomeScreen();
+    
+    // Sur Linux, firedart gère son propre état interne persistant
+    bool isAuthenticated = false;
+    if (!kIsWeb && Platform.isLinux) {
+      isAuthenticated = fd.FirebaseAuth.instance.isSignedIn;
+    } else {
+      isAuthenticated = user != null;
+    }
+
+    if (!isAuthenticated) {
+      return const LoginScreen();
+    }
+
+    return const HomeScreen();
   }
 }
 

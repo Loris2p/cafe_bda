@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import '../main.dart'; // Pour AdminProvider
+import '../services/firebase_service.dart';
+import '../models/student.dart';
+import '../widgets/student_search_delegate.dart';
+import '../main.dart';
 import 'sale_screen.dart';
 import 'top_up_screen.dart';
 import 'student_list_screen.dart';
@@ -23,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.watch<AdminProvider>().isAdmin;
+    final firebaseService = context.read<FirebaseService>();
 
     return Scaffold(
       appBar: AppBar(
@@ -58,9 +62,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  _buildSearchBar(),
+                  
+                  // Barre de recherche
+                  _buildSearchBar(context, firebaseService),
+
                   const SizedBox(height: 48),
                   _buildDashboardGrid(context),
+                  
                   const SizedBox(height: 48),
                   if (isAdmin) _buildAdminSection(context),
                 ],
@@ -72,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context, FirebaseService service) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -87,16 +95,121 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: TextField(
         controller: _searchController,
+        readOnly: true,
+        onTap: () => _handleSearch(context, service),
         decoration: InputDecoration(
           hintText: "Rechercher un étudiant...",
           prefixIcon: const Icon(Icons.search),
           suffixIcon: IconButton(
             icon: const Icon(Icons.arrow_forward),
-            onPressed: () {},
+            onPressed: () => _handleSearch(context, service),
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         ),
+      ),
+    );
+  }
+
+  Future<void> _handleSearch(BuildContext context, FirebaseService service) async {
+    final students = await service.getStudents().first;
+    if (!context.mounted) return;
+    
+    final result = await showSearch<Student?>(
+      context: context,
+      delegate: StudentSearchDelegate(students),
+    );
+    
+    if (result != null && context.mounted) {
+      _showStudentDetails(context, result);
+    }
+  }
+
+  void _showStudentDetails(BuildContext context, Student student) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            CircleAvatar(child: Text(student.lastName[0])),
+            const SizedBox(width: 12),
+            Expanded(child: Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.bold))),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Matricule: ${student.studentId}', style: const TextStyle(color: Colors.grey)),
+            Text('Classe: ${student.classGroup}', style: const TextStyle(color: Colors.grey)),
+            const Divider(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Solde actuel :'),
+                Text('${student.balance.toStringAsFixed(2)} €', 
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 22,
+                    color: student.balance >= 0 ? Colors.green : Colors.red
+                  )
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.shade200),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.card_giftcard, color: Colors.amber),
+                  const SizedBox(width: 12),
+                  Text('Fidélité : ${student.loyaltyBonus} café(s) offert(s)', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.all(16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const TopUpScreen()));
+                  },
+                  icon: const Icon(Icons.add_card),
+                  label: const Text('Créditer'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SaleScreen()));
+                  },
+                  icon: const Icon(Icons.shopping_cart),
+                  label: const Text('Vendre'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Fermer'),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -12,9 +12,11 @@ class FirebaseService {
   // --- Students ---
   Stream<List<Student>> getStudents() {
     if (isLinuxNative) {
-      // Firedart ne supporte pas les streams sur les collections, on simule un stream one-shot
       return Stream.fromFuture(fd_store.Firestore.instance.collection('students').get()).map(
-            (docs) => docs.map((doc) => _studentFromFiredart(doc)).toList(),
+            (docs) {
+              print('🔥 Firedart: ${docs.length} étudiants récupérés');
+              return docs.map((doc) => _studentFromFiredart(doc)).toList();
+            },
           );
     } else {
       return fb_store.FirebaseFirestore.instance.collection('students').orderBy('lastName').snapshots().map(
@@ -25,9 +27,9 @@ class FirebaseService {
 
   Future<void> addStudent(Student student) {
     if (isLinuxNative) {
-      return fd_store.Firestore.instance.collection('students').add(student.toFirestore());
+      return fd_store.Firestore.instance.collection('students').document(student.studentId).set(student.toFirestore());
     } else {
-      return fb_store.FirebaseFirestore.instance.collection('students').add(student.toFirestore());
+      return fb_store.FirebaseFirestore.instance.collection('students').doc(student.studentId).set(student.toFirestore());
     }
   }
 
@@ -88,12 +90,11 @@ class FirebaseService {
         if (transaction.paymentMethod == 'Crédit') {
           balanceChange = -transaction.amount;
         }
-        // Calcul fidélité
         int newTotalBought = currentTotalBought + boughtChange;
-        int oldBonus = (currentTotalBought ~/ 10).toInt();
-        int newBonus = (newTotalBought ~/ 10).toInt();
-        bonusChange = newBonus - oldBonus;
-        balanceChange += bonusChange; // Le bonus s'ajoute au solde (café offert)
+        int nBonus = (newTotalBought ~/ 10).toInt();
+        int cBonus = (currentTotalBought ~/ 10).toInt();
+        bonusChange = nBonus - cBonus;
+        balanceChange += bonusChange;
       } else {
         balanceChange = transaction.amount;
       }
@@ -104,11 +105,9 @@ class FirebaseService {
         'loyaltyBonus': (studentDoc['loyaltyBonus'] ?? 0) + bonusChange,
       });
     } else {
-      // Pour le Web/Mobile, on utilise une transaction Firestore pour garantir l'atomicité
       return fb_store.FirebaseFirestore.instance.runTransaction((transactionObj) async {
         final studentRef = fb_store.FirebaseFirestore.instance.collection('students').doc(transaction.studentId);
         final studentSnapshot = await transactionObj.get(studentRef);
-        
         if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
 
         final studentData = studentSnapshot.data()!;
@@ -134,11 +133,9 @@ class FirebaseService {
           balanceChange = transaction.amount;
         }
 
-        // Créer la transaction
         final transRef = fb_store.FirebaseFirestore.instance.collection('transactions').doc();
         transactionObj.set(transRef, transaction.toFirestore());
 
-        // Mettre à jour l'étudiant
         transactionObj.update(studentRef, {
           'balance': currentBalance + balanceChange,
           'totalBought': currentTotalBought + boughtChange,
@@ -166,8 +163,18 @@ class FirebaseService {
     }
   }
 
-  // --- Helpers de conversion ---
+  // --- Helpers de conversion robustes ---
   Student _studentFromFiredart(fd_store.Document doc) {
+    DateTime? lastTx;
+    final rawDate = doc['lastTransactionAt'];
+    if (rawDate != null) {
+      if (rawDate is DateTime) {
+        lastTx = rawDate;
+      } else if (rawDate is String) {
+        lastTx = DateTime.tryParse(rawDate);
+      }
+    }
+
     return Student(
       id: doc.id,
       firstName: doc['firstName'] ?? '',
@@ -177,7 +184,7 @@ class FirebaseService {
       balance: (doc['balance'] ?? 0.0).toDouble(),
       loyaltyBonus: (doc['loyaltyBonus'] ?? 0).toInt(),
       totalBought: (doc['totalBought'] ?? 0).toInt(),
-      lastTransactionAt: doc['lastTransactionAt'],
+      lastTransactionAt: lastTx,
     );
   }
 
@@ -192,6 +199,16 @@ class FirebaseService {
   }
 
   CafeTransaction _transactionFromFiredart(fd_store.Document doc) {
+    DateTime? ts;
+    final rawDate = doc['timestamp'];
+    if (rawDate != null) {
+      if (rawDate is DateTime) {
+        ts = rawDate;
+      } else if (rawDate is String) {
+        ts = DateTime.tryParse(rawDate);
+      }
+    }
+
     return CafeTransaction(
       id: doc.id,
       studentId: doc['studentId'] ?? '',
@@ -203,7 +220,7 @@ class FirebaseService {
       type: doc['type'] == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
       paymentMethod: doc['paymentMethod'] ?? '',
       productName: doc['productName'],
-      timestamp: doc['timestamp'] is DateTime ? doc['timestamp'] : (doc['timestamp'] as dynamic).toDate(),
+      timestamp: ts ?? DateTime.now(),
     );
   }
 }
