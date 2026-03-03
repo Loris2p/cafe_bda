@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
 import '../models/student.dart';
@@ -21,192 +22,141 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _searchController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.watch<AdminProvider>().isAdmin;
     final firebaseService = context.read<FirebaseService>();
+    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Boutique BDA', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          Switch(
-            value: isAdmin,
-            onChanged: (val) => context.read<AdminProvider>().setAdmin(val),
-            activeThumbColor: Colors.white,
-          ),
-          IconButton(
-            onPressed: () => context.read<AuthService>().signOut(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  Image.asset('assets/icon/logo-bda.png', height: 140),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Bienvenue au Café BDA',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+      body: CustomScrollView(
+        slivers: [
+          // Header Immersif avec Dégradé
+          SliverAppBar(
+            expandedHeight: 240,
+            floating: false,
+            pinned: true,
+            stretch: true,
+            backgroundColor: theme.colorScheme.primary,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [StretchMode.zoomBackground],
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.primary.withValues(alpha: 0.7),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  const SizedBox(height: 32),
-                  
-                  // Barre de recherche
-                  _buildSearchBar(context, firebaseService),
-
-                  const SizedBox(height: 48),
-                  _buildDashboardGrid(context),
-                  
-                  const SizedBox(height: 48),
-                  if (isAdmin) _buildAdminSection(context),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(BuildContext context, FirebaseService service) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        readOnly: true,
-        onTap: () => _handleSearch(context, service),
-        decoration: InputDecoration(
-          hintText: "Rechercher un étudiant...",
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.arrow_forward),
-            onPressed: () => _handleSearch(context, service),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleSearch(BuildContext context, FirebaseService service) async {
-    final students = await service.getStudents().first;
-    if (!context.mounted) return;
-    
-    final result = await showSearch<Student?>(
-      context: context,
-      delegate: StudentSearchDelegate(students),
-    );
-    
-    if (result != null && context.mounted) {
-      _showStudentDetails(context, result);
-    }
-  }
-
-  void _showStudentDetails(BuildContext context, Student student) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            CircleAvatar(child: Text(student.lastName[0])),
-            const SizedBox(width: 12),
-            Expanded(child: Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.bold))),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Matricule: ${student.studentId}', style: const TextStyle(color: Colors.grey)),
-            Text('Classe: ${student.classGroup}', style: const TextStyle(color: Colors.grey)),
-            const Divider(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Solde actuel :'),
-                Text('${student.balance.toStringAsFixed(2)} €', 
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold, 
-                    fontSize: 22,
-                    color: student.balance >= 0 ? Colors.green : Colors.red
-                  )
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.amber.shade200),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -50,
+                      top: -20,
+                      child: Icon(Icons.coffee, size: 200, color: Colors.white.withValues(alpha: 0.1)),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 80, 24, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Image.asset('assets/icon/logo-bda.png', height: 40),
+                              ),
+                              const SizedBox(width: 16),
+                              Text(
+                                'Boutique BDA',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Que voulez-vous faire aujourd\'hui ?',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
+            ),
+            actions: [
+              Row(
                 children: [
-                  const Icon(Icons.card_giftcard, color: Colors.amber),
-                  const SizedBox(width: 12),
-                  Text('Fidélité : ${student.loyaltyBonus} café(s) offert(s)', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Mode Admin', style: GoogleFonts.poppins(color: Colors.white, fontSize: 12)),
+                  Switch(
+                    value: isAdmin,
+                    onChanged: (val) => context.read<AdminProvider>().setAdmin(val),
+                    activeThumbColor: Colors.white,
+                    activeTrackColor: Colors.white.withValues(alpha: 0.3),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
-        actionsPadding: const EdgeInsets.all(16),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const TopUpScreen()));
-                  },
-                  icon: const Icon(Icons.add_card),
-                  label: const Text('Créditer'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SaleScreen()));
-                  },
-                  icon: const Icon(Icons.shopping_cart),
-                  label: const Text('Vendre'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                ),
+              IconButton(
+                onPressed: () => context.read<AuthService>().signOut(),
+                icon: const Icon(Icons.logout, color: Colors.white),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Center(
-            child: TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Fermer'),
+
+          // Contenu du Dashboard
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              offset: const Offset(0, -20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Barre de recherche
+                    _buildModernSearchBar(context, firebaseService),
+                    const SizedBox(height: 48),
+
+                    Text('Actions Principales', style: theme.textTheme.titleLarge),
+                    const SizedBox(height: 20),
+                    // Largeur limitée pour garder les 2 colonnes compactes
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 600),
+                        child: _buildModernGrid(context),
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+                    if (isAdmin) ...[
+                      Text('Administration', style: theme.textTheme.titleLarge),
+                      const SizedBox(height: 20),
+                      _buildAdminCards(context),
+                    ],
+                    
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -214,137 +164,266 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDashboardGrid(BuildContext context) {
+  Widget _buildModernSearchBar(BuildContext context, FirebaseService service) {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _handleSearch(context, service),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 16),
+                Text(
+                  'Rechercher un membre...',
+                  style: GoogleFonts.poppins(color: Colors.black45, fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.tune, size: 20, color: Theme.of(context).colorScheme.primary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernGrid(BuildContext context) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: MediaQuery.of(context).size.width > 600 ? 2 : 1,
-      mainAxisSpacing: 20,
-      crossAxisSpacing: 20,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
       childAspectRatio: 2.5,
       children: [
-        _DashboardCard(
-          title: 'Étudiants',
-          subtitle: 'Soldes & Inscriptions',
-          icon: Icons.people_alt_rounded,
-          color: Colors.blue.shade700,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentListScreen())),
-        ),
-        _DashboardCard(
+        _ModernCard(
           title: 'Vendre',
-          subtitle: 'Passer une commande',
-          icon: Icons.shopping_cart_rounded,
-          color: Colors.green.shade700,
+          subtitle: 'Nouvelle commande',
+          icon: Icons.shopping_bag_outlined,
+          color: const Color(0xFF4CAF50),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SaleScreen())),
         ),
-        _DashboardCard(
+        _ModernCard(
           title: 'Créditer',
-          subtitle: 'Recharger un compte',
-          icon: Icons.add_card_rounded,
-          color: Colors.purple.shade700,
+          subtitle: 'Recharger compte',
+          icon: Icons.account_balance_wallet_outlined,
+          color: const Color(0xFF2196F3),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TopUpScreen())),
         ),
-        _DashboardCard(
+        _ModernCard(
+          title: 'Membres',
+          subtitle: 'Liste étudiants',
+          icon: Icons.people_outline,
+          color: const Color(0xFF9C27B0),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentListScreen())),
+        ),
+        _ModernCard(
           title: 'Paiements',
-          subtitle: 'QR Codes & Infos',
-          icon: Icons.qr_code_rounded,
-          color: Colors.teal.shade700,
+          subtitle: 'QR & Lydia',
+          icon: Icons.qr_code_2_outlined,
+          color: const Color(0xFF00BCD4),
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentInfoScreen())),
         ),
       ],
     );
   }
 
-  Widget _buildAdminSection(BuildContext context) {
+  Widget _buildAdminCards(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Divider(),
-        const SizedBox(height: 24),
-        Text('Administration', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 16),
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const CircleAvatar(backgroundColor: Colors.deepOrange, child: Icon(Icons.inventory, color: Colors.white)),
-                title: const Text('Gérer les produits'),
-                subtitle: const Text('Modifier prix et stocks'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductManagementScreen())),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const CircleAvatar(backgroundColor: Colors.indigo, child: Icon(Icons.bar_chart, color: Colors.white)),
-                title: const Text('Statistiques'),
-                subtitle: const Text('Revenus et top ventes'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatsScreen())),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.history, color: Colors.white)),
-                title: const Text('Historique complet'),
-                subtitle: const Text('Toutes les transactions'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
-              ),
-            ],
-          ),
+        _AdminTile(
+          title: 'Catalogue Produits',
+          icon: Icons.inventory_2_outlined,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductManagementScreen())),
+        ),
+        const SizedBox(height: 12),
+        _AdminTile(
+          title: 'Statistiques Globales',
+          icon: Icons.analytics_outlined,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatsScreen())),
+        ),
+        const SizedBox(height: 12),
+        _AdminTile(
+          title: 'Historique des Ventes',
+          icon: Icons.history_edu_outlined,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
         ),
       ],
     );
   }
+
+  Future<void> _handleSearch(BuildContext context, FirebaseService service) async {
+    final students = await service.getStudents().first;
+    if (!context.mounted) return;
+    final result = await showSearch<Student?>(context: context, delegate: StudentSearchDelegate(students));
+    if (result != null && context.mounted) _showStudentDetails(context, result);
+  }
+
+  void _showStudentDetails(BuildContext context, Student student) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text(student.fullName, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _InfoRow(label: 'Matricule', value: student.studentId),
+            _InfoRow(label: 'Classe', value: student.classGroup),
+            const Divider(height: 32),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: student.balance >= 0 ? Colors.green.shade50 : Colors.red.shade50,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Solde', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                  Text('${student.balance.toStringAsFixed(2)} €', 
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 24, color: student.balance >= 0 ? Colors.green : Colors.red)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const SaleScreen()));
+            },
+            child: const Text('Vendre'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _DashboardCard extends StatelessWidget {
+class _ModernCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
-  const _DashboardCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
+  const _ModernCard({required this.title, required this.subtitle, required this.icon, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
                 ),
-                child: Icon(icon, color: color, size: 32),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                  ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
+                      Text(subtitle, style: GoogleFonts.poppins(color: Colors.black54, fontSize: 11, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
-            ],
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AdminTile extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _AdminTile({required this.title, required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      ),
+      title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
+      trailing: const Icon(Icons.chevron_right, size: 20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      tileColor: Colors.white,
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _InfoRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
       ),
     );
   }

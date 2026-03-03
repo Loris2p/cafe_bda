@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_service.dart';
@@ -26,7 +27,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   if (!kIsWeb && Platform.isLinux) {
-    // Initialisation persistante pour Linux Native
     final prefs = await SharedPreferences.getInstance();
     fd.FirebaseAuth.initialize(
       DefaultFirebaseOptions.windows.apiKey, 
@@ -34,7 +34,6 @@ void main() async {
     );
     fd.Firestore.initialize(DefaultFirebaseOptions.windows.projectId);
   } else {
-    // Initialisation standard pour Web/Mobile
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -79,7 +78,6 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<AppUser?>();
     
-    // Sur Linux, firedart gère son propre état interne persistant
     bool isAuthenticated = false;
     if (!kIsWeb && Platform.isLinux) {
       isAuthenticated = fd.FirebaseAuth.instance.isSignedIn;
@@ -87,11 +85,7 @@ class AuthWrapper extends StatelessWidget {
       isAuthenticated = user != null;
     }
 
-    if (!isAuthenticated) {
-      return const LoginScreen();
-    }
-
-    return const HomeScreen();
+    return isAuthenticated ? const HomeScreen() : const LoginScreen();
   }
 }
 
@@ -109,52 +103,98 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(32),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset('assets/icon/logo-bda.png', height: 100),
-                    const SizedBox(height: 16),
-                    const Text('Boutique BDA', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 32),
-                    TextField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 450),
+              child: Column(
+                children: [
+                  // Logo et Titre
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(labelText: 'Mot de passe', prefixIcon: Icon(Icons.lock_outline)),
-                      obscureText: true,
+                    child: Image.asset('assets/icon/logo-bda.png', height: 80),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Boutique BDA',
+                    style: GoogleFonts.poppins(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 32),
-                    if (_isLoading)
-                      const CircularProgressIndicator()
-                    else
-                      ElevatedButton(
-                        onPressed: _handleLogin,
-                        style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                        child: const Text('SE CONNECTER'),
+                  ),
+                  const SizedBox(height: 40),
+                  
+                  // Formulaire
+                  Card(
+                    elevation: 20,
+                    shadowColor: Colors.black.withValues(alpha: 0.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Connexion',
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          TextField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              prefixIcon: Icon(Icons.email_outlined),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _passwordController,
+                            decoration: const InputDecoration(
+                              labelText: 'Mot de passe',
+                              prefixIcon: Icon(Icons.lock_outline_rounded),
+                            ),
+                            obscureText: true,
+                          ),
+                          const SizedBox(height: 40),
+                          if (_isLoading)
+                            const CircularProgressIndicator()
+                          else
+                            ElevatedButton(
+                              onPressed: _handleLogin,
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 60),
+                                elevation: 0,
+                              ),
+                              child: const Text('SE CONNECTER'),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -173,7 +213,14 @@ class _LoginScreenState extends State<LoginScreen> {
       await context.read<AuthService>().signInWithEmail(email, password);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur : $e'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
