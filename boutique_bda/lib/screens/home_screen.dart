@@ -13,6 +13,7 @@ import 'history_screen.dart';
 import 'product_management_screen.dart';
 import 'stats_screen.dart';
 import 'payment_info_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // Header Immersif avec Dégradé
+          // Header Immersif
           SliverAppBar(
             expandedHeight: 240,
             floating: false,
@@ -72,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   color: Colors.white.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Image.asset('assets/icon/logo-bda.png', height: 40),
+                                child: Image.asset('assets/icon/logoBDA_4_complet.png', height: 40),
                               ),
                               const SizedBox(width: 16),
                               Text(
@@ -101,20 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             actions: [
-              Row(
-                children: [
-                  Text('Mode Admin', style: GoogleFonts.poppins(color: Colors.white, fontSize: 12)),
-                  Switch(
-                    value: isAdmin,
-                    onChanged: (val) => context.read<AdminProvider>().setAdmin(val),
-                    activeThumbColor: Colors.white,
-                    activeTrackColor: Colors.white.withValues(alpha: 0.3),
-                  ),
-                ],
-              ),
               IconButton(
-                onPressed: () => context.read<AuthService>().signOut(),
-                icon: const Icon(Icons.logout, color: Colors.white),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                tooltip: 'Paramètres',
               ),
             ],
           ),
@@ -132,13 +123,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Barre de recherche
                     _buildModernSearchBar(context, firebaseService),
                     const SizedBox(height: 48),
 
                     Text('Actions Principales', style: theme.textTheme.titleLarge),
                     const SizedBox(height: 20),
-                    // Largeur limitée pour garder les 2 colonnes compactes
                     Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 600),

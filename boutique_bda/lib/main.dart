@@ -17,8 +17,29 @@ import 'core/app_theme.dart';
 class AdminProvider with ChangeNotifier {
   bool _isAdmin = false;
   bool get isAdmin => _isAdmin;
-  void setAdmin(bool value) {
-    _isAdmin = value;
+
+  // Liste des emails autorisés
+  static const List<String> _allowedAdmins = [
+    'loris.lahon@gmail.com',
+    'bdapaucytech@gmail.com',
+  ];
+
+  void setAdmin(bool value, {String? userEmail, BuildContext? context}) {
+    if (value && userEmail != null && context != null) {
+      if (_allowedAdmins.contains(userEmail)) {
+        _isAdmin = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mode Administrateur activé'), backgroundColor: Colors.orange),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Accès refusé : vous n\'êtes pas administrateur'), backgroundColor: Colors.red),
+        );
+        _isAdmin = false;
+      }
+    } else {
+      _isAdmin = value;
+    }
     notifyListeners();
   }
 }
@@ -78,14 +99,9 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<AppUser?>();
     
-    bool isAuthenticated = false;
-    if (!kIsWeb && Platform.isLinux) {
-      isAuthenticated = fd.FirebaseAuth.instance.isSignedIn;
-    } else {
-      isAuthenticated = user != null;
-    }
-
-    return isAuthenticated ? const HomeScreen() : const LoginScreen();
+    // Le StreamProvider AppUser? est déjà branché sur le bon flux (fb ou fd)
+    // donc user != null suffit à déterminer l'état.
+    return user == null ? const LoginScreen() : const HomeScreen();
   }
 }
 
@@ -130,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
-                    child: Image.asset('assets/icon/logo-bda.png', height: 80),
+                    child: Image.asset('assets/icon/logoBDA_4_complet.png', height: 80),
                   ),
                   const SizedBox(height: 24),
                   Text(
