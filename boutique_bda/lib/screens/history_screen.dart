@@ -33,7 +33,7 @@ class HistoryScreen extends StatelessWidget {
 
           return ListView.separated(
             itemCount: transactions.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (context, index) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final tx = transactions[index];
               final isPurchase = tx.type == TransactionType.purchase;

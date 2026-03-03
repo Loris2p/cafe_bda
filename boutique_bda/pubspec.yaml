@@ -17,6 +17,11 @@ dependencies:
   intl: ^0.20.2
   firedart: ^0.9.8
   rxdart: ^0.28.0
+  fl_chart: ^1.1.1
+  qr_flutter: ^4.1.0
+  package_info_plus: ^9.0.0
+  url_launcher: ^6.3.2
+  csv: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -25,3 +30,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/icon/

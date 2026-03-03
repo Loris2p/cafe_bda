@@ -1,13 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Student {
-  final String id; // ID Firestore ou matricule
+  final String id;
   final String firstName;
   final String lastName;
-  final String studentId; // Matricule unique
+  final String studentId;
   final String classGroup;
   final double balance;
   final int loyaltyBonus;
+  final int totalBought; // Nombre total de cafés achetés
   final DateTime? lastTransactionAt;
 
   Student({
@@ -18,6 +19,7 @@ class Student {
     required this.classGroup,
     this.balance = 0.0,
     this.loyaltyBonus = 0,
+    this.totalBought = 0,
     this.lastTransactionAt,
   });
 
@@ -31,6 +33,7 @@ class Student {
       classGroup: data['classGroup'] ?? '',
       balance: (data['balance'] ?? 0.0).toDouble(),
       loyaltyBonus: data['loyaltyBonus'] ?? 0,
+      totalBought: data['totalBought'] ?? 0,
       lastTransactionAt: (data['lastTransactionAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -43,6 +46,7 @@ class Student {
       'classGroup': classGroup,
       'balance': balance,
       'loyaltyBonus': loyaltyBonus,
+      'totalBought': totalBought,
       'lastTransactionAt': lastTransactionAt != null ? Timestamp.fromDate(lastTransactionAt!) : null,
     };
   }

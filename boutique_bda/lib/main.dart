@@ -9,6 +9,17 @@ import 'services/auth_service.dart';
 import 'services/firebase_service.dart';
 import 'screens/home_screen.dart';
 import 'models/app_user.dart';
+import 'core/app_theme.dart';
+
+// Petit provider pour gérer le mode admin visuel
+class AdminProvider with ChangeNotifier {
+  bool _isAdmin = false;
+  bool get isAdmin => _isAdmin;
+  void setAdmin(bool value) {
+    _isAdmin = value;
+    notifyListeners();
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +36,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
         StreamProvider<AppUser?>(
@@ -42,19 +54,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAdmin = context.watch<AdminProvider>().isAdmin;
+
     return MaterialApp(
       title: 'Boutique BDA',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, primary: Colors.deepPurple),
-        useMaterial3: true,
-        cardTheme: const CardThemeData(elevation: 2),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          filled: true,
-          fillColor: Colors.grey.shade50,
-        ),
-      ),
+      theme: AppTheme.getTheme(isAdmin: isAdmin),
       home: const AuthWrapper(),
     );
   }
@@ -65,14 +70,8 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // On écoute maintenant le bon type : AppUser?
     final user = context.watch<AppUser?>();
-
-    if (user == null) {
-      return const LoginScreen();
-    }
-
-    return const HomeScreen();
+    return user == null ? const LoginScreen() : const HomeScreen();
   }
 }
 
@@ -94,7 +93,10 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.deepPurple.shade800, Colors.deepPurple.shade400],
+            colors: [
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -103,20 +105,18 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(32),
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.coffee, size: 64, color: Colors.deepPurple),
+                    Image.asset('assets/icon/logo-bda.png', height: 100),
                     const SizedBox(height: 16),
                     const Text('Boutique BDA', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 32),
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
-                      keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
                     TextField(
@@ -130,13 +130,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     else
                       ElevatedButton(
                         onPressed: _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: Colors.deepPurple,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('SE CONNECTER', style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+                        child: const Text('SE CONNECTER'),
                       ),
                   ],
                 ),
@@ -151,19 +146,14 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez remplir tous les champs')));
-      return;
-    }
+    if (email.isEmpty || password.isEmpty) return;
 
     setState(() => _isLoading = true);
     try {
       await context.read<AuthService>().signInWithEmail(email, password);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : ${e.toString()}'), backgroundColor: Colors.red),
-      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

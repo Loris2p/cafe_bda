@@ -5,7 +5,6 @@ import '../models/product.dart';
 import '../models/transaction.dart';
 import '../models/app_user.dart';
 import '../services/firebase_service.dart';
-import '../services/auth_service.dart';
 import '../widgets/student_search_delegate.dart';
 
 class SaleScreen extends StatefulWidget {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/student.dart';
 import '../services/firebase_service.dart';
+import '../widgets/data_table_widget.dart';
 
 class StudentListScreen extends StatefulWidget {
   const StudentListScreen({super.key});
@@ -25,67 +26,50 @@ class _StudentListScreenState extends State<StudentListScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Rechercher un nom ou un matricule...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            child: SizedBox(
+              height: 50,
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Rechercher un nom ou un matricule...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                ),
+                onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
               ),
-              onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
             ),
           ),
           Expanded(
             child: StreamBuilder<List<Student>>(
               stream: firebaseService.getStudents(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Erreur: ${snapshot.error}'));
-                }
-
+                final isLoading = snapshot.connectionState == ConnectionState.waiting;
                 final students = snapshot.data ?? [];
+                
                 final filteredStudents = students.where((s) {
                   return s.fullName.toLowerCase().contains(_searchQuery) ||
                       s.studentId.contains(_searchQuery);
                 }).toList();
 
-                if (filteredStudents.isEmpty) {
-                  return const Center(child: Text('Aucun étudiant trouvé'));
-                }
+                // On transforme les objets Student en lignes pour le DataTable
+                final dataRows = filteredStudents.map((s) => [
+                  s.lastName,
+                  s.firstName,
+                  s.studentId,
+                  s.classGroup,
+                  '${s.balance.toStringAsFixed(2)} €',
+                  s.loyaltyBonus.toString(),
+                ]).toList();
 
-                return ListView.separated(
-                  itemCount: filteredStudents.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final student = filteredStudents[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        child: Text(student.lastName[0].toUpperCase()),
-                      ),
-                      title: Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('Matricule: ${student.studentId} • ${student.classGroup}'),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${student.balance.toStringAsFixed(2)} €',
-                            style: TextStyle(
-                              color: student.balance >= 0 ? Colors.green : Colors.red,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text('Bonus: ${student.loyaltyBonus}', style: const TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                      onTap: () {
-                        // Voir détails de l'étudiant
-                      },
-                    );
-                  },
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: DataTableWidget(
+                    headers: const ['Nom', 'Prénom', 'ID', 'Classe', 'Solde', 'Fidélité'],
+                    data: dataRows,
+                    isLoading: isLoading,
+                  ),
                 );
               },
             ),
@@ -116,26 +100,13 @@ class _StudentListScreenState extends State<StudentListScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextFormField(
-                  controller: firstNameController,
-                  decoration: const InputDecoration(labelText: 'Prénom'),
-                  validator: (v) => v!.isEmpty ? 'Requis' : null,
-                ),
-                TextFormField(
-                  controller: lastNameController,
-                  decoration: const InputDecoration(labelText: 'Nom'),
-                  validator: (v) => v!.isEmpty ? 'Requis' : null,
-                ),
-                TextFormField(
-                  controller: idController,
-                  decoration: const InputDecoration(labelText: 'Matricule'),
-                  validator: (v) => v!.isEmpty ? 'Requis' : null,
-                ),
-                TextFormField(
-                  controller: classController,
-                  decoration: const InputDecoration(labelText: 'Classe / Groupe'),
-                  validator: (v) => v!.isEmpty ? 'Requis' : null,
-                ),
+                TextFormField(controller: firstNameController, decoration: const InputDecoration(labelText: 'Prénom'), validator: (v) => v!.isEmpty ? 'Requis' : null),
+                const SizedBox(height: 12),
+                TextFormField(controller: lastNameController, decoration: const InputDecoration(labelText: 'Nom'), validator: (v) => v!.isEmpty ? 'Requis' : null),
+                const SizedBox(height: 12),
+                TextFormField(controller: idController, decoration: const InputDecoration(labelText: 'Matricule'), validator: (v) => v!.isEmpty ? 'Requis' : null),
+                const SizedBox(height: 12),
+                TextFormField(controller: classController, decoration: const InputDecoration(labelText: 'Classe / Groupe'), validator: (v) => v!.isEmpty ? 'Requis' : null),
               ],
             ),
           ),
@@ -146,7 +117,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
             onPressed: () {
               if (formKey.currentState!.validate()) {
                 final newStudent = Student(
-                  id: '', // Firestore générera l'ID
+                  id: '', 
                   firstName: firstNameController.text.trim(),
                   lastName: lastNameController.text.trim(),
                   studentId: idController.text.trim(),

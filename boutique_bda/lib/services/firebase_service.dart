@@ -31,6 +31,14 @@ class FirebaseService {
     }
   }
 
+  Future<void> updateStudent(Student student) {
+    if (isLinuxNative) {
+      return fd_store.Firestore.instance.collection('students').document(student.id).update(student.toFirestore());
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('students').doc(student.id).update(student.toFirestore());
+    }
+  }
+
   // --- Products ---
   Stream<List<Product>> getProducts() {
     if (isLinuxNative) {
@@ -52,6 +60,14 @@ class FirebaseService {
     }
   }
 
+  Future<void> updateProduct(Product product) {
+    if (isLinuxNative) {
+      return fd_store.Firestore.instance.collection('products').document(product.id).update(product.toFirestore());
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('products').doc(product.id).update(product.toFirestore());
+    }
+  }
+
   // --- Transactions ---
   Future<void> addTransaction(CafeTransaction transaction) async {
     if (isLinuxNative) {
@@ -59,23 +75,77 @@ class FirebaseService {
       
       final studentRef = fd_store.Firestore.instance.collection('students').document(transaction.studentId);
       final studentDoc = await studentRef.get();
+      
       final currentBalance = (studentDoc['balance'] ?? 0.0).toDouble();
+      final currentTotalBought = (studentDoc['totalBought'] ?? 0).toInt();
       
-      double change = transaction.type == TransactionType.topUp ? transaction.amount : -transaction.amount;
-      await studentRef.update({'balance': currentBalance + change});
-    } else {
-      final batch = fb_store.FirebaseFirestore.instance.batch();
-      final transRef = fb_store.FirebaseFirestore.instance.collection('transactions').doc();
-      batch.set(transRef, transaction.toFirestore());
+      double balanceChange = 0;
+      int boughtChange = 0;
+      int bonusChange = 0;
 
-      final studentRef = fb_store.FirebaseFirestore.instance.collection('students').doc(transaction.studentId);
-      double balanceChange = transaction.type == TransactionType.topUp ? transaction.amount : -transaction.amount;
-      
-      batch.update(studentRef, {
-        'balance': fb_store.FieldValue.increment(balanceChange),
-        'lastTransactionAt': fb_store.FieldValue.serverTimestamp(),
+      if (transaction.type == TransactionType.purchase) {
+        boughtChange = transaction.amount.toInt();
+        if (transaction.paymentMethod == 'Crédit') {
+          balanceChange = -transaction.amount;
+        }
+        // Calcul fidélité
+        int newTotalBought = currentTotalBought + boughtChange;
+        int oldBonus = (currentTotalBought ~/ 10).toInt();
+        int newBonus = (newTotalBought ~/ 10).toInt();
+        bonusChange = newBonus - oldBonus;
+        balanceChange += bonusChange; // Le bonus s'ajoute au solde (café offert)
+      } else {
+        balanceChange = transaction.amount;
+      }
+
+      await studentRef.update({
+        'balance': currentBalance + balanceChange,
+        'totalBought': currentTotalBought + boughtChange,
+        'loyaltyBonus': (studentDoc['loyaltyBonus'] ?? 0) + bonusChange,
       });
-      return batch.commit();
+    } else {
+      // Pour le Web/Mobile, on utilise une transaction Firestore pour garantir l'atomicité
+      return fb_store.FirebaseFirestore.instance.runTransaction((transactionObj) async {
+        final studentRef = fb_store.FirebaseFirestore.instance.collection('students').doc(transaction.studentId);
+        final studentSnapshot = await transactionObj.get(studentRef);
+        
+        if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
+
+        final studentData = studentSnapshot.data()!;
+        final currentBalance = (studentData['balance'] ?? 0.0).toDouble();
+        final currentTotalBought = (studentData['totalBought'] ?? 0).toInt();
+        final currentLoyaltyBonus = (studentData['loyaltyBonus'] ?? 0).toInt();
+
+        double balanceChange = 0;
+        int boughtChange = 0;
+        int bonusChange = 0;
+
+        if (transaction.type == TransactionType.purchase) {
+          boughtChange = transaction.amount.toInt();
+          if (transaction.paymentMethod == 'Crédit') {
+            balanceChange = -transaction.amount;
+          }
+          int newTotalBought = currentTotalBought + boughtChange;
+          int nBonus = (newTotalBought ~/ 10).toInt();
+          int cBonus = (currentTotalBought ~/ 10).toInt();
+          bonusChange = nBonus - cBonus;
+          balanceChange += bonusChange;
+        } else {
+          balanceChange = transaction.amount;
+        }
+
+        // Créer la transaction
+        final transRef = fb_store.FirebaseFirestore.instance.collection('transactions').doc();
+        transactionObj.set(transRef, transaction.toFirestore());
+
+        // Mettre à jour l'étudiant
+        transactionObj.update(studentRef, {
+          'balance': currentBalance + balanceChange,
+          'totalBought': currentTotalBought + boughtChange,
+          'loyaltyBonus': currentLoyaltyBonus + bonusChange,
+          'lastTransactionAt': fb_store.FieldValue.serverTimestamp(),
+        });
+      });
     }
   }
 
@@ -105,7 +175,8 @@ class FirebaseService {
       studentId: doc['studentId'] ?? '',
       classGroup: doc['classGroup'] ?? '',
       balance: (doc['balance'] ?? 0.0).toDouble(),
-      loyaltyBonus: doc['loyaltyBonus'] ?? 0,
+      loyaltyBonus: (doc['loyaltyBonus'] ?? 0).toInt(),
+      totalBought: (doc['totalBought'] ?? 0).toInt(),
       lastTransactionAt: doc['lastTransactionAt'],
     );
   }
@@ -132,7 +203,7 @@ class FirebaseService {
       type: doc['type'] == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
       paymentMethod: doc['paymentMethod'] ?? '',
       productName: doc['productName'],
-      timestamp: doc['timestamp'] ?? DateTime.now(),
+      timestamp: doc['timestamp'] is DateTime ? doc['timestamp'] : (doc['timestamp'] as dynamic).toDate(),
     );
   }
 }
