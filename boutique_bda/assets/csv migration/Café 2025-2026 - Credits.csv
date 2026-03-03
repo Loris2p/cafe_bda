@@ -1,0 +1,55 @@
+Date,Responsable,Numéro étudiant,Nom,Prenom,Classe + Groupe,Valeur (€),Nb de Cafés,Mode
+18/06/2025 00:00:00,e-llahonla,22508148,Cousin,Paul,Ing 1 GI,"5,00€",10,Lydia
+23/06/2025 00:00:00,e-llahonla,22508148,Cousin,Paul,Ing 1 GI,"0,50€",1,Échange
+08/09/2025 00:00:00,Axel,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"4,00€",8,Lydia
+09/09/2025 00:00:00,Axel,22501843,Farese,Nathan,PréIng 1,"0,50€",1,Espèce
+09/09/2025 00:00:00,Axel,22604026,Aureglia-Cauneille,Numa,PréIng 1,"4,00€",8,Lydia
+10/09/2025 00:00:00,e-llahonla,22302414,Le blanc,Paul,Ing 2,"5,00€",10,Lydia
+11/09/2025 00:00:00,e-llahon,22300783,Lahon-Lahitte,Loris,Ing 1 Gi 1,"45,00€",90,Échange
+15/09/2025 00:00:00,e-llahonla,22303146,Almirantearena,Alaia,Ing 2,"5,00€",10,Lydia
+16/09/2025 00:00:00,loris,22302464,Alquier,Gabin,Ing 2,"5,00€",10,Lydia
+23/09/2025 00:00:00,loris lahon,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"2,50€",5,Lydia
+24/09/2025 00:00:00,loris,22400731,de Nucé de Lamothe,Augustin,Ing 1,"5,00€",10,Lydia
+26/09/2025 00:00:00,lolo,22301680,Bre,Paul,Ing 2,"10,00€",20,Lydia
+29/09/2025 00:00:00,Casteraa,22404601,Guillou,Mathéo,Pré Ing 2,"22,00€",44,Espèce
+29/09/2025 00:00:00,CASTERAA,22502784,Courouble--Fischer,Seb,PréIng 1,"2,00€",4,Espèce
+30/09/2025 00:00:00,lolo,22302414,Le blanc,Paul,Ing 2,"4,00€",8,Lydia
+01/10/2025 00:00:00,lolo,22609093,Rollet,Killian,Ing 1,"5,00€",10,Lydia
+03/10/2025 00:00:00,Lebel Axel,22303146,Almirantearena,Alaia,Ing 2,"5,00€",10,Lydia
+06/10/2025 00:00:00,Axel,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"5,00€",10,Lydia
+07/10/2025 00:00:00,Loris,22504185,Le Maire,Junes,PréIng 1,"1,50€",3,Espèce
+07/10/2025 00:00:00,loris,22503826,G,Iban,Pré Ing 2,"2,00€",4,Lydia
+08/10/2025 00:00:00,loris,22301202,Capblanc,Sylvain,Ing 2,"5,00€",10,Lydia
+09/10/2025 00:00:00,Axel,22302414,Le blanc,Paul,Ing 2,"6,00€",12,Lydia
+10/10/2025 00:00:00,loris,22302464,Alquier,Gabin,Ing 2,"5,00€",10,Lydia
+16/10/2025 00:00:00,lolo,22204936,Soraya,Soulez,Ing 1,"10,00€",20,Échange
+17/10/2025 00:00:00,Loris,22503826,G,Iban,Pré Ing 2,"1,00€",2,Espèce
+21/10/2025 00:00:00,Othilie,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"5,00€",10,Lydia
+06/11/2025 00:00:00,Loris,22302387,castera,othilie,Ing 1,"4,00€",8,Soirée
+13/11/2025 00:00:00,Loris,22302464,Alquier,Gabin,Ing 2,"12,50€",25,Lydia
+13/11/2025 00:00:00,Loris,22302414,Le blanc,Paul,Ing 2,"5,00€",10,Lydia
+17/11/2025 00:00:00,loris,22301680,Bre,Paul,Ing 2,"20,00€",40,Lydia
+17/11/2025 00:00:00,loris,22504892,Pilat,Patrick,Pré Ing 2,"0,50€",1,Lydia
+18/11/2025 00:00:00,Axel,22503826,Goyheneche,Iban,Pré Ing 2,"2,00€",4,Espèce
+18/11/2025 00:00:00,Axel,22301213,El Moudden,Nassef,Ing 2,"1,00€",2,Espèce
+20/11/2025 00:00:00,Axel,22301213,El Moudden,Nassef,Ing 2,"1,00€",2,Espèce
+25/11/2025 00:00:00,22302414,22302414,Le blanc,Paul,Ing 2,"5,00€",10,Lydia
+27/11/2025 00:00:00,loris,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"5,00€",10,Lydia
+02/12/2025 00:00:00,loris,22503826,Goyheneche,Iban,Pré Ing 2,"2,00€",4,Espèce
+02/12/2025 00:00:00,loris,22301202,Capblanc,Sylvain,Ing 2,"25,00€",50,Lydia
+02/12/2025 00:00:00,Casteraa,22303146,Almirantearena,Alaia,Ing 2,"5,00€",10,Lydia
+04/12/2025 00:00:00,loris,22611113,Aubry-mauger,Leon,Ing 1,"10,00€",20,wero
+08/12/2025 00:00:00,Axel,22507972,Lebel,Axel,Ing 2,"16,00€",32,Échange
+09/12/2025 00:00:00,loris,22603596,Moise,Daniel,PréIng 1,"10,00€",20,Lydia
+09/12/2025 00:00:00,loris,22606998,Gaston,Elaia,PréIng 1,"10,00€",20,Lydia
+09/12/2025 00:00:00,loris,22302445,Grille,Lina,Ing 2,"2,00€",4,Lydia
+12/12/2025 00:00:00,loris,22302414,Le blanc,Paul,Ing 2,"5,00€",10,Lydia
+12/12/2025 00:00:00,loris,22504433,Bouguerra,Alexis,Pré Ing 2,"10,50€",21,Espèce
+13/12/2025 00:00:00,loris,22503826,Goyheneche,Iban,Pré Ing 2,"1,00€",2,Espèce
+15/12/2025 00:00:00,Loris,22302445,Grille,Lina,Ing 2,"1,00€",2,Lydia
+17/12/2025 00:00:00,Loris,22302464,Alquier,Gabin,Ing 2,"10,00€",20,Lydia
+17/12/2025 00:00:00,Loris,22301762,hill,zak,Ing 1,"0,50€",1,Lydia
+18/12/2025 00:00:00,Loris,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"5,00€",10,Lydia
+19/12/2025 00:00:00,Loris,22502784,Courouble--Fischer,Seb,PréIng 1,"2,50€",5,Lydia
+20/01/2026 15:59:22,Loris,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"5,00€",10,Lydia
+24/01/2026 21:17:29,Loris,22301440,Hourdebaigt--Hiroux,Yan,Ing 1,"5,00€",10,Lydia
