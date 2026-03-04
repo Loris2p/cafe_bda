@@ -200,6 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildModernGrid(BuildContext context) {
+    final tabProvider = context.read<TabProvider>();
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -213,52 +214,53 @@ class _HomeScreenState extends State<HomeScreen> {
           subtitle: 'Nouvelle commande',
           icon: Icons.shopping_bag_outlined,
           color: const Color(0xFF4CAF50),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SaleScreen())),
+          onTap: () => tabProvider.setTab(1),
         ),
         _ModernCard(
           title: 'Créditer',
           subtitle: 'Recharger compte',
           icon: Icons.account_balance_wallet_outlined,
           color: const Color(0xFF2196F3),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TopUpScreen())),
+          onTap: () => tabProvider.setTab(2),
         ),
         _ModernCard(
           title: 'Membres',
           subtitle: 'Liste étudiants',
           icon: Icons.people_outline,
           color: const Color(0xFF9C27B0),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentListScreen())),
+          onTap: () => tabProvider.setTab(3),
         ),
         _ModernCard(
           title: 'Paiements',
           subtitle: 'QR & Lydia',
           icon: Icons.qr_code_2_outlined,
           color: const Color(0xFF00BCD4),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentInfoScreen())),
+          onTap: () => tabProvider.setTab(4),
         ),
       ],
     );
   }
 
   Widget _buildAdminCards(BuildContext context) {
+    final tabProvider = context.read<TabProvider>();
     return Column(
       children: [
         _AdminTile(
           title: 'Catalogue Produits',
           icon: Icons.inventory_2_outlined,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductManagementScreen())),
+          onTap: () => tabProvider.setTab(1),
         ),
         const SizedBox(height: 12),
         _AdminTile(
           title: 'Statistiques Globales',
           icon: Icons.analytics_outlined,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatsScreen())),
+          onTap: () => tabProvider.setTab(2),
         ),
         const SizedBox(height: 12),
         _AdminTile(
           title: 'Historique des Ventes',
           icon: Icons.history_edu_outlined,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
+          onTap: () => tabProvider.setTab(3),
         ),
       ],
     );
@@ -305,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const SaleScreen()));
+              context.read<TabProvider>().setTab(1); // Index 1 est 'Vendre'
             },
             child: const Text('Vendre'),
           ),

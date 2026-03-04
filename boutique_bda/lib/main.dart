@@ -10,7 +10,7 @@ import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_service.dart';
 import 'services/prefs_token_store.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
 import 'models/app_user.dart';
 import 'core/app_theme.dart';
 
@@ -54,6 +54,16 @@ class AdminProvider with ChangeNotifier {
   }
 }
 
+class TabProvider with ChangeNotifier {
+  int _selectedIndex = 0;
+  int get selectedIndex => _selectedIndex;
+
+  void setTab(int index) {
+    _selectedIndex = index;
+    notifyListeners();
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -77,6 +87,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: adminProvider),
+        ChangeNotifierProvider(create: (_) => TabProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
         StreamProvider<AppUser?>(
@@ -114,7 +125,7 @@ class AuthWrapper extends StatelessWidget {
     
     // Le StreamProvider AppUser? est déjà branché sur le bon flux (fb ou fd)
     // donc user != null suffit à déterminer l'état.
-    return user == null ? const LoginScreen() : const HomeScreen();
+    return user == null ? const LoginScreen() : const MainScreen();
   }
 }
 
