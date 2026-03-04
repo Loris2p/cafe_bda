@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/auth_service.dart';
 import '../services/firebase_service.dart';
 import '../models/student.dart';
 import '../widgets/student_search_delegate.dart';
 import '../main.dart';
-import 'sale_screen.dart';
-import 'top_up_screen.dart';
-import 'student_list_screen.dart';
-import 'history_screen.dart';
-import 'product_management_screen.dart';
-import 'stats_screen.dart';
-import 'payment_info_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {

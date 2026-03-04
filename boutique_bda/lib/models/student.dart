@@ -1,14 +1,29 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Représente un étudiant (membre) du BDA.
 class Student {
+  /// Identifiant technique Firestore.
   final String id;
+  
   final String firstName;
   final String lastName;
+  
+  /// Identifiant métier (ex: matricule). Utilisé comme clé primaire logique.
   final String studentId;
+  
+  /// Groupe ou promo (ex: "ING1").
   final String classGroup;
+  
+  /// Solde actuel en Euros.
   final double balance;
+  
+  /// Nombre de cafés offerts restants (issus de la fidélité).
   final int loyaltyBonus;
-  final int totalBought; // Nombre total de cafés achetés
+  
+  /// Nombre cumulé de cafés achetés (sert au calcul de la fidélité).
+  final int totalBought;
+  
+  /// Date de la dernière opération.
   final DateTime? lastTransactionAt;
 
   Student({
@@ -23,6 +38,7 @@ class Student {
     this.lastTransactionAt,
   });
 
+  /// Construit un objet [Student] depuis un document Firestore.
   factory Student.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return Student(
@@ -38,6 +54,7 @@ class Student {
     );
   }
 
+  /// Convertit l'étudiant en Map pour Firestore.
   Map<String, dynamic> toFirestore() {
     return {
       'firstName': firstName,
