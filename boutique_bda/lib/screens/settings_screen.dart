@@ -126,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Icon(Icons.admin_panel_settings_outlined, color: isAdmin ? Colors.orange : Colors.grey),
                 ),
                 value: isAdmin,
-                activeColor: Colors.orange,
+                activeThumbColor: Colors.orange,
                 onChanged: (val) {
                   context.read<AdminProvider>().setAdmin(
                     val, 

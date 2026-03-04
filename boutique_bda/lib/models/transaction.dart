@@ -1,18 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Type de transaction financière.
 enum TransactionType { purchase, topUp }
 
+/// Représente une opération (vente ou rechargement) effectuée dans la boutique.
 class CafeTransaction {
   final String id;
+  
+  /// Client concerné.
   final String studentId;
   final String studentName;
+  
+  /// Administrateur ayant effectué l'opération.
   final String responsibleId;
   final String responsibleName;
-  final double amount; // Quantité de cafés ou montant en € selon le type
-  final double price; // Montant total en €
+  
+  /// Quantité (nb produits) pour une vente, ou Montant (€) pour un rechargement.
+  final double amount;
+  
+  /// Montant total TTC en Euros de l'opération.
+  final double price;
+  
   final TransactionType type;
-  final String paymentMethod; // Lydia, Espèces, Crédit
+  
+  /// Méthode de règlement (Lydia, Espèces, Crédit, Autre...).
+  final String paymentMethod;
+  
+  /// Nom du produit vendu (si type == purchase).
   final String? productName;
+  
   final DateTime timestamp;
 
   CafeTransaction({

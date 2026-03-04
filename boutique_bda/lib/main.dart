@@ -17,22 +17,27 @@ import 'screens/change_password_screen.dart';
 import 'models/app_user.dart';
 import 'core/app_theme.dart';
 
+/// Provider gérant les droits d'accès administrateur.
+/// L'accès est vérifié par rapport à une liste blanche d'emails.
 class AdminProvider with ChangeNotifier {
   bool _isAdmin = false;
   bool get isAdmin => _isAdmin;
 
-  // Liste des emails autorisés
+  // Liste des emails autorisés à activer le mode admin
   static const List<String> _allowedAdmins = [
     'loris.lahon@gmail.com',
     'bdapaucytech@gmail.com',
   ];
 
+  /// Initialise l'état admin à partir des préférences locales.
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _isAdmin = prefs.getBool('is_admin_mode') ?? false;
     notifyListeners();
   }
 
+  /// Tente d'activer ou désactive le mode admin.
+  /// Vérifie l'éligibilité si [value] est vrai.
   void setAdmin(bool value, {String? userEmail, BuildContext? context}) async {
     if (value && userEmail != null && context != null) {
       if (_allowedAdmins.contains(userEmail)) {
@@ -61,6 +66,7 @@ class AdminProvider with ChangeNotifier {
   }
 }
 
+/// Gère l'onglet sélectionné dans la navigation principale.
 class TabProvider with ChangeNotifier {
   int _selectedIndex = 0;
   int get selectedIndex => _selectedIndex;
@@ -77,7 +83,9 @@ void main() async {
   final adminProvider = AdminProvider();
   await adminProvider.init();
 
+  // Initialisation hybride Firebase
   if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
+    // Mode Desktop Native (Firedart)
     final prefs = await SharedPreferences.getInstance();
     fd.FirebaseAuth.initialize(
       DefaultFirebaseOptions.windows.apiKey, 
@@ -85,6 +93,7 @@ void main() async {
     );
     fd.Firestore.initialize(DefaultFirebaseOptions.windows.projectId);
   } else {
+    // Mode Mobile/Web (SDK Officiel)
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -97,6 +106,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => TabProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
+        // Fournit l'utilisateur actuel à toute l'app
         StreamProvider<AppUser?>(
           create: (context) => context.read<AuthService>().user,
           initialData: null,
@@ -123,11 +133,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Décide quel écran afficher en fonction de l'état d'authentification 
+/// et des contraintes de sécurité (version, changement de mot de passe).
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // La vérification de version est prioritaire sur tout
     return VersionCheckWrapper(
       child: _buildAuthContent(context),
     );
@@ -140,6 +153,7 @@ class AuthWrapper extends StatelessWidget {
       return const LoginScreen();
     }
     
+    // Forçage du changement de mot de passe pour les nouveaux comptes
     if (user.mustChangePassword) {
       return const ChangePasswordScreen();
     }
@@ -148,6 +162,8 @@ class AuthWrapper extends StatelessWidget {
   }
 }
 
+/// Widget bloquant l'application si une mise à jour est requise.
+/// Compare la version locale du package avec la version 'latest' sur Firestore.
 class VersionCheckWrapper extends StatefulWidget {
   final Widget child;
   const VersionCheckWrapper({super.key, required this.child});
@@ -174,6 +190,8 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
       
       final latestVersion = await context.read<FirebaseService>().getLatestVersion();
       
+      if (!mounted) return;
+
       if (latestVersion != null && _isVersionLower(currentVersion, latestVersion)) {
         setState(() {
           _needsUpdate = true;
@@ -181,16 +199,15 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
           _isChecking = false;
         });
       } else {
-        setState(() {
-          _isChecking = false;
-        });
+        setState(() => _isChecking = false);
       }
     } catch (e) {
-      print('Version check error: $e');
-      setState(() => _isChecking = false);
+      // En cas d'erreur réseau, on laisse passer l'utilisateur
+      if (mounted) setState(() => _isChecking = false);
     }
   }
 
+  /// Compare deux chaînes de version (ex: "1.2.0" < "1.2.1").
   bool _isVersionLower(String current, String latest) {
     try {
       final v1 = current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
@@ -202,9 +219,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
         if (n1 < n2) return true;
         if (n1 > n2) return false;
       }
-    } catch (e) {
-      print('Error comparing versions: $e');
-    }
+    } catch (e) { /* Ignore */ }
     return false;
   }
 
@@ -233,11 +248,7 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
               const SizedBox(height: 24),
               Text(
                 'Mise à jour requise',
-                style: GoogleFonts.poppins(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               const SizedBox(height: 16),
               Text(

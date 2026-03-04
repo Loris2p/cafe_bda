@@ -7,35 +7,32 @@ import '../models/product.dart';
 import '../models/transaction.dart';
 import '../models/payment_method.dart';
 
+/// Service central gérant toutes les opérations de données avec Firebase Firestore.
+/// 
+/// Ce service utilise une architecture hybride pour supporter :
+/// 1. Le mode "Desktop Native" (Windows/Linux) via le package [firedart].
+/// 2. Le mode "Standard" (Android/iOS/Web) via le SDK officiel [cloud_firestore].
 class FirebaseService {
+  /// Indique si l'application tourne sur un bureau (hors Web).
   static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
 
-  // --- Students ---
+  // --- ÉTUDIANTS (MEMBRES) ---
+
+  /// Récupère le flux des étudiants inscrits.
+  /// Note: Sur Desktop, le flux est simulé à partir d'un Future unique.
   Stream<List<Student>> getStudents() {
-    print('FirebaseService: getStudents called (isDesktopNative: $isDesktopNative)');
     if (isDesktopNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('students').get()).map(
-            (docs) {
-              print('FirebaseService: getStudents (Linux) returned ${docs.length} docs');
-              return docs.map((doc) => _studentFromFiredart(doc)).toList();
-            },
-          ).handleError((error) {
-            print('FirebaseService: getStudents (Linux) ERROR: $error');
-            throw error;
-          });
+            (docs) => docs.map((doc) => _studentFromFiredart(doc)).toList(),
+          );
     } else {
       return fb_store.FirebaseFirestore.instance.collection('students').orderBy('lastName').snapshots().map(
-            (snapshot) {
-              print('FirebaseService: getStudents (FB) returned ${snapshot.docs.length} docs');
-              return snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList();
-            },
-          ).handleError((error) {
-            print('FirebaseService: getStudents (FB) ERROR: $error');
-            throw error;
-          });
+            (snapshot) => snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList(),
+          );
     }
   }
 
+  /// Ajoute un nouvel étudiant. L'ID du document est son matricule (studentId).
   Future<void> addStudent(Student student) {
     if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('students').document(student.studentId).set(student.toFirestore());
@@ -44,6 +41,7 @@ class FirebaseService {
     }
   }
 
+  /// Met à jour les informations d'un étudiant.
   Future<void> updateStudent(Student student) {
     if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('students').document(student.id).update(student.toFirestore());
@@ -52,7 +50,9 @@ class FirebaseService {
     }
   }
 
-  // --- Products ---
+  // --- PRODUITS (CATALOGUE) ---
+
+  /// Récupère la liste des produits disponibles ou non.
   Stream<List<Product>> getProducts() {
     if (isDesktopNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('products').get()).map(
@@ -81,7 +81,9 @@ class FirebaseService {
     }
   }
 
-  // --- Payment Methods ---
+  // --- MÉTHODES DE PAIEMENT ---
+
+  /// Récupère les configurations de paiement (Lydia, Espèces, etc.).
   Stream<List<PaymentMethod>> getPaymentMethods() {
     if (isDesktopNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('payment_methods').get()).map(
@@ -118,16 +120,22 @@ class FirebaseService {
     }
   }
 
-  // --- Transactions ---
+  // --- TRANSACTIONS & LOGIQUE MÉTIER ---
+
+  /// Enregistre une vente ou un rechargement et met à jour le solde de l'étudiant.
+  /// 
+  /// Applique la logique de fidélité : 1 crédit de 0.50€ offert tous les 10 cafés achetés.
   Future<void> addTransaction(CafeTransaction transaction) async {
     if (isDesktopNative) {
+      // Version Desktop : Opérations séquentielles
       await fd_store.Firestore.instance.collection('transactions').add(transaction.toFirestore());
       
       final studentRef = fd_store.Firestore.instance.collection('students').document(transaction.studentId);
       final studentDoc = await studentRef.get();
       
-      final currentBalance = (studentDoc['balance'] ?? 0.0).toDouble();
-      final currentTotalBought = (studentDoc['totalBought'] ?? 0).toInt();
+      final double currentBalance = (studentDoc['balance'] ?? 0.0).toDouble();
+      final int currentTotalBought = (studentDoc['totalBought'] ?? 0).toInt();
+      final int currentLoyaltyBonus = (studentDoc['loyaltyBonus'] ?? 0).toInt();
       
       double balanceChange = 0;
       int boughtChange = 0;
@@ -136,34 +144,32 @@ class FirebaseService {
       if (transaction.type == TransactionType.purchase) {
         boughtChange = transaction.amount.toInt();
         if (transaction.paymentMethod == 'Crédit') {
-          // IMPORTANT: On retire le PRIX (Euros) et non l'amount (Quantité)
           balanceChange = -transaction.price;
         }
-        // Calcul fidélité : 1 café offert (valeur 0.50€) tous les 10 achetés
+        // Calcul du bonus fidélité (nb de tranches de 10 atteintes)
         int newTotalBought = currentTotalBought + boughtChange;
-        int nBonus = (newTotalBought ~/ 10).toInt();
-        int cBonus = (currentTotalBought ~/ 10).toInt();
-        bonusChange = nBonus - cBonus;
-        balanceChange += (bonusChange * 0.50); // Le bonus crédite 0.50€ par café offert
+        bonusChange = (newTotalBought ~/ 10) - (currentTotalBought ~/ 10);
+        balanceChange += (bonusChange * 0.50);
       } else {
-        balanceChange = transaction.amount; // En rechargement, amount = Euros
+        balanceChange = transaction.amount;
       }
 
       await studentRef.update({
         'balance': currentBalance + balanceChange,
         'totalBought': currentTotalBought + boughtChange,
-        'loyaltyBonus': (studentDoc['loyaltyBonus'] ?? 0) + bonusChange,
+        'loyaltyBonus': currentLoyaltyBonus + bonusChange,
       });
     } else {
+      // Version Mobile/Web : Transaction Firestore atomique
       return fb_store.FirebaseFirestore.instance.runTransaction((transactionObj) async {
         final studentRef = fb_store.FirebaseFirestore.instance.collection('students').doc(transaction.studentId);
         final studentSnapshot = await transactionObj.get(studentRef);
         if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
 
         final studentData = studentSnapshot.data()!;
-        final currentBalance = (studentData['balance'] ?? 0.0).toDouble();
-        final currentTotalBought = (studentData['totalBought'] ?? 0).toInt();
-        final currentLoyaltyBonus = (studentData['loyaltyBonus'] ?? 0).toInt();
+        final double currentBalance = (studentData['balance'] ?? 0.0).toDouble();
+        final int currentTotalBought = (studentData['totalBought'] ?? 0).toInt();
+        final int currentLoyaltyBonus = (studentData['loyaltyBonus'] ?? 0).toInt();
 
         double balanceChange = 0;
         int boughtChange = 0;
@@ -172,12 +178,10 @@ class FirebaseService {
         if (transaction.type == TransactionType.purchase) {
           boughtChange = transaction.amount.toInt();
           if (transaction.paymentMethod == 'Crédit') {
-            balanceChange = -transaction.price; // On retire le PRIX (Euros)
+            balanceChange = -transaction.price;
           }
           int newTotalBought = currentTotalBought + boughtChange;
-          int nBonus = (newTotalBought ~/ 10).toInt();
-          int cBonus = (currentTotalBought ~/ 10).toInt();
-          bonusChange = nBonus - cBonus;
+          bonusChange = (newTotalBought ~/ 10) - (currentTotalBought ~/ 10);
           balanceChange += (bonusChange * 0.50);
         } else {
           balanceChange = transaction.amount;
@@ -196,6 +200,7 @@ class FirebaseService {
     }
   }
 
+  /// Récupère l'historique paginé des transactions.
   Stream<List<CafeTransaction>> getRecentTransactions({int limit = 20}) {
     if (isDesktopNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('transactions').get()).map(
@@ -213,24 +218,26 @@ class FirebaseService {
     }
   }
 
-  // --- App Users ---
+  // --- UTILISATEURS DE L'APP ---
+
+  /// Initialise le document Firestore d'un nouvel utilisateur.
   Future<void> createUserDocument(String uid, String email, String name, bool mustChangePassword) {
+    final data = {
+      'email': email,
+      'displayName': name,
+      'mustChangePassword': mustChangePassword,
+    };
     if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('users').document(uid).set({
-        'email': email,
-        'displayName': name,
-        'mustChangePassword': mustChangePassword,
-      });
+      return fd_store.Firestore.instance.collection('users').document(uid).set(data);
     } else {
       return fb_store.FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'email': email,
-        'displayName': name,
-        'mustChangePassword': mustChangePassword,
+        ...data,
         'createdAt': fb_store.FieldValue.serverTimestamp(),
       });
     }
   }
 
+  /// Récupère le profil utilisateur.
   Future<Map<String, dynamic>?> getUserDocument(String uid) async {
     try {
       if (isDesktopNative) {
@@ -241,24 +248,23 @@ class FirebaseService {
         return doc.data();
       }
     } catch (e) {
-      print('FirebaseService: getUserDocument ERROR: $e');
       return null;
     }
   }
 
+  /// Active ou désactive l'obligation de changement de mot de passe.
   Future<void> updateUserPasswordFlag(String uid, bool mustChangePassword) {
+    final data = {'mustChangePassword': mustChangePassword};
     if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('users').document(uid).update({
-        'mustChangePassword': mustChangePassword,
-      });
+      return fd_store.Firestore.instance.collection('users').document(uid).update(data);
     } else {
-      return fb_store.FirebaseFirestore.instance.collection('users').doc(uid).update({
-        'mustChangePassword': mustChangePassword,
-      });
+      return fb_store.FirebaseFirestore.instance.collection('users').doc(uid).update(data);
     }
   }
 
-  // --- App Version ---
+  // --- CONTRÔLE DE VERSION ---
+
+  /// Récupère le numéro de la dernière version publiée.
   Future<String?> getLatestVersion() async {
     try {
       if (isDesktopNative) {
@@ -266,30 +272,31 @@ class FirebaseService {
         return doc.map['latest'];
       } else {
         final doc = await fb_store.FirebaseFirestore.instance.collection('config').doc('app_version').get();
-        final data = doc.data();
-        return data?['latest'] as String?;
+        return doc.data()?['latest'] as String?;
       }
     } catch (e) {
-      print('FirebaseService: getLatestVersion ERROR: $e');
       return null;
     }
   }
 
+  /// Met à jour la version de référence sur le serveur.
   Future<void> updateRemoteVersion(String version) {
+    final data = {'latest': version};
     if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('config').document('app_version').set({
-        'latest': version,
+        ...data,
         'updatedAt': DateTime.now().toIso8601String(),
       });
     } else {
       return fb_store.FirebaseFirestore.instance.collection('config').doc('app_version').set({
-        'latest': version,
+        ...data,
         'updatedAt': fb_store.FieldValue.serverTimestamp(),
       });
     }
   }
 
-  // --- Helpers ---
+  // --- HELPERS DE CONVERSION ---
+
   Student _studentFromFiredart(fd_store.Document doc) {
     DateTime? lastTx;
     final rawDate = doc['lastTransactionAt'];

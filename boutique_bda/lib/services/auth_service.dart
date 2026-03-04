@@ -7,11 +7,19 @@ import 'package:rxdart/rxdart.dart';
 import '../models/app_user.dart';
 import 'firebase_service.dart';
 
+/// Service gérant l'authentification des utilisateurs de l'application.
+/// 
+/// Supporte nativement :
+/// - [firedart] pour le Desktop.
+/// - [firebase_auth] pour Mobile/Web.
 class AuthService {
   final FirebaseService _firebaseService = FirebaseService();
+  
+  /// Indique si l'application tourne sur un bureau (hors Web).
   static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
 
-  // Stream unifié renvoyant un AppUser
+  /// Flux unifié émettant l'utilisateur actuellement connecté ([AppUser]).
+  /// Enrichit les données de base (Firebase Auth) avec les métadonnées de Firestore.
   Stream<AppUser?> get user {
     if (isDesktopNative) {
       return fd_auth.FirebaseAuth.instance.signInState
@@ -28,6 +36,7 @@ class AuthService {
                   mustChangePassword: userDoc?['mustChangePassword'] ?? false,
                 );
               } catch (e) {
+                // Repli si le profil Auth n'est pas accessible
                 return AppUser(
                   id: uid,
                   displayName: userDoc?['displayName'],
@@ -55,6 +64,7 @@ class AuthService {
     }
   }
 
+  /// Récupère l'utilisateur actuel de manière synchrone (données minimales).
   AppUser? get currentUser {
     if (isDesktopNative) {
       if (fd_auth.FirebaseAuth.instance.isSignedIn) {
@@ -70,6 +80,7 @@ class AuthService {
     }
   }
 
+  /// Connecte un utilisateur via email/mot de passe.
   Future<void> signInWithEmail(String email, String password) async {
     if (isDesktopNative) {
       await fd_auth.FirebaseAuth.instance.signIn(email, password);
@@ -81,6 +92,7 @@ class AuthService {
     }
   }
 
+  /// Déconnecte l'utilisateur actuel.
   Future<void> signOut() async {
     if (isDesktopNative) {
       fd_auth.FirebaseAuth.instance.signOut();
@@ -89,17 +101,17 @@ class AuthService {
     }
   }
 
+  /// Inscrit un nouvel utilisateur sans déconnecter l'administrateur actuel.
+  /// 
+  /// Sur Mobile/Web, utilise une [FirebaseApp] temporaire pour isoler la session de création.
   Future<void> registerUser(String email, String name, String password) async {
     String uid;
     if (isDesktopNative) {
       await fd_auth.FirebaseAuth.instance.signUp(email, password);
       uid = fd_auth.FirebaseAuth.instance.userId;
-      // Firedart signs in automatically after signup. 
-      // This is a bit problematic if an admin does it, but on desktop we might be okay 
-      // if the admin then signs out or if we can avoid the auto-sign-in.
-      // Actually, for simplicity here, we'll assume it's acceptable or handle it.
+      // Note: Firedart connecte automatiquement l'utilisateur après signUp.
     } else {
-      // Pour Firebase JS/Mobile, on utilise une app temporaire pour ne pas déconnecter l'admin
+      // Création via une instance secondaire pour ne pas perdre la session admin
       FirebaseApp tempApp = await Firebase.initializeApp(
         name: 'TempApp-${DateTime.now().millisecondsSinceEpoch}',
         options: Firebase.app().options,
@@ -114,22 +126,18 @@ class AuthService {
       }
     }
     
-    // Création du document utilisateur dans Firestore
+    // Initialisation du document utilisateur dans Firestore
     await _firebaseService.createUserDocument(uid, email, name, true);
   }
 
+  /// Met à jour le mot de passe de l'utilisateur actuel et lève le flag [mustChangePassword].
   Future<void> updatePassword(String newPassword) async {
     if (isDesktopNative) {
-      // Firedart doesn't seem to have updatePassword directly in its API?
-      // Need to check. If not, we might need another way.
-      // For now, let's assume it has it or we'll skip for desktop if not available.
-      // Actually, Firedart's FirebaseAuth has changePassword(String newPassword)
       await fd_auth.FirebaseAuth.instance.changePassword(newPassword);
     } else {
       await fb_auth.FirebaseAuth.instance.currentUser?.updatePassword(newPassword);
     }
     
-    // Update the flag in Firestore
     final uid = currentUser?.id;
     if (uid != null) {
       await _firebaseService.updateUserPasswordFlag(uid, false);
