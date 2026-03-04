@@ -5,6 +5,7 @@ import 'package:firedart/firedart.dart' as fd_store;
 import '../models/student.dart';
 import '../models/product.dart';
 import '../models/transaction.dart';
+import '../models/payment_method.dart';
 
 class FirebaseService {
   static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
@@ -77,6 +78,43 @@ class FirebaseService {
       return fd_store.Firestore.instance.collection('products').document(product.id).update(product.toFirestore());
     } else {
       return fb_store.FirebaseFirestore.instance.collection('products').doc(product.id).update(product.toFirestore());
+    }
+  }
+
+  // --- Payment Methods ---
+  Stream<List<PaymentMethod>> getPaymentMethods() {
+    if (isDesktopNative) {
+      return Stream.fromFuture(fd_store.Firestore.instance.collection('payment_methods').get()).map(
+            (docs) => docs.map((doc) => PaymentMethod.fromMap(doc.id, doc.map)).toList(),
+          );
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('payment_methods').snapshots().map(
+            (snapshot) => snapshot.docs.map((doc) => PaymentMethod.fromFirestore(doc)).toList(),
+          );
+    }
+  }
+
+  Future<void> addPaymentMethod(PaymentMethod method) {
+    if (isDesktopNative) {
+      return fd_store.Firestore.instance.collection('payment_methods').add(method.toFirestore());
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('payment_methods').add(method.toFirestore());
+    }
+  }
+
+  Future<void> updatePaymentMethod(PaymentMethod method) {
+    if (isDesktopNative) {
+      return fd_store.Firestore.instance.collection('payment_methods').document(method.id).update(method.toFirestore());
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('payment_methods').doc(method.id).update(method.toFirestore());
+    }
+  }
+
+  Future<void> deletePaymentMethod(String id) {
+    if (isDesktopNative) {
+      return fd_store.Firestore.instance.collection('payment_methods').document(id).delete();
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('payment_methods').doc(id).delete();
     }
   }
 

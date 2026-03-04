@@ -1,58 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/payment_method.dart';
+import '../services/firebase_service.dart';
 
 class PaymentInfoScreen extends StatelessWidget {
   const PaymentInfoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> paymentMethods = [
-      {
-        'label': 'Lydia',
-        'phone': '06 12 34 56 78',
-        'link': 'https://lydia-app.com/collect/boutique-bda',
-      },
-      {
-        'label': 'Paylib',
-        'phone': '06 12 34 56 78',
-        'link': '',
-      },
-    ];
+    final firebaseService = context.read<FirebaseService>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Paiements')),
-      body: DefaultTabController(
-        length: paymentMethods.length,
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
-              child: TabBar(
-                isScrollable: true,
-                tabAlignment: TabAlignment.center,
-                indicatorSize: TabBarIndicatorSize.tab,
-                dividerColor: Colors.transparent,
-                indicator: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)]),
-                labelColor: Theme.of(context).primaryColor,
-                unselectedLabelColor: Colors.grey,
-                labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                tabs: paymentMethods.map((m) => Tab(text: m['label'])).toList(),
-              ),
+      body: StreamBuilder<List<PaymentMethod>>(
+        stream: firebaseService.getPaymentMethods(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          final methods = snapshot.data?.where((m) => m.isActive).toList() ?? [];
+
+          if (methods.isEmpty) {
+            return const Center(child: Text('Aucun moyen de paiement configuré.'));
+          }
+
+          return DefaultTabController(
+            length: methods.length,
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
+                  child: TabBar(
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)]),
+                    labelColor: Theme.of(context).primaryColor,
+                    unselectedLabelColor: Colors.grey,
+                    labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                    tabs: methods.map((m) => Tab(text: m.label)).toList(),
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: methods.map((m) => _ModernPaymentDetail(
+                      phone: m.phone,
+                      link: m.link,
+                    )).toList(),
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: TabBarView(
-                children: paymentMethods.map((m) => _ModernPaymentDetail(
-                  phone: m['phone']!,
-                  link: m['link']!,
-                )).toList(),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

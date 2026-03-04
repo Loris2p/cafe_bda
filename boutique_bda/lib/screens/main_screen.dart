@@ -10,6 +10,7 @@ import 'settings_screen.dart';
 import 'history_screen.dart';
 import 'stats_screen.dart';
 import 'product_management_screen.dart';
+import 'payment_management_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -56,6 +57,21 @@ class _MainScreenState extends State<MainScreen> {
                     selectedIcon: Icon(t.selectedIcon),
                     label: Text(t.label),
                   )).toList(),
+                  trailing: isAdmin ? Expanded(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 20.0),
+                        child: IconButton(
+                          icon: const Icon(Icons.exit_to_app, color: Colors.orange),
+                          tooltip: 'Quitter le mode Admin',
+                          onPressed: () {
+                            context.read<AdminProvider>().setAdmin(false);
+                          },
+                        ),
+                      ),
+                    ),
+                  ) : null,
                 ),
               if (isDesktop) const VerticalDivider(thickness: 1, width: 1),
               Expanded(
@@ -128,6 +144,12 @@ class _MainScreenState extends State<MainScreen> {
         icon: Icons.inventory_2_outlined,
         selectedIcon: Icons.inventory_2,
         page: const ProductManagementScreen(),
+      ),
+      _TabItem(
+        label: 'Paiements',
+        icon: Icons.payments_outlined,
+        selectedIcon: Icons.payments,
+        page: const PaymentManagementScreen(),
       ),
       _TabItem(
         label: 'Stats',

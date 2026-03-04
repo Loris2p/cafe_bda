@@ -140,6 +140,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'add_student_fab',
         onPressed: () => _showAddStudentDialog(context),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,

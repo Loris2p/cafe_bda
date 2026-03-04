@@ -67,6 +67,7 @@ class ProductManagementScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_product_fab',
         onPressed: () => _showAddProductDialog(context),
         child: const Icon(Icons.add),
       ),
