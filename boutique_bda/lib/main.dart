@@ -11,6 +11,7 @@ import 'services/auth_service.dart';
 import 'services/firebase_service.dart';
 import 'services/prefs_token_store.dart';
 import 'screens/main_screen.dart';
+import 'screens/change_password_screen.dart';
 import 'models/app_user.dart';
 import 'core/app_theme.dart';
 
@@ -36,13 +37,17 @@ class AdminProvider with ChangeNotifier {
         _isAdmin = true;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('is_admin_mode', true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mode Administrateur activé'), backgroundColor: Colors.orange),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Mode Administrateur activé'), backgroundColor: Colors.orange),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Accès refusé : vous n\'êtes pas administrateur'), backgroundColor: Colors.red),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Accès refusé : vous n\'êtes pas administrateur'), backgroundColor: Colors.red),
+          );
+        }
         _isAdmin = false;
       }
     } else {
@@ -123,9 +128,15 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<AppUser?>();
     
-    // Le StreamProvider AppUser? est déjà branché sur le bon flux (fb ou fd)
-    // donc user != null suffit à déterminer l'état.
-    return user == null ? const LoginScreen() : const MainScreen();
+    if (user == null) {
+      return const LoginScreen();
+    }
+    
+    if (user.mustChangePassword) {
+      return const ChangePasswordScreen();
+    }
+
+    return const MainScreen();
   }
 }
 

@@ -213,6 +213,51 @@ class FirebaseService {
     }
   }
 
+  // --- App Users ---
+  Future<void> createUserDocument(String uid, String email, String name, bool mustChangePassword) {
+    if (isDesktopNative) {
+      return fd_store.Firestore.instance.collection('users').document(uid).set({
+        'email': email,
+        'displayName': name,
+        'mustChangePassword': mustChangePassword,
+      });
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'email': email,
+        'displayName': name,
+        'mustChangePassword': mustChangePassword,
+        'createdAt': fb_store.FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserDocument(String uid) async {
+    try {
+      if (isDesktopNative) {
+        final doc = await fd_store.Firestore.instance.collection('users').document(uid).get();
+        return doc.map;
+      } else {
+        final doc = await fb_store.FirebaseFirestore.instance.collection('users').doc(uid).get();
+        return doc.data();
+      }
+    } catch (e) {
+      print('FirebaseService: getUserDocument ERROR: $e');
+      return null;
+    }
+  }
+
+  Future<void> updateUserPasswordFlag(String uid, bool mustChangePassword) {
+    if (isDesktopNative) {
+      return fd_store.Firestore.instance.collection('users').document(uid).update({
+        'mustChangePassword': mustChangePassword,
+      });
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('users').doc(uid).update({
+        'mustChangePassword': mustChangePassword,
+      });
+    }
+  }
+
   // --- Helpers ---
   Student _studentFromFiredart(fd_store.Document doc) {
     DateTime? lastTx;
