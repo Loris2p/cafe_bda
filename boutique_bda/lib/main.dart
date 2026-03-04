@@ -24,10 +24,18 @@ class AdminProvider with ChangeNotifier {
     'bdapaucytech@gmail.com',
   ];
 
-  void setAdmin(bool value, {String? userEmail, BuildContext? context}) {
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isAdmin = prefs.getBool('is_admin_mode') ?? false;
+    notifyListeners();
+  }
+
+  void setAdmin(bool value, {String? userEmail, BuildContext? context}) async {
     if (value && userEmail != null && context != null) {
       if (_allowedAdmins.contains(userEmail)) {
         _isAdmin = true;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('is_admin_mode', true);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Mode Administrateur activé'), backgroundColor: Colors.orange),
         );
@@ -39,6 +47,8 @@ class AdminProvider with ChangeNotifier {
       }
     } else {
       _isAdmin = value;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_admin_mode', value);
     }
     notifyListeners();
   }
@@ -47,6 +57,9 @@ class AdminProvider with ChangeNotifier {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  final adminProvider = AdminProvider();
+  await adminProvider.init();
+
   if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
     final prefs = await SharedPreferences.getInstance();
     fd.FirebaseAuth.initialize(
@@ -63,7 +76,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AdminProvider()),
+        ChangeNotifierProvider.value(value: adminProvider),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
         StreamProvider<AppUser?>(

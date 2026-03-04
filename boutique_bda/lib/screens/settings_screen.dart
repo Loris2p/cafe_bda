@@ -159,6 +159,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
+              context.read<AdminProvider>().setAdmin(false);
               context.read<AuthService>().signOut();
               Navigator.pop(context); // Quitter les paramètres
             },
