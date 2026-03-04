@@ -6,6 +6,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_service.dart';
@@ -126,6 +128,12 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return VersionCheckWrapper(
+      child: _buildAuthContent(context),
+    );
+  }
+
+  Widget _buildAuthContent(BuildContext context) {
     final user = context.watch<AppUser?>();
     
     if (user == null) {
@@ -137,6 +145,124 @@ class AuthWrapper extends StatelessWidget {
     }
 
     return const MainScreen();
+  }
+}
+
+class VersionCheckWrapper extends StatefulWidget {
+  final Widget child;
+  const VersionCheckWrapper({super.key, required this.child});
+
+  @override
+  State<VersionCheckWrapper> createState() => _VersionCheckWrapperState();
+}
+
+class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
+  bool _isChecking = true;
+  bool _needsUpdate = false;
+  String _latestVersion = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkVersion();
+  }
+
+  Future<void> _checkVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+      
+      final latestVersion = await context.read<FirebaseService>().getLatestVersion();
+      
+      if (latestVersion != null && _isVersionLower(currentVersion, latestVersion)) {
+        setState(() {
+          _needsUpdate = true;
+          _latestVersion = latestVersion;
+          _isChecking = false;
+        });
+      } else {
+        setState(() {
+          _isChecking = false;
+        });
+      }
+    } catch (e) {
+      print('Version check error: $e');
+      setState(() => _isChecking = false);
+    }
+  }
+
+  bool _isVersionLower(String current, String latest) {
+    try {
+      final v1 = current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      final v2 = latest.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      
+      for (var i = 0; i < 3; i++) {
+        final n1 = v1.length > i ? v1[i] : 0;
+        final n2 = v2.length > i ? v2[i] : 0;
+        if (n1 < n2) return true;
+        if (n1 > n2) return false;
+      }
+    } catch (e) {
+      print('Error comparing versions: $e');
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isChecking) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_needsUpdate) {
+      return Scaffold(
+        body: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.red.shade900, Colors.red.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.system_update_alt, size: 80, color: Colors.white),
+              const SizedBox(height: 24),
+              Text(
+                'Mise à jour requise',
+                style: GoogleFonts.poppins(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Une nouvelle version ($_latestVersion) est disponible. Vous devez mettre à jour l\'application pour continuer.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+              const SizedBox(height: 48),
+              ElevatedButton.icon(
+                onPressed: () => launchUrl(Uri.parse('https://github.com/Loris2p/cafe_bda/releases')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red.shade900,
+                  minimumSize: const Size(double.infinity, 60),
+                ),
+                icon: const Icon(Icons.download),
+                label: const Text('TÉLÉCHARGER LA DERNIÈRE VERSION'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return widget.child;
   }
 }
 
