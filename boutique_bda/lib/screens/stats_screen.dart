@@ -34,7 +34,13 @@ class StatsScreen extends StatelessWidget {
               totalCoffees += tx.amount.toInt();
               productsCount[tx.productName ?? 'Inconnu'] = (productsCount[tx.productName] ?? 0) + tx.amount.toInt();
             }
-            paymentMethods[tx.paymentMethod] = (paymentMethods[tx.paymentMethod] ?? 0) + 1;
+            
+            // Regroupement des méthodes "Autre"
+            String method = tx.paymentMethod;
+            if (method.startsWith('Autre')) {
+              method = 'Autre';
+            }
+            paymentMethods[method] = (paymentMethods[method] ?? 0) + 1;
           }
 
           final sortedProducts = productsCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));

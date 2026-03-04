@@ -30,44 +30,52 @@ class _DataTableWidgetState extends State<DataTableWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Stack(
-      children: [
-        Theme(
-          data: theme.copyWith(
-            cardTheme: const CardThemeData(elevation: 0, margin: EdgeInsets.zero),
-          ),
-          child: PaginatedDataTable(
-            header: null,
-            // Réduction des hauteurs pour éviter l'overflow sur Linux
-            headingRowHeight: 45,
-            dataRowMinHeight: 40,
-            dataRowMaxHeight: 50,
-            columns: widget.headers.asMap().entries.map((e) {
-              return DataColumn(
-                label: Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold)),
-                onSort: widget.onSort != null ? (index, _) => widget.onSort!(e.key) : null,
-              );
-            }).toList(),
-            source: _DataSource(widget.data),
-            rowsPerPage: _rowsPerPage,
-            availableRowsPerPage: const [10, 20, 50],
-            onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
-            showFirstLastButtons: true,
-            sortColumnIndex: widget.sortColumnIndex,
-            sortAscending: widget.sortAscending,
-          ),
-        ),
-        if (widget.isLoading)
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-              child: Container(
-                color: Colors.white.withValues(alpha: 0.2),
-                child: const Center(child: CircularProgressIndicator()),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Stack(
+          children: [
+            Theme(
+              data: theme.copyWith(
+                cardTheme: const CardThemeData(elevation: 0, margin: EdgeInsets.zero),
+              ),
+              child: SizedBox(
+                width: constraints.maxWidth,
+                child: SingleChildScrollView(
+                  child: PaginatedDataTable(
+                    header: null,
+                    headingRowHeight: 45,
+                    dataRowMinHeight: 40,
+                    dataRowMaxHeight: 50,
+                    columns: widget.headers.asMap().entries.map((e) {
+                      return DataColumn(
+                        label: Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        onSort: widget.onSort != null ? (index, _) => widget.onSort!(e.key) : null,
+                      );
+                    }).toList(),
+                    source: _DataSource(widget.data),
+                    rowsPerPage: _rowsPerPage,
+                    availableRowsPerPage: const [10, 20, 50],
+                    onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
+                    showFirstLastButtons: true,
+                    sortColumnIndex: widget.sortColumnIndex,
+                    sortAscending: widget.sortAscending,
+                  ),
+                ),
               ),
             ),
-          ),
-      ],
+            if (widget.isLoading)
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                  child: Container(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }

@@ -19,11 +19,18 @@ class _SaleScreenState extends State<SaleScreen> {
   Student? _selectedStudent;
   Product? _selectedProduct;
   String _paymentMethod = 'Crédit';
+  final TextEditingController _otherPaymentController = TextEditingController();
   bool _isProcessing = false;
 
   late Stream<List<Student>> _studentsStream;
   late Stream<List<Product>> _productsStream;
   bool _isInitialized = false;
+
+  @override
+  void dispose() {
+    _otherPaymentController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -53,6 +60,18 @@ class _SaleScreenState extends State<SaleScreen> {
             _buildSectionTitle('Mode de règlement'),
             const SizedBox(height: 12),
             _buildModernPaymentSelector(),
+            if (_paymentMethod == 'Autre') ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _otherPaymentController,
+                decoration: InputDecoration(
+                  labelText: 'Précisez le moyen de paiement',
+                  hintText: 'Ex: Chèque, BDA...',
+                  prefixIcon: const Icon(Icons.edit_note),
+                  fillColor: Colors.white,
+                ),
+              ),
+            ],
             const SizedBox(height: 32),
 
             _buildSectionTitle('Sélectionner un produit'),
@@ -188,7 +207,7 @@ class _SaleScreenState extends State<SaleScreen> {
   }
 
   Widget _buildModernPaymentSelector() {
-    final methods = ['Crédit', 'Espèces', 'Lydia'];
+    final methods = ['Crédit', 'Espèces', 'Lydia', 'Autre'];
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
@@ -259,6 +278,13 @@ class _SaleScreenState extends State<SaleScreen> {
     setState(() => _isProcessing = true);
     try {
       final user = context.read<AppUser?>();
+      
+      String finalPaymentMethod = _paymentMethod;
+      if (_paymentMethod == 'Autre') {
+        final reason = _otherPaymentController.text.trim();
+        finalPaymentMethod = 'Autre${reason.isNotEmpty ? " ($reason)" : ""}';
+      }
+
       final transaction = CafeTransaction(
         id: '',
         studentId: _selectedStudent!.id,
@@ -268,7 +294,7 @@ class _SaleScreenState extends State<SaleScreen> {
         amount: 1,
         price: _selectedProduct!.price,
         type: TransactionType.purchase,
-        paymentMethod: _paymentMethod,
+        paymentMethod: finalPaymentMethod,
         productName: _selectedProduct!.name,
         timestamp: DateTime.now(),
       );

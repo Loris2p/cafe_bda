@@ -17,12 +17,14 @@ class TopUpScreen extends StatefulWidget {
 class _TopUpScreenState extends State<TopUpScreen> {
   Student? _selectedStudent;
   final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _otherPaymentController = TextEditingController();
   String _paymentMethod = 'Espèces';
   bool _isProcessing = false;
 
   @override
   void dispose() {
     _amountController.dispose();
+    _otherPaymentController.dispose();
     super.dispose();
   }
 
@@ -62,6 +64,17 @@ class _TopUpScreenState extends State<TopUpScreen> {
             _buildSectionTitle('Moyen de paiement'),
             const SizedBox(height: 12),
             _buildModernPaymentSelector(),
+            if (_paymentMethod == 'Autre') ...[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _otherPaymentController,
+                decoration: InputDecoration(
+                  labelText: 'Précisez le moyen de paiement',
+                  hintText: 'Ex: Chèque, BDA...',
+                  prefixIcon: const Icon(Icons.edit_note),
+                ),
+              ),
+            ],
             const SizedBox(height: 48),
 
             _isProcessing
@@ -149,7 +162,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
   }
 
   Widget _buildModernPaymentSelector() {
-    final methods = ['Espèces', 'Lydia', 'Virement'];
+    final methods = ['Espèces', 'Lydia', 'Virement', 'Autre'];
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
@@ -188,6 +201,13 @@ class _TopUpScreenState extends State<TopUpScreen> {
 
     try {
       final user = context.read<AppUser?>();
+      
+      String finalPaymentMethod = _paymentMethod;
+      if (_paymentMethod == 'Autre') {
+        final reason = _otherPaymentController.text.trim();
+        finalPaymentMethod = 'Autre${reason.isNotEmpty ? " ($reason)" : ""}';
+      }
+
       final transaction = CafeTransaction(
         id: '',
         studentId: _selectedStudent!.id,
@@ -197,7 +217,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
         amount: amount,
         price: amount,
         type: TransactionType.topUp,
-        paymentMethod: _paymentMethod,
+        paymentMethod: finalPaymentMethod,
         timestamp: DateTime.now(),
       );
 
