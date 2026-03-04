@@ -5,11 +5,11 @@ import 'package:firedart/firedart.dart' as fd_auth;
 import '../models/app_user.dart';
 
 class AuthService {
-  static bool get isLinuxNative => !kIsWeb && Platform.isLinux;
+  static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
 
   // Stream unifié renvoyant un AppUser
   Stream<AppUser?> get user {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       return fd_auth.FirebaseAuth.instance.signInState.map((isSignedIn) {
         if (isSignedIn) {
           // Firedart ne donne pas toujours l'email dans le stream, on peut le récupérer si besoin
@@ -32,7 +32,7 @@ class AuthService {
   }
 
   AppUser? get currentUser {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       if (fd_auth.FirebaseAuth.instance.isSignedIn) {
         return AppUser(id: fd_auth.FirebaseAuth.instance.userId);
       }
@@ -47,7 +47,7 @@ class AuthService {
   }
 
   Future<void> signInWithEmail(String email, String password) async {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       await fd_auth.FirebaseAuth.instance.signIn(email, password);
     } else {
       await fb_auth.FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -58,7 +58,7 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       fd_auth.FirebaseAuth.instance.signOut();
     } else {
       await fb_auth.FirebaseAuth.instance.signOut();

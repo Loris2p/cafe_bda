@@ -1,0 +1,1 @@
+{"version":3,"file":"shortcutsHelp.js","sourceRoot":"","sources":["../../../../src/ui/utils/shortcutsHelp.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAEH,OAAO,EAAE,OAAO,EAAE,WAAW,EAAE,MAAM,mBAAmB,CAAC;AAGzD,MAAM,UAAU,kCAAkC,CAAC,GAAQ;IACzD,OAAO,MAAM,CAAC,MAAM,CAAC,OAAO,CAAC,CAAC,IAAI,CAAC,CAAC,OAAO,EAAE,EAAE,CAAC,WAAW,CAAC,OAAO,CAAC,CAAC,GAAG,CAAC,CAAC,CAAC;AAC7E,CAAC"}

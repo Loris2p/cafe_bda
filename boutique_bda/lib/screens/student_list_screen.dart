@@ -88,6 +88,29 @@ class _StudentListScreenState extends State<StudentListScreen> {
               child: StreamBuilder<List<Student>>(
                 stream: _studentsStream,
                 builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Erreur lors du chargement des membres',
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(snapshot.error.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                            const SizedBox(height: 16),
+                            ElevatedButton(onPressed: _refresh, child: const Text('Réessayer')),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
                   final isLoading = snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData;
                   final students = snapshot.data ?? [];
                   

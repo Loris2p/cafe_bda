@@ -7,25 +7,36 @@ import '../models/product.dart';
 import '../models/transaction.dart';
 
 class FirebaseService {
-  static bool get isLinuxNative => !kIsWeb && Platform.isLinux;
+  static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
 
   // --- Students ---
   Stream<List<Student>> getStudents() {
-    if (isLinuxNative) {
+    print('FirebaseService: getStudents called (isDesktopNative: $isDesktopNative)');
+    if (isDesktopNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('students').get()).map(
             (docs) {
+              print('FirebaseService: getStudents (Linux) returned ${docs.length} docs');
               return docs.map((doc) => _studentFromFiredart(doc)).toList();
             },
-          );
+          ).handleError((error) {
+            print('FirebaseService: getStudents (Linux) ERROR: $error');
+            throw error;
+          });
     } else {
       return fb_store.FirebaseFirestore.instance.collection('students').orderBy('lastName').snapshots().map(
-            (snapshot) => snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList(),
-          );
+            (snapshot) {
+              print('FirebaseService: getStudents (FB) returned ${snapshot.docs.length} docs');
+              return snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList();
+            },
+          ).handleError((error) {
+            print('FirebaseService: getStudents (FB) ERROR: $error');
+            throw error;
+          });
     }
   }
 
   Future<void> addStudent(Student student) {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('students').document(student.studentId).set(student.toFirestore());
     } else {
       return fb_store.FirebaseFirestore.instance.collection('students').doc(student.studentId).set(student.toFirestore());
@@ -33,7 +44,7 @@ class FirebaseService {
   }
 
   Future<void> updateStudent(Student student) {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('students').document(student.id).update(student.toFirestore());
     } else {
       return fb_store.FirebaseFirestore.instance.collection('students').doc(student.id).update(student.toFirestore());
@@ -42,7 +53,7 @@ class FirebaseService {
 
   // --- Products ---
   Stream<List<Product>> getProducts() {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('products').get()).map(
             (docs) => docs.map((doc) => _productFromFiredart(doc)).toList(),
           );
@@ -54,7 +65,7 @@ class FirebaseService {
   }
 
   Future<void> addProduct(Product product) {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('products').add(product.toFirestore());
     } else {
       return fb_store.FirebaseFirestore.instance.collection('products').add(product.toFirestore());
@@ -62,7 +73,7 @@ class FirebaseService {
   }
 
   Future<void> updateProduct(Product product) {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('products').document(product.id).update(product.toFirestore());
     } else {
       return fb_store.FirebaseFirestore.instance.collection('products').doc(product.id).update(product.toFirestore());
@@ -71,7 +82,7 @@ class FirebaseService {
 
   // --- Transactions ---
   Future<void> addTransaction(CafeTransaction transaction) async {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       await fd_store.Firestore.instance.collection('transactions').add(transaction.toFirestore());
       
       final studentRef = fd_store.Firestore.instance.collection('students').document(transaction.studentId);
@@ -148,7 +159,7 @@ class FirebaseService {
   }
 
   Stream<List<CafeTransaction>> getRecentTransactions({int limit = 20}) {
-    if (isLinuxNative) {
+    if (isDesktopNative) {
       return Stream.fromFuture(fd_store.Firestore.instance.collection('transactions').get()).map(
             (docs) => docs.map((doc) => _transactionFromFiredart(doc)).toList(),
           );

@@ -47,7 +47,7 @@ class AdminProvider with ChangeNotifier {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  if (!kIsWeb && Platform.isLinux) {
+  if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
     final prefs = await SharedPreferences.getInstance();
     fd.FirebaseAuth.initialize(
       DefaultFirebaseOptions.windows.apiKey, 
