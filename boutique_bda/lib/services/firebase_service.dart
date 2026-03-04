@@ -258,6 +258,37 @@ class FirebaseService {
     }
   }
 
+  // --- App Version ---
+  Future<String?> getLatestVersion() async {
+    try {
+      if (isDesktopNative) {
+        final doc = await fd_store.Firestore.instance.collection('config').document('app_version').get();
+        return doc.map['latest'];
+      } else {
+        final doc = await fb_store.FirebaseFirestore.instance.collection('config').doc('app_version').get();
+        final data = doc.data();
+        return data?['latest'] as String?;
+      }
+    } catch (e) {
+      print('FirebaseService: getLatestVersion ERROR: $e');
+      return null;
+    }
+  }
+
+  Future<void> updateRemoteVersion(String version) {
+    if (isDesktopNative) {
+      return fd_store.Firestore.instance.collection('config').document('app_version').set({
+        'latest': version,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+    } else {
+      return fb_store.FirebaseFirestore.instance.collection('config').doc('app_version').set({
+        'latest': version,
+        'updatedAt': fb_store.FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
   // --- Helpers ---
   Student _studentFromFiredart(fd_store.Document doc) {
     DateTime? lastTx;
