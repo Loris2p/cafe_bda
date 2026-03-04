@@ -21,26 +21,44 @@ class StudentSearchDelegate extends SearchDelegate<Student?> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return _buildList();
+    final suggestions = _getFilteredList();
+
+    // Si un seul résultat, on le sélectionne automatiquement lors de la validation (Entrée)
+    if (suggestions.length == 1) {
+      final student = suggestions.first;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        close(context, student);
+      });
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return _buildList(suggestions);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return _buildList();
+    return _buildList(_getFilteredList());
   }
 
-  Widget _buildList() {
-    final suggestions = students.where((s) {
+  List<Student> _getFilteredList() {
+    return students.where((s) {
       return s.fullName.toLowerCase().contains(query.toLowerCase()) ||
           s.studentId.contains(query);
     }).toList();
+  }
+
+  Widget _buildList(List<Student> suggestions) {
+    if (suggestions.isEmpty) {
+      return const Center(child: Text('Aucun membre trouvé.'));
+    }
 
     return ListView.builder(
       itemCount: suggestions.length,
       itemBuilder: (context, index) {
         final student = suggestions[index];
         return ListTile(
-          title: Text(student.fullName),
+          leading: CircleAvatar(child: Text(student.lastName[0])),
+          title: Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
           subtitle: Text('Matricule: ${student.studentId}'),
           trailing: Text('${student.balance.toStringAsFixed(2)} €'),
           onTap: () => close(context, student),

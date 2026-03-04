@@ -50,12 +50,10 @@ class _SaleScreenState extends State<SaleScreen> {
             _buildStudentSelector(),
             const SizedBox(height: 32),
 
-            if (_selectedStudent != null) ...[
-              _buildSectionTitle('Mode de règlement'),
-              const SizedBox(height: 12),
-              _buildModernPaymentSelector(),
-              const SizedBox(height: 32),
-            ],
+            _buildSectionTitle('Mode de règlement'),
+            const SizedBox(height: 12),
+            _buildModernPaymentSelector(),
+            const SizedBox(height: 32),
 
             _buildSectionTitle('Sélectionner un produit'),
             const SizedBox(height: 12),

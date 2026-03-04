@@ -87,15 +87,17 @@ class FirebaseService {
       if (transaction.type == TransactionType.purchase) {
         boughtChange = transaction.amount.toInt();
         if (transaction.paymentMethod == 'Crédit') {
-          balanceChange = -transaction.amount;
+          // IMPORTANT: On retire le PRIX (Euros) et non l'amount (Quantité)
+          balanceChange = -transaction.price;
         }
+        // Calcul fidélité : 1 café offert (valeur 0.50€) tous les 10 achetés
         int newTotalBought = currentTotalBought + boughtChange;
         int nBonus = (newTotalBought ~/ 10).toInt();
         int cBonus = (currentTotalBought ~/ 10).toInt();
         bonusChange = nBonus - cBonus;
-        balanceChange += bonusChange;
+        balanceChange += (bonusChange * 0.50); // Le bonus crédite 0.50€ par café offert
       } else {
-        balanceChange = transaction.amount;
+        balanceChange = transaction.amount; // En rechargement, amount = Euros
       }
 
       await studentRef.update({
@@ -121,13 +123,13 @@ class FirebaseService {
         if (transaction.type == TransactionType.purchase) {
           boughtChange = transaction.amount.toInt();
           if (transaction.paymentMethod == 'Crédit') {
-            balanceChange = -transaction.amount;
+            balanceChange = -transaction.price; // On retire le PRIX (Euros)
           }
           int newTotalBought = currentTotalBought + boughtChange;
           int nBonus = (newTotalBought ~/ 10).toInt();
           int cBonus = (currentTotalBought ~/ 10).toInt();
           bonusChange = nBonus - cBonus;
-          balanceChange += bonusChange;
+          balanceChange += (bonusChange * 0.50);
         } else {
           balanceChange = transaction.amount;
         }
@@ -162,16 +164,13 @@ class FirebaseService {
     }
   }
 
-  // --- Helpers de conversion robustes ---
+  // --- Helpers ---
   Student _studentFromFiredart(fd_store.Document doc) {
     DateTime? lastTx;
     final rawDate = doc['lastTransactionAt'];
     if (rawDate != null) {
-      if (rawDate is DateTime) {
-        lastTx = rawDate;
-      } else if (rawDate is String) {
-        lastTx = DateTime.tryParse(rawDate);
-      }
+      if (rawDate is DateTime) lastTx = rawDate;
+      else if (rawDate is String) lastTx = DateTime.tryParse(rawDate);
     }
 
     return Student(
@@ -201,11 +200,8 @@ class FirebaseService {
     DateTime? ts;
     final rawDate = doc['timestamp'];
     if (rawDate != null) {
-      if (rawDate is DateTime) {
-        ts = rawDate;
-      } else if (rawDate is String) {
-        ts = DateTime.tryParse(rawDate);
-      }
+      if (rawDate is DateTime) ts = rawDate;
+      else if (rawDate is String) ts = DateTime.tryParse(rawDate);
     }
 
     return CafeTransaction(
