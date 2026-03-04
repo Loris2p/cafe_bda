@@ -25,6 +25,72 @@ class DataTableWidget extends StatefulWidget {
 
 class _DataTableWidgetState extends State<DataTableWidget> {
   int _rowsPerPage = 10;
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
+  late List<List<dynamic>> _sortedData;
+
+  @override
+  void initState() {
+    super.initState();
+    _sortedData = List.from(widget.data);
+  }
+
+  @override
+  void didUpdateWidget(DataTableWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.data != oldWidget.data) {
+      _applySort();
+    }
+  }
+
+  void _applySort() {
+    setState(() {
+      _sortedData = List.from(widget.data);
+      if (_sortColumnIndex != null) {
+        _performSort(_sortColumnIndex!, _sortAscending);
+      }
+    });
+  }
+
+  void _performSort(int columnIndex, bool ascending) {
+    _sortedData.sort((a, b) {
+      final aValue = a[columnIndex];
+      final bValue = b[columnIndex];
+
+      if (aValue == null) return ascending ? -1 : 1;
+      if (bValue == null) return ascending ? 1 : -1;
+
+      // Gestion du tri pour les types connus (numérique ou string)
+      if (aValue is num && bValue is num) {
+        return ascending ? aValue.compareTo(bValue) : bValue.compareTo(aValue);
+      }
+      
+      // Nettoyage pour les montants (ex: "10.00 €")
+      String aStr = aValue.toString();
+      String bStr = bValue.toString();
+      
+      if (aStr.contains('€')) {
+        double? aNum = double.tryParse(aStr.replaceAll(' €', '').replaceAll(',', '.'));
+        double? bNum = double.tryParse(bStr.replaceAll(' €', '').replaceAll(',', '.'));
+        if (aNum != null && bNum != null) {
+          return ascending ? aNum.compareTo(bNum) : bNum.compareTo(aNum);
+        }
+      }
+
+      return ascending ? aStr.compareTo(bStr) : bStr.compareTo(aStr);
+    });
+  }
+
+  void _onSort(int columnIndex, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+      _performSort(columnIndex, ascending);
+    });
+    if (widget.onSort != null) {
+      widget.onSort!(columnIndex);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,28 +103,35 @@ class _DataTableWidgetState extends State<DataTableWidget> {
             Theme(
               data: theme.copyWith(
                 cardTheme: const CardThemeData(elevation: 0, margin: EdgeInsets.zero),
+                dataTableTheme: DataTableThemeData(
+                  headingRowColor: WidgetStateProperty.all(theme.colorScheme.primary.withValues(alpha: 0.1)),
+                  headingTextStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
               ),
               child: SizedBox(
                 width: constraints.maxWidth,
                 child: SingleChildScrollView(
                   child: PaginatedDataTable(
                     header: null,
-                    headingRowHeight: 45,
+                    headingRowHeight: 50,
                     dataRowMinHeight: 40,
-                    dataRowMaxHeight: 50,
+                    dataRowMaxHeight: 55,
                     columns: widget.headers.asMap().entries.map((e) {
                       return DataColumn(
-                        label: Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        onSort: widget.onSort != null ? (index, _) => widget.onSort!(e.key) : null,
+                        label: Text(e.value),
+                        onSort: (index, ascending) => _onSort(index, ascending),
                       );
                     }).toList(),
-                    source: _DataSource(widget.data),
+                    source: _DataSource(_sortedData),
                     rowsPerPage: _rowsPerPage,
                     availableRowsPerPage: const [10, 20, 50],
                     onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
                     showFirstLastButtons: true,
-                    sortColumnIndex: widget.sortColumnIndex,
-                    sortAscending: widget.sortAscending,
+                    sortColumnIndex: _sortColumnIndex,
+                    sortAscending: _sortAscending,
                   ),
                 ),
               ),
