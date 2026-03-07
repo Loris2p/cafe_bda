@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/student.dart';
 import '../services/firebase_service.dart';
 import '../widgets/data_table_widget.dart';
+import '../main.dart';
 
 class StudentListScreen extends StatefulWidget {
   const StudentListScreen({super.key});
@@ -125,13 +126,15 @@ class _StudentListScreenState extends State<StudentListScreen> {
                     s.studentId,
                     s.classGroup,
                     '${s.balance.toStringAsFixed(2)} €',
-                    s.loyaltyBonus.toString(),
+                    s.totalBought,
+                    s.loyaltyBonus,
                   ]).toList();
 
                   return DataTableWidget(
-                    headers: const ['Nom', 'Prénom', 'ID', 'Classe', 'Solde', 'Fid.'],
+                    headers: const ['Nom', 'Prénom', 'ID', 'Classe', 'Solde', 'Pris', 'Fid.'],
                     data: dataRows,
                     isLoading: isLoading,
+                    onRowTap: (index) => _showStudentDetails(context, filteredStudents[index]),
                   );
                 },
               ),
@@ -151,17 +154,27 @@ class _StudentListScreenState extends State<StudentListScreen> {
   }
 
   void _showAddStudentDialog(BuildContext context) {
-    final firstNameController = TextEditingController();
-    final lastNameController = TextEditingController();
-    final idController = TextEditingController();
-    final classController = TextEditingController();
+    _showStudentFormDialog(context);
+  }
+
+  void _showEditStudentDialog(BuildContext context, Student student) {
+    _showStudentFormDialog(context, student: student);
+  }
+
+  void _showStudentFormDialog(BuildContext context, {Student? student}) {
+    final isEdit = student != null;
+    final firstNameController = TextEditingController(text: student?.firstName);
+    final lastNameController = TextEditingController(text: student?.lastName);
+    final idController = TextEditingController(text: student?.studentId);
+    final classController = TextEditingController(text: student?.classGroup);
+    final balanceController = TextEditingController(text: student?.balance.toStringAsFixed(2));
     final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: Text('Ajouter un Étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text(isEdit ? 'Modifier l\'Étudiant' : 'Ajouter un Étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
@@ -172,9 +185,13 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 const SizedBox(height: 16),
                 _buildField(lastNameController, 'Nom'),
                 const SizedBox(height: 16),
-                _buildField(idController, 'N° Étudiant', isNumeric: true),
+                _buildField(idController, 'N° Étudiant', isNumeric: true, enabled: !isEdit),
                 const SizedBox(height: 16),
                 _buildField(classController, 'Classe / Groupe'),
+                if (isEdit) ...[
+                  const SizedBox(height: 16),
+                  _buildField(balanceController, 'Solde (€)', isNumeric: true),
+                ],
               ],
             ),
           ),
@@ -185,21 +202,29 @@ class _StudentListScreenState extends State<StudentListScreen> {
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
-                final newStudent = Student(
-                  id: '', 
+                final studentData = Student(
+                  id: student?.id ?? '', 
                   firstName: firstNameController.text.trim(),
                   lastName: lastNameController.text.trim(),
                   studentId: idController.text.trim(),
                   classGroup: classController.text.trim(),
+                  balance: isEdit ? (double.tryParse(balanceController.text.replaceAll(',', '.')) ?? student.balance) : 0.0,
+                  loyaltyBonus: student?.loyaltyBonus ?? 0,
+                  totalBought: student?.totalBought ?? 0,
+                  lastTransactionAt: student?.lastTransactionAt,
                 );
                 
                 try {
-                  await context.read<FirebaseService>().addStudent(newStudent);
+                  final service = context.read<FirebaseService>();
+                  if (isEdit) {
+                    await service.updateStudent(studentData);
+                  } else {
+                    await service.addStudent(studentData);
+                  }
                   
                   if (!ctx.mounted) return;
-                  Navigator.pop(ctx); // Ferme le dialogue d'ajout
+                  Navigator.pop(ctx);
 
-                  // Affichage d'une popup de succès
                   if (context.mounted) {
                     await showDialog(
                       context: context,
@@ -209,48 +234,116 @@ class _StudentListScreenState extends State<StudentListScreen> {
                           children: [
                             Icon(Icons.check_circle, color: Colors.green, size: 30),
                             SizedBox(width: 12),
-                            Text('Étudiant ajouté'),
+                            Text('Succès'),
                           ],
                         ),
-                        content: Text(
-                          'L\'étudiant ${newStudent.fullName} a été créé avec succès.',
-                          style: GoogleFonts.poppins(),
-                        ),
+                        content: Text('Les informations de ${studentData.fullName} ont été enregistrées.'),
                         actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(successCtx),
-                            child: const Text('OK'),
-                          ),
+                          TextButton(onPressed: () => Navigator.pop(successCtx), child: const Text('OK')),
                         ],
                       ),
                     );
                   }
                   _refresh();
                 } catch (e) {
-                  scaffoldMessenger.showSnackBar(
-                    SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red)
-                  );
+                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
                 }
               }
             },
-            child: const Text('Ajouter'),
+            child: Text(isEdit ? 'Enregistrer' : 'Ajouter'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildField(TextEditingController controller, String label, {bool isNumeric = false}) {
+  Widget _buildField(TextEditingController controller, String label, {bool isNumeric = false, bool enabled = true}) {
     return TextFormField(
       controller: controller,
-      keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+      enabled: enabled,
+      keyboardType: isNumeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: Colors.grey.shade50,
+        fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade200,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
       ),
       validator: (v) => v!.isEmpty ? 'Requis' : null,
+    );
+  }
+
+  void _showStudentDetails(BuildContext context, Student student) {
+    final isAdmin = context.read<AdminProvider>().isAdmin;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text(student.fullName, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _InfoRow(label: 'N° Étudiant', value: student.studentId),
+            _InfoRow(label: 'Classe', value: student.classGroup),
+            const Divider(height: 32),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: student.balance >= 0 ? Colors.green.shade50 : Colors.red.shade50,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Solde', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                  Text('${student.balance.toStringAsFixed(2)} €', 
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 24, color: student.balance >= 0 ? Colors.green : Colors.red)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer')),
+          if (isAdmin)
+            ElevatedButton.icon(
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showEditStudentDialog(context, student);
+              },
+              label: const Text('Modifier'),
+            )
+          else
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.read<TabProvider>().setTab(1); // Index 1 est 'Vendre'
+              },
+              child: const Text('Vendre'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _InfoRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }

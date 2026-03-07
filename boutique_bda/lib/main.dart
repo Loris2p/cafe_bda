@@ -29,10 +29,10 @@ class AdminProvider with ChangeNotifier {
     'bdapaucytech@gmail.com',
   ];
 
-  /// Initialise l'état admin à partir des préférences locales.
+  /// Initialise l'état admin.
+  /// Par défaut, le mode admin est toujours désactivé au lancement.
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isAdmin = prefs.getBool('is_admin_mode') ?? false;
+    _isAdmin = false;
     notifyListeners();
   }
 

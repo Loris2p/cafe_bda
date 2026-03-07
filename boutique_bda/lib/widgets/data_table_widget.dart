@@ -6,6 +6,7 @@ class DataTableWidget extends StatefulWidget {
   final List<List<dynamic>> data;
   final bool isLoading;
   final Function(int)? onSort;
+  final Function(int)? onRowTap;
   final int? sortColumnIndex;
   final bool sortAscending;
 
@@ -15,6 +16,7 @@ class DataTableWidget extends StatefulWidget {
     required this.data,
     this.isLoading = false,
     this.onSort,
+    this.onRowTap,
     this.sortColumnIndex,
     this.sortAscending = true,
   });
@@ -54,30 +56,29 @@ class _DataTableWidgetState extends State<DataTableWidget> {
 
   void _performSort(int columnIndex, bool ascending) {
     _sortedData.sort((a, b) {
-      final aValue = a[columnIndex];
-      final bValue = b[columnIndex];
+      dynamic aValue = a[columnIndex];
+      dynamic bValue = b[columnIndex];
 
       if (aValue == null) return ascending ? -1 : 1;
       if (bValue == null) return ascending ? 1 : -1;
 
-      // Gestion du tri pour les types connus (numérique ou string)
+      // Tri numérique direct si les valeurs sont des nombres
       if (aValue is num && bValue is num) {
         return ascending ? aValue.compareTo(bValue) : bValue.compareTo(aValue);
       }
       
-      // Nettoyage pour les montants (ex: "10.00 €")
+      // Gestion spéciale pour les montants affichés (ex: "10.00 €")
       String aStr = aValue.toString();
       String bStr = bValue.toString();
       
       if (aStr.contains('€')) {
-        double? aNum = double.tryParse(aStr.replaceAll(' €', '').replaceAll(',', '.'));
-        double? bNum = double.tryParse(bStr.replaceAll(' €', '').replaceAll(',', '.'));
-        if (aNum != null && bNum != null) {
-          return ascending ? aNum.compareTo(bNum) : bNum.compareTo(aNum);
-        }
+        double aNum = double.tryParse(aStr.replaceAll(' €', '').replaceAll(',', '.')) ?? 0.0;
+        double bNum = double.tryParse(bStr.replaceAll(' €', '').replaceAll(',', '.')) ?? 0.0;
+        return ascending ? aNum.compareTo(bNum) : bNum.compareTo(aNum);
       }
 
-      return ascending ? aStr.compareTo(bStr) : bStr.compareTo(aStr);
+      // Tri textuel par défaut (insensible à la casse)
+      return ascending ? aStr.toLowerCase().compareTo(bStr.toLowerCase()) : bStr.toLowerCase().compareTo(aStr.toLowerCase());
     });
   }
 
@@ -116,6 +117,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
                 child: SingleChildScrollView(
                   child: PaginatedDataTable(
                     header: null,
+                    showCheckboxColumn: false,
                     headingRowHeight: 50,
                     dataRowMinHeight: 40,
                     dataRowMaxHeight: 55,
@@ -125,7 +127,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
                         onSort: (index, ascending) => _onSort(index, ascending),
                       );
                     }).toList(),
-                    source: _DataSource(_sortedData),
+                    source: _DataSource(_sortedData, widget.onRowTap),
                     rowsPerPage: _rowsPerPage,
                     availableRowsPerPage: const [10, 20, 50],
                     onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
@@ -155,13 +157,15 @@ class _DataTableWidgetState extends State<DataTableWidget> {
 
 class _DataSource extends DataTableSource {
   final List<List<dynamic>> data;
-  _DataSource(this.data);
+  final Function(int)? onRowTap;
+  _DataSource(this.data, this.onRowTap);
 
   @override
   DataRow? getRow(int index) {
     if (index >= data.length) return null;
     final row = data[index];
     return DataRow(
+      onSelectChanged: onRowTap != null ? (_) => onRowTap!(index) : null,
       cells: row.map((cell) {
         return DataCell(SelectableText(cell?.toString() ?? ''));
       }).toList(),
