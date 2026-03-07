@@ -6,6 +6,7 @@ import '../models/student.dart';
 import '../models/product.dart';
 import '../models/transaction.dart';
 import '../models/payment_method.dart';
+import '../core/utils.dart';
 
 /// Service central gérant toutes les opérations de données avec Firebase Firestore.
 /// 
@@ -16,7 +17,7 @@ class FirebaseService {
   /// Indique si l'application tourne sur un bureau (hors Web).
   static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
 
-  // --- ÉTUDIANTS (MEMBRES) ---
+  // --- ÉTUDIANTS ---
 
   /// Récupère le flux des étudiants inscrits.
   /// Note: Sur Desktop, le flux est simulé à partir d'un Future unique.
@@ -32,7 +33,7 @@ class FirebaseService {
     }
   }
 
-  /// Ajoute un nouvel étudiant. L'ID du document est son matricule (studentId).
+  /// Ajoute un nouvel étudiant. L'ID du document est son N° Étudiant (studentId).
   Future<void> addStudent(Student student) {
     if (isDesktopNative) {
       return fd_store.Firestore.instance.collection('students').document(student.studentId).set(student.toFirestore());
@@ -133,9 +134,9 @@ class FirebaseService {
       final studentRef = fd_store.Firestore.instance.collection('students').document(transaction.studentId);
       final studentDoc = await studentRef.get();
       
-      final double currentBalance = (studentDoc['balance'] ?? 0.0).toDouble();
-      final int currentTotalBought = (studentDoc['totalBought'] ?? 0).toInt();
-      final int currentLoyaltyBonus = (studentDoc['loyaltyBonus'] ?? 0).toInt();
+      final double currentBalance = parseDouble(studentDoc['balance']);
+      final int currentTotalBought = parseInt(studentDoc['totalBought']);
+      final int currentLoyaltyBonus = parseInt(studentDoc['loyaltyBonus']);
       
       double balanceChange = 0;
       int boughtChange = 0;
@@ -167,9 +168,9 @@ class FirebaseService {
         if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
 
         final studentData = studentSnapshot.data()!;
-        final double currentBalance = (studentData['balance'] ?? 0.0).toDouble();
-        final int currentTotalBought = (studentData['totalBought'] ?? 0).toInt();
-        final int currentLoyaltyBonus = (studentData['loyaltyBonus'] ?? 0).toInt();
+        final double currentBalance = parseDouble(studentData['balance']);
+        final int currentTotalBought = parseInt(studentData['totalBought']);
+        final int currentLoyaltyBonus = parseInt(studentData['loyaltyBonus']);
 
         double balanceChange = 0;
         int boughtChange = 0;
@@ -298,13 +299,6 @@ class FirebaseService {
   // --- HELPERS DE CONVERSION ---
 
   Student _studentFromFiredart(fd_store.Document doc) {
-    DateTime? lastTx;
-    final rawDate = doc['lastTransactionAt'];
-    if (rawDate != null) {
-      if (rawDate is DateTime) lastTx = rawDate;
-      else if (rawDate is String) lastTx = DateTime.tryParse(rawDate);
-    }
-
     return Student(
       id: doc.id,
       firstName: doc['firstName'] ?? '',
@@ -314,7 +308,7 @@ class FirebaseService {
       balance: (doc['balance'] ?? 0.0).toDouble(),
       loyaltyBonus: (doc['loyaltyBonus'] ?? 0).toInt(),
       totalBought: (doc['totalBought'] ?? 0).toInt(),
-      lastTransactionAt: lastTx,
+      lastTransactionAt: parseFirestoreDate(doc['lastTransactionAt']),
     );
   }
 
@@ -329,13 +323,6 @@ class FirebaseService {
   }
 
   CafeTransaction _transactionFromFiredart(fd_store.Document doc) {
-    DateTime? ts;
-    final rawDate = doc['timestamp'];
-    if (rawDate != null) {
-      if (rawDate is DateTime) ts = rawDate;
-      else if (rawDate is String) ts = DateTime.tryParse(rawDate);
-    }
-
     return CafeTransaction(
       id: doc.id,
       studentId: doc['studentId'] ?? '',
@@ -347,7 +334,7 @@ class FirebaseService {
       type: doc['type'] == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
       paymentMethod: doc['paymentMethod'] ?? '',
       productName: doc['productName'],
-      timestamp: ts ?? DateTime.now(),
+      timestamp: parseRequiredFirestoreDate(doc['timestamp']),
     );
   }
 }

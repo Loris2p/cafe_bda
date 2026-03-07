@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../core/utils.dart';
 
 /// Type de transaction financière.
 enum TransactionType { purchase, topUp }
@@ -53,12 +54,12 @@ class CafeTransaction {
       studentName: data['studentName'] ?? '',
       responsibleId: data['responsibleId'] ?? '',
       responsibleName: data['responsibleName'] ?? '',
-      amount: (data['amount'] ?? 0.0).toDouble(),
-      price: (data['price'] ?? 0.0).toDouble(),
+      amount: parseDouble(data['amount']),
+      price: parseDouble(data['price']),
       type: data['type'] == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
       paymentMethod: data['paymentMethod'] ?? '',
       productName: data['productName'],
-      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      timestamp: parseRequiredFirestoreDate(data['timestamp']),
     );
   }
 
@@ -73,7 +74,7 @@ class CafeTransaction {
       'type': type == TransactionType.topUp ? 'topUp' : 'purchase',
       'paymentMethod': paymentMethod,
       'productName': productName,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'timestamp': timestamp,
     };
   }
 }

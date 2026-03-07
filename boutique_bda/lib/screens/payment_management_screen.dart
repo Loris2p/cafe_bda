@@ -111,16 +111,43 @@ class PaymentManagementScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final label = labelController.text.trim();
               if (label.isNotEmpty) {
-                context.read<FirebaseService>().addPaymentMethod(PaymentMethod(
-                  id: '', 
-                  label: label, 
-                  phone: phoneController.text.trim(),
-                  link: linkController.text.trim(),
-                ));
-                Navigator.pop(ctx);
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                try {
+                  await context.read<FirebaseService>().addPaymentMethod(PaymentMethod(
+                    id: '', 
+                    label: label, 
+                    phone: phoneController.text.trim(),
+                    link: linkController.text.trim(),
+                  ));
+                  
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+
+                  if (context.mounted) {
+                    await showDialog(
+                      context: context,
+                      builder: (successCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        title: const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            SizedBox(width: 12),
+                            Text('Moyen ajouté'),
+                          ],
+                        ),
+                        content: Text('Le moyen de paiement "$label" a été configuré.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(successCtx), child: const Text('OK')),
+                        ],
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+                }
               }
             },
             child: const Text('Ajouter'),
@@ -152,17 +179,44 @@ class PaymentManagementScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final label = labelController.text.trim();
               if (label.isNotEmpty) {
-                context.read<FirebaseService>().updatePaymentMethod(PaymentMethod(
-                  id: m.id, 
-                  label: label, 
-                  phone: phoneController.text.trim(),
-                  link: linkController.text.trim(),
-                  isActive: m.isActive,
-                ));
-                Navigator.pop(ctx);
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                try {
+                  await context.read<FirebaseService>().updatePaymentMethod(PaymentMethod(
+                    id: m.id, 
+                    label: label, 
+                    phone: phoneController.text.trim(),
+                    link: linkController.text.trim(),
+                    isActive: m.isActive,
+                  ));
+                  
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+
+                  if (context.mounted) {
+                    await showDialog(
+                      context: context,
+                      builder: (successCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        title: const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            SizedBox(width: 12),
+                            Text('Moyen modifié'),
+                          ],
+                        ),
+                        content: Text('Le moyen de paiement "$label" a été mis à jour.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(successCtx), child: const Text('OK')),
+                        ],
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+                }
               }
             },
             child: const Text('Enregistrer'),
@@ -181,9 +235,15 @@ class PaymentManagementScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           TextButton(
-            onPressed: () {
-              context.read<FirebaseService>().deletePaymentMethod(m.id);
-              Navigator.pop(ctx);
+            onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              try {
+                await context.read<FirebaseService>().deletePaymentMethod(m.id);
+                if (!ctx.mounted) return;
+                Navigator.pop(ctx);
+              } catch (e) {
+                scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+              }
             },
             child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
           ),

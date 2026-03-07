@@ -6,6 +6,9 @@ import '../models/student.dart';
 import '../widgets/student_search_delegate.dart';
 import '../main.dart';
 import 'settings_screen.dart';
+import 'sale_screen.dart';
+import 'top_up_screen.dart';
+import 'student_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -193,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 16),
                 Text(
-                  'Rechercher un membre...',
+                  'Rechercher un Étudiant...',
                   style: GoogleFonts.poppins(color: Colors.black45, fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const Spacer(),
@@ -215,6 +218,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildModernGrid(BuildContext context) {
     final tabProvider = context.read<TabProvider>();
+    final isAdmin = context.read<AdminProvider>().isAdmin;
+    
+    // Si on est admin, la grille doit pointer vers les onglets admin correspondants
+    // ou rester cohérente avec la barre de navigation.
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -228,28 +235,55 @@ class _HomeScreenState extends State<HomeScreen> {
           subtitle: 'Nouvelle commande',
           icon: Icons.shopping_bag_outlined,
           color: const Color(0xFF4CAF50),
-          onTap: () => tabProvider.setTab(1),
+          onTap: () {
+            if (isAdmin) {
+              // En mode admin, "Vendre" n'est pas dans la barre, on peut soit
+              // rediriger vers Produits (1) soit ouvrir l'écran de vente
+              Navigator.push(context, MaterialPageRoute(builder: (_) => SaleScreen()));
+            } else {
+              tabProvider.setTab(1);
+            }
+          },
         ),
         _ModernCard(
           title: 'Créditer',
           subtitle: 'Recharger compte',
           icon: Icons.account_balance_wallet_outlined,
           color: const Color(0xFF2196F3),
-          onTap: () => tabProvider.setTab(2),
+          onTap: () {
+            if (isAdmin) {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => TopUpScreen()));
+            } else {
+              tabProvider.setTab(2);
+            }
+          },
         ),
         _ModernCard(
-          title: 'Membres',
+          title: 'Étudiants',
           subtitle: 'Liste étudiants',
           icon: Icons.people_outline,
           color: const Color(0xFF9C27B0),
-          onTap: () => tabProvider.setTab(3),
+          onTap: () {
+            if (isAdmin) {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => StudentListScreen()));
+            } else {
+              tabProvider.setTab(3);
+            }
+          },
         ),
         _ModernCard(
           title: 'Paiements',
           subtitle: 'QR & Lydia',
           icon: Icons.qr_code_2_outlined,
           color: const Color(0xFF00BCD4),
-          onTap: () => tabProvider.setTab(4),
+          onTap: () {
+            if (isAdmin) {
+              // En mode admin, l'onglet 2 est la GESTION des paiements
+              tabProvider.setTab(2);
+            } else {
+              tabProvider.setTab(4);
+            }
+          },
         ),
       ],
     );
@@ -266,15 +300,27 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
         _AdminTile(
+          title: 'Gestion des Paiements',
+          icon: Icons.payments_outlined,
+          onTap: () => tabProvider.setTab(2),
+        ),
+        const SizedBox(height: 12),
+        _AdminTile(
           title: 'Statistiques Globales',
           icon: Icons.analytics_outlined,
-          onTap: () => tabProvider.setTab(2),
+          onTap: () => tabProvider.setTab(3),
         ),
         const SizedBox(height: 12),
         _AdminTile(
           title: 'Historique des Ventes',
           icon: Icons.history_edu_outlined,
-          onTap: () => tabProvider.setTab(3),
+          onTap: () => tabProvider.setTab(4),
+        ),
+        const SizedBox(height: 12),
+        _AdminTile(
+          title: 'Paramètres App',
+          icon: Icons.settings_outlined,
+          onTap: () => tabProvider.setTab(5),
         ),
       ],
     );
@@ -296,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _InfoRow(label: 'Matricule', value: student.studentId),
+            _InfoRow(label: 'N° Étudiant', value: student.studentId),
             _InfoRow(label: 'Classe', value: student.classGroup),
             const Divider(height: 32),
             Container(

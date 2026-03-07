@@ -38,7 +38,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Membres'),
+        title: const Text('Étudiants'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -62,7 +62,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Nom ou matricule...',
+                  hintText: 'Nom ou N° Étudiant...',
                   prefixIcon: const Icon(Icons.search),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
@@ -98,7 +98,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                             const Icon(Icons.error_outline, color: Colors.red, size: 48),
                             const SizedBox(height: 16),
                             Text(
-                              'Erreur lors du chargement des membres',
+                              'Erreur lors du chargement des Étudiants',
                               style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
@@ -145,7 +145,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: Text('Nouveau Membre', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        label: Text('Nouvel étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -172,7 +172,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 const SizedBox(height: 16),
                 _buildField(lastNameController, 'Nom'),
                 const SizedBox(height: 16),
-                _buildField(idController, 'Matricule', isNumeric: true),
+                _buildField(idController, 'N° Étudiant', isNumeric: true),
                 const SizedBox(height: 16),
                 _buildField(classController, 'Classe / Groupe'),
               ],
@@ -182,8 +182,9 @@ class _StudentListScreenState extends State<StudentListScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (formKey.currentState!.validate()) {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
                 final newStudent = Student(
                   id: '', 
                   firstName: firstNameController.text.trim(),
@@ -191,9 +192,45 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   studentId: idController.text.trim(),
                   classGroup: classController.text.trim(),
                 );
-                context.read<FirebaseService>().addStudent(newStudent);
-                Navigator.pop(ctx);
-                _refresh();
+                
+                try {
+                  await context.read<FirebaseService>().addStudent(newStudent);
+                  
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx); // Ferme le dialogue d'ajout
+
+                  // Affichage d'une popup de succès
+                  if (context.mounted) {
+                    await showDialog(
+                      context: context,
+                      builder: (successCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        title: const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            SizedBox(width: 12),
+                            Text('Étudiant ajouté'),
+                          ],
+                        ),
+                        content: Text(
+                          'L\'étudiant ${newStudent.fullName} a été créé avec succès.',
+                          style: GoogleFonts.poppins(),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(successCtx),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  _refresh();
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red)
+                  );
+                }
               }
             },
             child: const Text('Ajouter'),

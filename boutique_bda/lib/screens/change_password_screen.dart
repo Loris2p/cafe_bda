@@ -42,6 +42,31 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     try {
       await context.read<AuthService>().updatePassword(password);
+      
+      if (!mounted) return;
+      
+      // Affichage d'une popup de succès avant la transition automatique par l'AuthWrapper
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 30),
+              SizedBox(width: 12),
+              Text('Sécurisé !'),
+            ],
+          ),
+          content: const Text('Votre mot de passe a été mis à jour avec succès. Vous allez maintenant accéder à l\'application.'),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('C\'EST PARTI'),
+            ),
+          ],
+        ),
+      );
     } catch (e) {
       setState(() => _error = 'Erreur: $e');
     } finally {

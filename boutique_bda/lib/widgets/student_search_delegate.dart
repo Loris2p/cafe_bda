@@ -49,7 +49,7 @@ class StudentSearchDelegate extends SearchDelegate<Student?> {
 
   Widget _buildList(List<Student> suggestions) {
     if (suggestions.isEmpty) {
-      return const Center(child: Text('Aucun membre trouvé.'));
+      return const Center(child: Text('Aucun étudiant trouvé.'));
     }
 
     return ListView.builder(
@@ -59,7 +59,7 @@ class StudentSearchDelegate extends SearchDelegate<Student?> {
         return ListTile(
           leading: CircleAvatar(child: Text(student.lastName[0])),
           title: Text(student.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text('Matricule: ${student.studentId}'),
+          subtitle: Text('N° Étudiant: ${student.studentId}'),
           trailing: Text('${student.balance.toStringAsFixed(2)} €'),
           onTap: () => close(context, student),
         );

@@ -117,7 +117,7 @@ class _MainScreenState extends State<MainScreen> {
         page: const TopUpScreen(),
       ),
       _TabItem(
-        label: 'Membres',
+        label: 'Étudiants',
         icon: Icons.people_outline,
         selectedIcon: Icons.people,
         page: const StudentListScreen(),

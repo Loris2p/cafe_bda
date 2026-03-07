@@ -96,17 +96,46 @@ class ProductManagementScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final name = nameController.text.trim();
-              final price = double.tryParse(priceController.text.replaceAll(',', '.')) ?? 0.0;
+              final priceText = priceController.text.replaceAll(',', '.').trim();
+              final price = double.tryParse(priceText) ?? 0.0;
+              
               if (name.isNotEmpty) {
-                context.read<FirebaseService>().addProduct(Product(
-                  id: '', 
-                  name: name, 
-                  price: price,
-                  category: categoryController.text.trim(),
-                ));
-                Navigator.pop(ctx);
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                try {
+                  await context.read<FirebaseService>().addProduct(Product(
+                    id: '', 
+                    name: name, 
+                    price: price,
+                    category: categoryController.text.trim(),
+                  ));
+                  
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+
+                  if (context.mounted) {
+                    await showDialog(
+                      context: context,
+                      builder: (successCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        title: const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            SizedBox(width: 12),
+                            Text('Produit Ajouté'),
+                          ],
+                        ),
+                        content: Text('Le produit "$name" a été ajouté au catalogue.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(successCtx), child: const Text('OK')),
+                        ],
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+                }
               }
             },
             child: const Text('Ajouter'),
@@ -138,18 +167,47 @@ class ProductManagementScreen extends StatelessWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final name = nameController.text.trim();
-              final price = double.tryParse(priceController.text.replaceAll(',', '.')) ?? 0.0;
+              final priceText = priceController.text.replaceAll(',', '.').trim();
+              final price = double.tryParse(priceText) ?? 0.0;
+              
               if (name.isNotEmpty) {
-                context.read<FirebaseService>().updateProduct(Product(
-                  id: p.id, 
-                  name: name, 
-                  price: price,
-                  category: categoryController.text.trim(),
-                  isAvailable: p.isAvailable,
-                ));
-                Navigator.pop(ctx);
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                try {
+                  await context.read<FirebaseService>().updateProduct(Product(
+                    id: p.id, 
+                    name: name, 
+                    price: price,
+                    category: categoryController.text.trim(),
+                    isAvailable: p.isAvailable,
+                  ));
+                  
+                  if (!ctx.mounted) return;
+                  Navigator.pop(ctx);
+
+                  if (context.mounted) {
+                    await showDialog(
+                      context: context,
+                      builder: (successCtx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        title: const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            SizedBox(width: 12),
+                            Text('Produit Modifié'),
+                          ],
+                        ),
+                        content: Text('Le produit "$name" a été mis à jour.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(successCtx), child: const Text('OK')),
+                        ],
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+                }
               }
             },
             child: const Text('Enregistrer'),

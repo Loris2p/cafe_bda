@@ -7,6 +7,7 @@ import '../models/transaction.dart';
 import '../models/app_user.dart';
 import '../services/firebase_service.dart';
 import '../widgets/student_search_delegate.dart';
+import '../main.dart';
 
 class SaleScreen extends StatefulWidget {
   const SaleScreen({super.key});
@@ -120,7 +121,7 @@ class _SaleScreenState extends State<SaleScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_selectedStudent?.fullName ?? 'Choisir un membre', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                      Text(_selectedStudent?.fullName ?? 'Choisir un étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
                       if (_selectedStudent != null)
                         Text('Solde actuel: ${_selectedStudent!.balance.toStringAsFixed(2)} €', style: GoogleFonts.poppins(color: Colors.black54, fontSize: 13, fontWeight: FontWeight.w500)),
                     ],
@@ -136,6 +137,9 @@ class _SaleScreenState extends State<SaleScreen> {
   }
 
   Widget _buildProductGrid() {
+    final width = MediaQuery.of(context).size.width;
+    final crossAxisCount = width > 1000 ? 5 : (width > 600 ? 4 : 2);
+    
     return StreamBuilder<List<Product>>(
       stream: _productsStream,
       builder: (context, snapshot) {
@@ -150,11 +154,11 @@ class _SaleScreenState extends State<SaleScreen> {
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 2.2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: width > 600 ? 2.2 : 1.8,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
@@ -163,40 +167,54 @@ class _SaleScreenState extends State<SaleScreen> {
 
             return InkWell(
               onTap: () => setState(() => _selectedProduct = p),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   color: isSelected ? Theme.of(context).primaryColor : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade200, 
-                    width: 1.5
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      p.name, 
-                      textAlign: TextAlign.center, 
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold, 
-                        fontSize: 12,
-                        color: isSelected ? Colors.white : Colors.black,
-                      )
-                    ),
-                    Text(
-                      '${p.price.toStringAsFixed(2)} €', 
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600, 
-                        color: isSelected ? Colors.white.withValues(alpha: 0.9) : Colors.black54
-                      )
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isSelected 
+                        ? Theme.of(context).primaryColor.withValues(alpha: 0.2) 
+                        : Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
+                  border: Border.all(
+                    color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade200, 
+                    width: 2
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        p.name, 
+                        textAlign: TextAlign.center, 
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold, 
+                          fontSize: width > 600 ? 13 : 12,
+                          color: isSelected ? Colors.white : Colors.black,
+                          height: 1.2,
+                        )
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${p.price.toStringAsFixed(2)} €', 
+                        style: GoogleFonts.poppins(
+                          fontSize: width > 600 ? 12 : 11,
+                          fontWeight: FontWeight.w600, 
+                          color: isSelected ? Colors.white.withValues(alpha: 0.9) : Colors.black54
+                        )
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -208,28 +226,43 @@ class _SaleScreenState extends State<SaleScreen> {
 
   Widget _buildModernPaymentSelector() {
     final methods = ['Crédit', 'Espèces', 'Lydia', 'Autre'];
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        children: methods.map((m) {
-          final isSelected = _paymentMethod == m;
-          return Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _paymentMethod = m),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)] : [],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
+          child: Row(
+            children: methods.map((m) {
+              final isSelected = _paymentMethod == m;
+              return Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _paymentMethod = m),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Colors.white : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)] : [],
+                    ),
+                    child: Center(
+                      child: Text(
+                        m, 
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: constraints.maxWidth < 400 ? 11 : 13,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, 
+                          color: isSelected ? Theme.of(context).primaryColor : Colors.black45
+                        )
+                      )
+                    ),
+                  ),
                 ),
-                child: Center(child: Text(m, style: GoogleFonts.poppins(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: isSelected ? Theme.of(context).primaryColor : Colors.black45))),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
+              );
+            }).toList(),
+          ),
+        );
+      }
     );
   }
 
@@ -277,7 +310,7 @@ class _SaleScreenState extends State<SaleScreen> {
 
     setState(() => _isProcessing = true);
     try {
-      final user = context.read<AppUser?>();
+      final user = Provider.of<AppUser?>(context, listen: false);
       
       String finalPaymentMethod = _paymentMethod;
       if (_paymentMethod == 'Autre') {
@@ -300,8 +333,49 @@ class _SaleScreenState extends State<SaleScreen> {
       );
 
       await context.read<FirebaseService>().addTransaction(transaction);
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Vente réussie !'), backgroundColor: Colors.green));
-      navigator.pop();
+      
+      if (!mounted) return;
+
+      // Affichage d'une popup de succès au lieu d'un simple SnackBar
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 30),
+              SizedBox(width: 12),
+              Text('Vente Validée'),
+            ],
+          ),
+          content: Text(
+            'La vente de ${_selectedProduct!.name} pour ${_selectedStudent!.fullName} a été enregistrée avec succès.',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+      
+      // Réinitialiser l'état local avant de changer d'écran
+      setState(() {
+        _selectedProduct = null;
+        _selectedStudent = null;
+      });
+
+      // Navigation sécurisée
+      if (navigator.canPop()) {
+        navigator.pop();
+      } else {
+        context.read<TabProvider>().setTab(0);
+      }
     } catch (e) {
       scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
     } finally {

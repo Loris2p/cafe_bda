@@ -6,6 +6,7 @@ import '../models/transaction.dart';
 import '../models/app_user.dart';
 import '../services/firebase_service.dart';
 import '../widgets/student_search_delegate.dart';
+import '../main.dart';
 
 class TopUpScreen extends StatefulWidget {
   const TopUpScreen({super.key});
@@ -40,7 +41,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle('Membre à créditer'),
+            _buildSectionTitle('Étudiant à créditer'),
             const SizedBox(height: 12),
             _buildStudentSelector(firebaseService),
             const SizedBox(height: 32),
@@ -189,9 +190,13 @@ class _TopUpScreenState extends State<TopUpScreen> {
   }
 
   Future<void> _processTopUp() async {
-    final amount = double.tryParse(_amountController.text.replaceAll(',', '.'));
+    final amountText = _amountController.text.replaceAll(',', '.').trim();
+    final amount = double.tryParse(amountText);
+    
     if (_selectedStudent == null || amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Veuillez remplir tous les champs.'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez sélectionner un étudiant et saisir un montant valide.'), backgroundColor: Colors.orange)
+      );
       return;
     }
 
@@ -200,7 +205,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
     final navigator = Navigator.of(context);
 
     try {
-      final user = context.read<AppUser?>();
+      final user = Provider.of<AppUser?>(context, listen: false);
       
       String finalPaymentMethod = _paymentMethod;
       if (_paymentMethod == 'Autre') {
@@ -223,8 +228,49 @@ class _TopUpScreenState extends State<TopUpScreen> {
 
       await context.read<FirebaseService>().addTransaction(transaction);
       
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Compte crédité !'), backgroundColor: Colors.green));
-      navigator.pop();
+      if (!mounted) return;
+
+      // Affichage d'une popup de succès au lieu d'un simple SnackBar
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 30),
+              SizedBox(width: 12),
+              Text('Rechargement Validé'),
+            ],
+          ),
+          content: Text(
+            'Le compte de ${_selectedStudent!.fullName} a été crédité de ${amount.toStringAsFixed(2)} € avec succès.',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+
+      // Réinitialisation
+      setState(() {
+        _selectedStudent = null;
+        _amountController.clear();
+        _otherPaymentController.clear();
+      });
+
+      // Navigation sécurisée
+      if (navigator.canPop()) {
+        navigator.pop();
+      } else {
+        context.read<TabProvider>().setTab(0);
+      }
       
     } catch (e) {
       scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));

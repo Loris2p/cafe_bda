@@ -101,7 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ListTile(
                       leading: const Icon(Icons.person_add_alt_1_outlined, color: Colors.blue),
                       title: const Text('Inscrire un utilisateur'),
-                      subtitle: const Text('Créer un compte pour un nouveau membre'),
+                      subtitle: const Text('Créer un compte pour un nouveau étudiant'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => _showRegisterUserDialog(context),
                     ),

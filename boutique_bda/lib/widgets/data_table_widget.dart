@@ -121,7 +121,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
                     dataRowMaxHeight: 55,
                     columns: widget.headers.asMap().entries.map((e) {
                       return DataColumn(
-                        label: Text(e.value),
+                        label: SelectableText(e.value),
                         onSort: (index, ascending) => _onSort(index, ascending),
                       );
                     }).toList(),
@@ -163,7 +163,7 @@ class _DataSource extends DataTableSource {
     final row = data[index];
     return DataRow(
       cells: row.map((cell) {
-        return DataCell(Text(cell?.toString() ?? ''));
+        return DataCell(SelectableText(cell?.toString() ?? ''));
       }).toList(),
     );
   }

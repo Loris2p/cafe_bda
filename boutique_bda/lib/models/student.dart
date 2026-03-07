@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../core/utils.dart';
 
-/// Représente un étudiant (membre) du BDA.
+/// Représente un étudiant du BDA.
 class Student {
   /// Identifiant technique Firestore.
   final String id;
@@ -8,7 +9,7 @@ class Student {
   final String firstName;
   final String lastName;
   
-  /// Identifiant métier (ex: matricule). Utilisé comme clé primaire logique.
+  /// Identifiant métier (ex: numéro étudiant). Utilisé comme clé primaire logique.
   final String studentId;
   
   /// Groupe ou promo (ex: "ING1").
@@ -47,10 +48,10 @@ class Student {
       lastName: data['lastName'] ?? '',
       studentId: data['studentId'] ?? '',
       classGroup: data['classGroup'] ?? '',
-      balance: (data['balance'] ?? 0.0).toDouble(),
-      loyaltyBonus: data['loyaltyBonus'] ?? 0,
-      totalBought: data['totalBought'] ?? 0,
-      lastTransactionAt: (data['lastTransactionAt'] as Timestamp?)?.toDate(),
+      balance: parseDouble(data['balance']),
+      loyaltyBonus: parseInt(data['loyaltyBonus']),
+      totalBought: parseInt(data['totalBought']),
+      lastTransactionAt: parseFirestoreDate(data['lastTransactionAt']),
     );
   }
 
@@ -64,7 +65,7 @@ class Student {
       'balance': balance,
       'loyaltyBonus': loyaltyBonus,
       'totalBought': totalBought,
-      'lastTransactionAt': lastTransactionAt != null ? Timestamp.fromDate(lastTransactionAt!) : null,
+      'lastTransactionAt': lastTransactionAt,
     };
   }
 
