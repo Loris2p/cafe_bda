@@ -131,11 +131,11 @@ class PaymentManagementScreen extends StatelessWidget {
                       context: context,
                       builder: (successCtx) => AlertDialog(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                        title: const Row(
+                        title: Row(
                           children: [
-                            Icon(Icons.check_circle, color: Colors.green, size: 30),
-                            SizedBox(width: 12),
-                            Text('Moyen ajouté'),
+                            const Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            const SizedBox(width: 12),
+                            const Expanded(child: Text('Moyen ajouté', overflow: TextOverflow.visible)),
                           ],
                         ),
                         content: Text('Le moyen de paiement "$label" a été configuré.'),
@@ -200,11 +200,11 @@ class PaymentManagementScreen extends StatelessWidget {
                       context: context,
                       builder: (successCtx) => AlertDialog(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                        title: const Row(
+                        title: Row(
                           children: [
-                            Icon(Icons.check_circle, color: Colors.green, size: 30),
-                            SizedBox(width: 12),
-                            Text('Moyen modifié'),
+                            const Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            const SizedBox(width: 12),
+                            const Expanded(child: Text('Moyen modifié', overflow: TextOverflow.visible)),
                           ],
                         ),
                         content: Text('Le moyen de paiement "$label" a été mis à jour.'),
