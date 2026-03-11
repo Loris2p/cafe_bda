@@ -186,11 +186,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<AdminProvider>().setAdmin(false);
-              context.read<AuthService>().signOut();
-              Navigator.pop(context); // Quitter les paramètres
+            onPressed: () async {
+              Navigator.pop(ctx); // Ferme le dialogue
+              
+              // On récupère les instances avant de pop pour éviter les erreurs de context
+              final authService = context.read<AuthService>();
+              final adminProvider = context.read<AdminProvider>();
+              
+              // On quitte l'écran des paramètres d'abord pour revenir à l'écran principal
+              Navigator.pop(context);
+              
+              // On réinitialise le mode admin et on déconnecte
+              adminProvider.setAdmin(false);
+              await authService.signOut();
             },
             child: const Text('Déconnexion', style: TextStyle(color: Colors.red)),
           ),
