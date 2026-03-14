@@ -33,35 +33,57 @@ class FirebaseService {
   Future<Map<String, dynamic>> getGlobalStats() async {
     if (isDesktopNative) {
       // Firedart ne supporte pas encore les agrégations natives
-      // On simule en récupérant les transactions récentes (comportement actuel)
       final docs = await fd_store.Firestore.instance.collection('transactions').get();
       double totalRevenue = 0;
+      double totalCredits = 0;
+      double totalItems = 0;
       int totalCount = 0;
       for (var doc in docs) {
-        if (doc['type'] == 'purchase') {
-          totalRevenue += (doc['price'] ?? 0.0).toDouble();
-          totalCount += ((doc['amount'] ?? 0) as num).toInt();
+        final data = doc.map;
+        // Déduction du type pour les anciennes données
+        final type = data['type'] ?? (data.containsKey('productName') ? 'purchase' : 'topUp');
+        final price = (data['price'] ?? 0.0).toDouble();
+        final amount = (data['amount'] ?? 1.0).toDouble();
+
+        if (type == 'purchase') {
+          totalRevenue += price;
+          totalItems += amount;
+          totalCount++;
+        } else if (type == 'topUp') {
+          totalCredits += price;
         }
       }
       return {
         'totalRevenue': totalRevenue,
+        'totalCredits': totalCredits,
+        'totalItems': totalItems,
         'totalCount': totalCount,
       };
     } else {
-      // Utilisation des agrégations natives Firestore (Optimisé et gratuit < 1000/jour)
+      // Pour inclure les vieux docs sans champ 'type', on utilise la présence de 'productName'
       final collection = fb_store.FirebaseFirestore.instance.collection('transactions');
-      final query = collection.where('type', isEqualTo: 'purchase');
       
-      final aggregateSnapshot = await query.aggregate(
+      // On récupère tout ce qui est identifié comme achat (a un produit)
+      final purchaseQuery = collection.where('productName', isNull: false);
+      final purchaseSnapshot = await purchaseQuery.aggregate(
         fb_store.sum('price'),
         fb_store.sum('amount'),
         fb_store.count(),
       ).get();
 
+      // On récupère le TOTAL global pour déduire les rechargements
+      final totalSnapshot = await collection.aggregate(
+        fb_store.sum('price'),
+      ).get();
+
+      final purchaseRev = purchaseSnapshot.getSum('price') ?? 0.0;
+      final globalRev = totalSnapshot.getSum('price') ?? 0.0;
+
       return {
-        'totalRevenue': aggregateSnapshot.getSum('price') ?? 0.0,
-        'totalItems': aggregateSnapshot.getSum('amount') ?? 0.0,
-        'totalCount': aggregateSnapshot.count ?? 0,
+        'totalRevenue': purchaseRev,
+        'totalItems': purchaseSnapshot.getSum('amount') ?? 0.0,
+        'totalCount': purchaseSnapshot.count ?? 0,
+        'totalCredits': globalRev - purchaseRev, // Le reste est du rechargement
       };
     }
   }
@@ -372,18 +394,22 @@ class FirebaseService {
   }
 
   CafeTransaction _transactionFromFiredart(fd_store.Document doc) {
+    final data = doc.map;
+    // Déduction du type si absent
+    final typeStr = data['type'] ?? (data.containsKey('productName') ? 'purchase' : 'topUp');
+
     return CafeTransaction(
       id: doc.id,
-      studentId: doc['studentId'] ?? '',
-      studentName: doc['studentName'] ?? '',
-      responsibleId: doc['responsibleId'] ?? '',
-      responsibleName: doc['responsibleName'] ?? '',
-      amount: (doc['amount'] ?? 0.0).toDouble(),
-      price: (doc['price'] ?? 0.0).toDouble(),
-      type: doc['type'] == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
-      paymentMethod: doc['paymentMethod'] ?? '',
-      productName: doc['productName'],
-      timestamp: parseRequiredFirestoreDate(doc['timestamp']),
+      studentId: data['studentId'] ?? '',
+      studentName: data['studentName'] ?? '',
+      responsibleId: data['responsibleId'] ?? '',
+      responsibleName: data['responsibleName'] ?? '',
+      amount: (data['amount'] ?? 1.0).toDouble(),
+      price: (data['price'] ?? 0.0).toDouble(),
+      type: typeStr == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
+      paymentMethod: data['paymentMethod'] ?? 'Inconnu',
+      productName: data['productName'],
+      timestamp: parseRequiredFirestoreDate(data['timestamp']),
     );
   }
 }

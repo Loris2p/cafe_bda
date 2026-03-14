@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../services/firebase_service.dart';
 import '../models/transaction.dart';
 
@@ -18,6 +19,7 @@ class _StatsScreenState extends State<StatsScreen> {
   
   // États pour les stats agrégées (KPIs rapides, toutes périodes)
   double _totalRevenue = 0;
+  double _totalCredits = 0;
   int _totalItems = 0;
   double _avgBasket = 0;
   bool _loadingKPIs = true;
@@ -48,6 +50,7 @@ class _StatsScreenState extends State<StatsScreen> {
       
       setState(() {
         _totalRevenue = revenue;
+        _totalCredits = (globalStats['totalCredits'] as num).toDouble();
         _totalItems = (globalStats['totalItems'] as num).toInt();
         _avgBasket = count > 0 ? (revenue / count) : 0.0;
         _loadingKPIs = false;
@@ -81,23 +84,23 @@ class _StatsScreenState extends State<StatsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // KPIs "Toutes Périodes" (via agrégations Firestore rapides)
+            // KPIs "Toutes Périodes"
             _buildSectionHeader('Bilan Global (Tout temps)'),
             const SizedBox(height: 16),
             Row(
               children: [
                 _ModernKpiCard(
-                  title: 'Revenu Total', 
+                  title: 'Ventes Totales', 
                   value: _loadingKPIs ? '...' : '${_totalRevenue.toStringAsFixed(2)} €', 
                   icon: Icons.euro, 
                   color: Colors.green
                 ),
                 const SizedBox(width: 16),
                 _ModernKpiCard(
-                  title: 'Articles Vendus', 
-                  value: _loadingKPIs ? '...' : '$_totalItems', 
-                  icon: Icons.coffee, 
-                  color: Colors.brown
+                  title: 'Rechargements', 
+                  value: _loadingKPIs ? '...' : '${_totalCredits.toStringAsFixed(2)} €', 
+                  icon: Icons.account_balance_wallet_outlined, 
+                  color: Colors.blue
                 ),
               ],
             ),
@@ -105,25 +108,23 @@ class _StatsScreenState extends State<StatsScreen> {
             Row(
               children: [
                 _ModernKpiCard(
-                  title: 'Panier Moyen', 
-                  value: _loadingKPIs ? '...' : '${_avgBasket.toStringAsFixed(2)} €', 
-                  icon: Icons.shopping_cart_outlined, 
-                  color: Colors.blue
+                  title: 'Articles Vendus', 
+                  value: _loadingKPIs ? '...' : '$_totalItems', 
+                  icon: Icons.coffee, 
+                  color: Colors.brown
                 ),
                 const SizedBox(width: 16),
                 _ModernKpiCard(
-                  title: 'Période Analysée', 
-                  value: 'Aujourd\'hui', 
-                  icon: Icons.calendar_today, 
+                  title: 'Panier Moyen', 
+                  value: _loadingKPIs ? '...' : '${_avgBasket.toStringAsFixed(2)} €', 
+                  icon: Icons.shopping_cart_outlined, 
                   color: Colors.orange
                 ),
               ],
             ),
             const SizedBox(height: 40),
 
-            // Section Graphiques (Nécessite le téléchargement des documents récents)
-            _buildSectionHeader('Analyse Récente (1000 derniers)'),
-            const SizedBox(height: 16),
+            // Section Graphiques (Documents récents)
             StreamBuilder<List<CafeTransaction>>(
               stream: _statsStream,
               builder: (context, snapshot) {
@@ -141,81 +142,43 @@ class _StatsScreenState extends State<StatsScreen> {
                 final transactions = snapshot.data ?? [];
                 if (transactions.isEmpty) return const Center(child: Text('Aucune transaction récente.'));
 
+                // Calculs locaux pour les graphiques
                 Map<String, int> paymentMethods = {};
                 Map<String, int> productsCount = {};
+                Map<DateTime, double> salesByDay = {};
 
                 for (var tx in transactions) {
+                  final date = DateTime(tx.timestamp.year, tx.timestamp.month, tx.timestamp.day);
+                  
                   if (tx.type == TransactionType.purchase) {
                     productsCount[tx.productName ?? 'Inconnu'] = (productsCount[tx.productName] ?? 0) + tx.amount.toInt();
+                    salesByDay[date] = (salesByDay[date] ?? 0) + tx.price;
+                    
+                    String method = tx.paymentMethod;
+                    if (method.startsWith('Autre')) method = 'Autre';
+                    paymentMethods[method] = (paymentMethods[method] ?? 0) + 1;
                   }
-                  
-                  String method = tx.paymentMethod;
-                  if (method.startsWith('Autre')) method = 'Autre';
-                  paymentMethods[method] = (paymentMethods[method] ?? 0) + 1;
                 }
 
                 final sortedProducts = productsCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+                final sortedSales = salesByDay.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _buildSectionHeader('Évolution des Ventes (€)'),
                     const SizedBox(height: 24),
-                    Text('Répartition des Moyens de Paiement', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
-                    const SizedBox(height: 16),
-                    Container(
-                      height: 250,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white, 
-                        borderRadius: BorderRadius.circular(28),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20)],
-                      ),
-                      child: PieChart(
-                        PieChartData(
-                          sectionsSpace: 4,
-                          centerSpaceRadius: 40,
-                          sections: paymentMethods.entries.map((e) {
-                            final index = paymentMethods.keys.toList().indexOf(e.key);
-                            return PieChartSectionData(
-                              value: e.value.toDouble(),
-                              title: '${e.key}\n${e.value}',
-                              color: Colors.primaries[index % Colors.primaries.length],
-                              radius: 60,
-                              titleStyle: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
+                    _buildLineChart(sortedSales, theme),
                     
                     const SizedBox(height: 40),
-                    Text('Top Produits (Ventes cumulées)', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+                    _buildSectionHeader('Répartition des Paiements'),
+                    const SizedBox(height: 24),
+                    _buildPieChart(paymentMethods),
+                    
+                    const SizedBox(height: 40),
+                    _buildSectionHeader('Top Produits (Ventes cumulées)'),
                     const SizedBox(height: 16),
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: sortedProducts.take(10).length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final e = sortedProducts[index];
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                                child: Text('#${index + 1}', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(child: Text(e.key, style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
-                              Text('${e.value} ventes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                    _buildProductList(sortedProducts, theme),
                   ],
                 );
               },
@@ -229,6 +192,113 @@ class _StatsScreenState extends State<StatsScreen> {
 
   Widget _buildSectionHeader(String title) {
     return Text(title, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold));
+  }
+
+  Widget _buildLineChart(List<MapEntry<DateTime, double>> data, ThemeData theme) {
+    if (data.isEmpty) return const Center(child: Text('Pas assez de données.'));
+    
+    return Container(
+      height: 200,
+      padding: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
+      child: LineChart(
+        LineChartData(
+          gridData: const FlGridData(show: false),
+          titlesData: FlTitlesData(
+            leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  if (value.toInt() >= 0 && value.toInt() < data.length) {
+                    if (value.toInt() == 0 || value.toInt() == data.length - 1 || value.toInt() == data.length ~/ 2) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(DateFormat('dd/MM').format(data[value.toInt()].key), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                      );
+                    }
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          lineBarsData: [
+            LineChartBarData(
+              spots: data.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value.value)).toList(),
+              isCurved: true,
+              color: theme.colorScheme.primary,
+              barWidth: 4,
+              isStrokeCapRound: true,
+              dotData: const FlDotData(show: false),
+              belowBarData: BarAreaData(
+                show: true,
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPieChart(Map<String, int> paymentMethods) {
+    return Container(
+      height: 250,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20)],
+      ),
+      child: PieChart(
+        PieChartData(
+          sectionsSpace: 4,
+          centerSpaceRadius: 40,
+          sections: paymentMethods.entries.map((e) {
+            final index = paymentMethods.keys.toList().indexOf(e.key);
+            return PieChartSectionData(
+              value: e.value.toDouble(),
+              title: '${e.key}\n${e.value}',
+              color: Colors.primaries[index % Colors.primaries.length],
+              radius: 60,
+              titleStyle: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductList(List<MapEntry<String, int>> sortedProducts, ThemeData theme) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: sortedProducts.take(10).length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final e = sortedProducts[index];
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                child: Text('#${index + 1}', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+              ),
+              const SizedBox(width: 16),
+              Expanded(child: Text(e.key, style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
+              Text('${e.value} ventes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -259,7 +329,7 @@ class _ModernKpiCard extends StatelessWidget {
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 12),
-            Text(value, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+            Text(value, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
             Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
           ],
         ),
