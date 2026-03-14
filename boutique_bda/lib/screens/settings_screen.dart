@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
 import '../models/app_user.dart';
@@ -19,11 +20,20 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final _nameController = TextEditingController();
   bool _isSaving = false;
+  String _appVersion = 'Chargement...';
 
   @override
   void initState() {
     super.initState();
     _loadSavedName();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = packageInfo.version;
+    });
   }
 
   Future<void> _loadSavedName() async {
@@ -167,8 +177,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             
             const SizedBox(height: 48),
-            const Center(
-              child: Text('Version 2.0.0 (Firebase Native)', style: TextStyle(color: Colors.grey, fontSize: 12)),
+            Center(
+              child: Text('Version $_appVersion', style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ),
           ],
         ),

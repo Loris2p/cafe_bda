@@ -48,27 +48,31 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDBXexQJpwIrKuyRUJLK9J1yswhO48BB10',
-    appId: '1:278248091968:android:1b9a4d909971508b3d8aa5',
+    appId: '1:278248091968:android:621a2aa9159dbd3e3d8aa5',
     messagingSenderId: '278248091968',
     projectId: 'boutique-bda',
     storageBucket: 'boutique-bda.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCK9F9zFa-X2L2nhaJwDuHbXcjXVQFgmGE',
+    apiKey: 'AIzaSyBoWsB9blbCxGp_IHRZntbvWgQXbbjVLJg',
     appId: '1:278248091968:ios:6e9a5ac31acc27eb3d8aa5',
     messagingSenderId: '278248091968',
     projectId: 'boutique-bda',
     storageBucket: 'boutique-bda.firebasestorage.app',
+    androidClientId: '278248091968-f4p7ngbptolr23rt1onmohvja9dmckg8.apps.googleusercontent.com',
+    iosClientId: '278248091968-eeccuih9f56vqrkisjg5jgpt147fi6m0.apps.googleusercontent.com',
     iosBundleId: 'com.example.boutiqueBda',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCK9F9zFa-X2L2nhaJwDuHbXcjXVQFgmGE',
+    apiKey: 'AIzaSyBoWsB9blbCxGp_IHRZntbvWgQXbbjVLJg',
     appId: '1:278248091968:ios:6e9a5ac31acc27eb3d8aa5',
     messagingSenderId: '278248091968',
     projectId: 'boutique-bda',
     storageBucket: 'boutique-bda.firebasestorage.app',
+    androidClientId: '278248091968-f4p7ngbptolr23rt1onmohvja9dmckg8.apps.googleusercontent.com',
+    iosClientId: '278248091968-eeccuih9f56vqrkisjg5jgpt147fi6m0.apps.googleusercontent.com',
     iosBundleId: 'com.example.boutiqueBda',
   );
 
@@ -80,4 +84,5 @@ class DefaultFirebaseOptions {
     authDomain: 'boutique-bda.firebaseapp.com',
     storageBucket: 'boutique-bda.firebasestorage.app',
   );
+
 }

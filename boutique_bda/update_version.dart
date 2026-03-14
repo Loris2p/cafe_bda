@@ -1,9 +1,12 @@
 import 'dart:io';
-import 'package:firedart/firedart.dart';
 
-// --- CONFIGURATION ---
-// Remplacez par votre Project ID Firebase
-const String projectId = 'boutique-bda'; 
+/// SCRIPT DE MISE À JOUR DE VERSION (LOCAL UNIQUEMENT)
+/// 
+/// Ce script met à jour la version dans le fichier pubspec.yaml.
+/// La version Firestore doit être mise à jour manuellement sur la console.
+/// 
+/// POUR EXÉCUTER :
+/// dart run update_version.dart <new_version>
 
 void main(List<String> args) async {
   if (args.isEmpty) {
@@ -13,18 +16,14 @@ void main(List<String> args) async {
   }
 
   final newVersion = args[0];
-  print('🚀 Mise à jour vers la version $newVersion...');
+  print('🚀 Mise à jour locale vers la version $newVersion...');
 
   try {
-    // 1. Mise à jour de pubspec.yaml
+    // Mise à jour de pubspec.yaml
     await updatePubspec(newVersion);
     print('✅ pubspec.yaml mis à jour.');
-
-    // 2. Mise à jour de Firestore
-    await updateFirestore(newVersion);
-    print('✅ Firestore mis à jour.');
-
-    print('\n✨ Version $newVersion déployée avec succès !');
+    print('\n✨ Version $newVersion appliquée localement !');
+    print('⚠️ N\'oubliez pas de mettre à jour manuellement Firestore (collection: config, doc: app_version).');
   } catch (e) {
     print('\n❌ Erreur : $e');
     exit(1);
@@ -40,19 +39,15 @@ Future<void> updatePubspec(String version) async {
   final lines = await file.readAsLines();
   final newLines = lines.map((line) {
     if (line.startsWith('version:')) {
+      // On conserve le build number si présent (ex: 1.0.0+1)
+      if (line.contains('+')) {
+        final buildNumber = line.split('+').last;
+        return 'version: $version+$buildNumber';
+      }
       return 'version: $version';
     }
     return line;
   }).toList();
 
   await file.writeAsString(newLines.join('\n'));
-}
-
-Future<void> updateFirestore(String version) async {
-  Firestore.initialize(projectId);
-  
-  await Firestore.instance.collection('config').document('app_version').set({
-    'latest': version,
-    'updatedAt': DateTime.now().toIso8601String(),
-  });
 }
