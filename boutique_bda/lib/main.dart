@@ -26,7 +26,10 @@ class AdminProvider with ChangeNotifier {
   /// Initialise l'état admin.
   /// Par défaut, le mode admin est toujours désactivé au lancement.
   Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    // On force le mode admin à false au démarrage pour plus de sécurité
     _isAdmin = false;
+    await prefs.setBool('is_admin_mode', false);
     notifyListeners();
   }
 
@@ -355,13 +358,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (_isLoading)
                             const CircularProgressIndicator()
                           else
-                            ElevatedButton(
-                              onPressed: _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size(double.infinity, 60),
-                                elevation: 0,
-                              ),
-                              child: const Text('SE CONNECTER'),
+                            Column(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: _handleLogin,
+                                  style: ElevatedButton.styleFrom(
+                                    minimumSize: const Size(double.infinity, 60),
+                                    elevation: 0,
+                                  ),
+                                  child: const Text('SE CONNECTER'),
+                                ),
+                                const SizedBox(height: 16),
+                                TextButton(
+                                  onPressed: _handleForgotPassword,
+                                  child: const Text('Mot de passe oublié ?'),
+                                ),
+                              ],
                             ),
                         ],
                       ),
@@ -376,6 +388,36 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Future<void> _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez saisir votre email pour réinitialiser le mot de passe')),
+      );
+      return;
+    }
+
+    try {
+      await context.read<AuthService>().sendPasswordResetEmail(email);
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Email envoyé'),
+          content: Text('Un lien de réinitialisation a été envoyé à $email. Vérifiez vos courriers indésirables si besoin.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -384,6 +426,9 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       await context.read<AuthService>().signInWithEmail(email, password);
+      if (mounted) {
+        context.read<AdminProvider>().setAdmin(false);
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
