@@ -1,4 +1,6 @@
 import 'dart:io' show Platform;
+import 'dart:convert' show jsonEncode, jsonDecode;
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -6,6 +8,7 @@ import 'package:firedart/firedart.dart' as fd_auth;
 import 'package:rxdart/rxdart.dart';
 import '../models/app_user.dart';
 import 'firebase_service.dart';
+import '../firebase_options.dart';
 
 /// Service gérant l'authentification des utilisateurs de l'application.
 /// 
@@ -101,15 +104,55 @@ class AuthService {
     }
   }
 
+  /// Envoie un email de réinitialisation de mot de passe.
+  Future<void> sendPasswordResetEmail(String email) async {
+    if (isDesktopNative) {
+      // Utilisation de l'API REST Firebase Identity Toolkit car Firedart ne le supporte pas
+      final apiKey = DefaultFirebaseOptions.windows.apiKey;
+      final url = 'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=$apiKey';
+      
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'requestType': 'PASSWORD_RESET',
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Erreur lors de l\'envoi du mail de réinitialisation : ${response.body}');
+      }
+    } else {
+      await fb_auth.FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+    }
+  }
+
   /// Inscrit un nouvel utilisateur sans déconnecter l'administrateur actuel.
-  /// 
-  /// Sur Mobile/Web, utilise une [FirebaseApp] temporaire pour isoler la session de création.
   Future<void> registerUser(String email, String name, String password) async {
     String uid;
     if (isDesktopNative) {
-      await fd_auth.FirebaseAuth.instance.signUp(email, password);
-      uid = fd_auth.FirebaseAuth.instance.userId;
-      // Note: Firedart connecte automatiquement l'utilisateur après signUp.
+      // Sur Desktop, on utilise l'API REST directement pour créer le compte
+      // Cela évite que Firedart ne nous connecte automatiquement avec le nouveau compte
+      final apiKey = DefaultFirebaseOptions.windows.apiKey;
+      final url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$apiKey';
+      
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+          'returnSecureToken': true,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Erreur lors de la création du compte : ${response.body}');
+      }
+      
+      final data = jsonDecode(response.body);
+      uid = data['localId'];
     } else {
       // Création via une instance secondaire pour ne pas perdre la session admin
       FirebaseApp tempApp = await Firebase.initializeApp(
@@ -127,7 +170,10 @@ class AuthService {
     }
     
     // Initialisation du document utilisateur dans Firestore
-    await _firebaseService.createUserDocument(uid, email, name, true);
+    await _firebaseService.createUserDocument(uid, email, name, false);
+
+    // Envoyer immédiatement un email de réinitialisation
+    await sendPasswordResetEmail(email);
   }
 
   /// Met à jour le mot de passe de l'utilisateur actuel et lève le flag [mustChangePassword].
