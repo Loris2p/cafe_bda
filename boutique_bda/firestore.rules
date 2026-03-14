@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Accès complet pour tout utilisateur authentifié
+    // Utile pour une application interne où tous les membres sont de confiance
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

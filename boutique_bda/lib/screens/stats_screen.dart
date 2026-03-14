@@ -5,23 +5,99 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/firebase_service.dart';
 import '../models/transaction.dart';
 
-class StatsScreen extends StatelessWidget {
+class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
 
   @override
+  State<StatsScreen> createState() => _StatsScreenState();
+}
+
+class _StatsScreenState extends State<StatsScreen> {
+  late Stream<List<CafeTransaction>> _statsStream;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final firebaseService = Provider.of<FirebaseService>(context);
+      _statsStream = firebaseService.getRecentTransactions(limit: 1000);
+      _isInitialized = true;
+    }
+  }
+
+  void _refresh() {
+    final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+    setState(() {
+      _statsStream = firebaseService.getRecentTransactions(limit: 1000);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final firebaseService = context.read<FirebaseService>();
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Statistiques')),
+      appBar: AppBar(
+        title: const Text('Statistiques'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh), 
+            onPressed: _refresh,
+            tooltip: 'Rafraîchir',
+          ),
+        ],
+      ),
       body: StreamBuilder<List<CafeTransaction>>(
-        stream: firebaseService.getRecentTransactions(limit: 1000),
+        stream: _statsStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur lors du chargement des statistiques',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(snapshot.error.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(onPressed: _refresh, child: const Text('Réessayer')),
+                  ],
+                ),
+              ),
+            );
+          }
+
           final transactions = snapshot.data ?? [];
 
-          if (transactions.isEmpty) return const Center(child: Text('Aucune donnée disponible.'));
+          if (transactions.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.analytics_outlined, size: 64, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text('Aucune donnée disponible.', style: GoogleFonts.poppins(color: Colors.grey)),
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed: _refresh, 
+                    icon: const Icon(Icons.refresh), 
+                    label: const Text('Rafraîchir'),
+                  ),
+                ],
+              ),
+            );
+          }
 
           double totalRevenue = 0;
           int totalCoffees = 0;

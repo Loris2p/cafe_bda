@@ -5,27 +5,97 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/transaction.dart';
 import '../services/firebase_service.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final firebaseService = context.read<FirebaseService>();
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
 
+class _HistoryScreenState extends State<HistoryScreen> {
+  late Stream<List<CafeTransaction>> _transactionsStream;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final firebaseService = Provider.of<FirebaseService>(context);
+      _transactionsStream = firebaseService.getRecentTransactions(limit: 50);
+      _isInitialized = true;
+    }
+  }
+
+  void _refresh() {
+    final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+    setState(() {
+      _transactionsStream = firebaseService.getRecentTransactions(limit: 50);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Historique'),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.refresh), 
+            onPressed: _refresh,
+            tooltip: 'Rafraîchir',
+          ),
         ],
       ),
       body: StreamBuilder<List<CafeTransaction>>(
-        stream: firebaseService.getRecentTransactions(limit: 50),
+        stream: _transactionsStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur lors du chargement de l\'historique',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(snapshot.error.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(onPressed: _refresh, child: const Text('Réessayer')),
+                  ],
+                ),
+              ),
+            );
+          }
+
           final transactions = snapshot.data ?? [];
 
-          if (transactions.isEmpty) return const Center(child: Text('Aucune transaction.'));
+          if (transactions.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.history, size: 64, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text('Aucune transaction.', style: GoogleFonts.poppins(color: Colors.grey)),
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed: _refresh, 
+                    icon: const Icon(Icons.refresh), 
+                    label: const Text('Rafraîchir'),
+                  ),
+                ],
+              ),
+            );
+          }
 
           return ListView.separated(
             padding: const EdgeInsets.all(20),

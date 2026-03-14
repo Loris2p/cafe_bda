@@ -1,41 +1,103 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/payment_method.dart';
 import '../services/firebase_service.dart';
 
-class PaymentManagementScreen extends StatelessWidget {
+class PaymentManagementScreen extends StatefulWidget {
   const PaymentManagementScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final firebaseService = context.read<FirebaseService>();
+  State<PaymentManagementScreen> createState() => _PaymentManagementScreenState();
+}
 
+class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
+  late Stream<List<PaymentMethod>> _methodsStream;
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final firebaseService = Provider.of<FirebaseService>(context);
+      _methodsStream = firebaseService.getPaymentMethods();
+      _isInitialized = true;
+    }
+  }
+
+  void _refresh() {
+    final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+    setState(() {
+      _methodsStream = firebaseService.getPaymentMethods();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gestion des Paiements'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // Trigger a rebuild by calling setState if it was a StatefulWidget, 
-              // but here it's a StatelessWidget. The StreamBuilder will handle 
-              // it if we provide a way to trigger it. 
-              // For now, switching tabs is the easiest way to refresh a Stream.fromFuture.
-            },
+            onPressed: _refresh,
+            tooltip: 'Rafraîchir',
           ),
         ],
       ),
       body: StreamBuilder<List<PaymentMethod>>(
-        stream: firebaseService.getPaymentMethods(),
+        stream: _methodsStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
+          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur lors du chargement des moyens de paiement',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(snapshot.error.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(onPressed: _refresh, child: const Text('Réessayer')),
+                  ],
+                ),
+              ),
+            );
+          }
+
           final methods = snapshot.data ?? [];
 
           if (methods.isEmpty) {
-            return const Center(child: Text('Aucun moyen de paiement configuré.'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.payment_outlined, size: 64, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text('Aucun moyen de paiement configuré.', style: GoogleFonts.poppins(color: Colors.grey)),
+                  const SizedBox(height: 16),
+                  TextButton.icon(
+                    onPressed: _refresh, 
+                    icon: const Icon(Icons.refresh), 
+                    label: const Text('Rafraîchir'),
+                  ),
+                ],
+              ),
+            );
           }
 
           return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: methods.length,
             separatorBuilder: (context, index) => const Divider(height: 1),
             itemBuilder: (context, index) {
@@ -63,7 +125,7 @@ class PaymentManagementScreen extends StatelessWidget {
                           link: m.link,
                           isActive: val,
                         );
-                        firebaseService.updatePaymentMethod(updated);
+                        context.read<FirebaseService>().updatePaymentMethod(updated);
                       },
                     ),
                     IconButton(
@@ -81,116 +143,98 @@ class PaymentManagementScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_payment_fab',
         onPressed: () => _showAddMethodDialog(context),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: Text('Moyen de paiement', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
       ),
     );
   }
 
   void _showAddMethodDialog(BuildContext context) {
-    final labelController = TextEditingController();
-    final phoneController = TextEditingController();
-    final linkController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Nouveau Moyen de Paiement'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: labelController, decoration: const InputDecoration(labelText: 'Label (ex: Lydia)')),
-            const SizedBox(height: 12),
-            TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Numéro de téléphone')),
-            const SizedBox(height: 12),
-            TextField(controller: linkController, decoration: const InputDecoration(labelText: 'Lien de paiement (pour QR Code)')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
-          ElevatedButton(
-            onPressed: () async {
-              final label = labelController.text.trim();
-              if (label.isNotEmpty) {
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                try {
-                  await context.read<FirebaseService>().addPaymentMethod(PaymentMethod(
-                    id: '', 
-                    label: label, 
-                    phone: phoneController.text.trim(),
-                    link: linkController.text.trim(),
-                  ));
-                  
-                  if (!ctx.mounted) return;
-                  Navigator.pop(ctx);
-
-                  if (context.mounted) {
-                    await showDialog(
-                      context: context,
-                      builder: (successCtx) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                        title: Row(
-                          children: [
-                            const Icon(Icons.check_circle, color: Colors.green, size: 30),
-                            const SizedBox(width: 12),
-                            const Expanded(child: Text('Moyen ajouté', overflow: TextOverflow.visible)),
-                          ],
-                        ),
-                        content: Text('Le moyen de paiement "$label" a été configuré.'),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(successCtx), child: const Text('OK')),
-                        ],
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
-                }
-              }
-            },
-            child: const Text('Ajouter'),
-          ),
-        ],
-      ),
-    );
+    _showMethodFormDialog(context);
   }
 
   void _showEditMethodDialog(BuildContext context, PaymentMethod m) {
-    final labelController = TextEditingController(text: m.label);
-    final phoneController = TextEditingController(text: m.phone);
-    final linkController = TextEditingController(text: m.link);
+    _showMethodFormDialog(context, method: m);
+  }
+
+  void _showMethodFormDialog(BuildContext context, {PaymentMethod? method}) {
+    final isEdit = method != null;
+    final labelController = TextEditingController(text: method?.label);
+    final phoneController = TextEditingController(text: method?.phone);
+    final linkController = TextEditingController(text: method?.link);
+    final formKey = GlobalKey<FormState>();
     
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Modifier Moyen de Paiement'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: labelController, decoration: const InputDecoration(labelText: 'Label')),
-            const SizedBox(height: 12),
-            TextField(controller: phoneController, decoration: const InputDecoration(labelText: 'Numéro de téléphone')),
-            const SizedBox(height: 12),
-            TextField(controller: linkController, decoration: const InputDecoration(labelText: 'Lien de paiement')),
-          ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Text(
+          isEdit ? 'Modifier Paiement' : 'Nouveau Paiement', 
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: labelController, 
+                decoration: InputDecoration(
+                  labelText: 'Label (ex: Lydia)',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+                validator: (v) => v!.isEmpty ? 'Requis' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: phoneController, 
+                decoration: InputDecoration(
+                  labelText: 'Numéro de téléphone',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: linkController, 
+                decoration: InputDecoration(
+                  labelText: 'Lien de paiement (pour QR)',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           ElevatedButton(
             onPressed: () async {
-              final label = labelController.text.trim();
-              if (label.isNotEmpty) {
+              if (formKey.currentState!.validate()) {
+                final label = labelController.text.trim();
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 try {
-                  await context.read<FirebaseService>().updatePaymentMethod(PaymentMethod(
-                    id: m.id, 
+                  final service = context.read<FirebaseService>();
+                  final updatedMethod = PaymentMethod(
+                    id: method?.id ?? '', 
                     label: label, 
                     phone: phoneController.text.trim(),
                     link: linkController.text.trim(),
-                    isActive: m.isActive,
-                  ));
+                    isActive: method?.isActive ?? true,
+                  );
+
+                  if (isEdit) {
+                    await service.updatePaymentMethod(updatedMethod);
+                  } else {
+                    await service.addPaymentMethod(updatedMethod);
+                  }
                   
                   if (!ctx.mounted) return;
                   Navigator.pop(ctx);
@@ -204,22 +248,23 @@ class PaymentManagementScreen extends StatelessWidget {
                           children: [
                             const Icon(Icons.check_circle, color: Colors.green, size: 30),
                             const SizedBox(width: 12),
-                            const Expanded(child: Text('Moyen modifié', overflow: TextOverflow.visible)),
+                            Text(isEdit ? 'Moyen Modifié' : 'Moyen Ajouté'),
                           ],
                         ),
-                        content: Text('Le moyen de paiement "$label" a été mis à jour.'),
+                        content: Text('Le moyen de paiement "$label" a été ${isEdit ? "mis à jour" : "configuré"}.'),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(successCtx), child: const Text('OK')),
                         ],
                       ),
                     );
                   }
+                  _refresh();
                 } catch (e) {
                   scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
                 }
               }
             },
-            child: const Text('Enregistrer'),
+            child: Text(isEdit ? 'Enregistrer' : 'Ajouter'),
           ),
         ],
       ),
@@ -230,6 +275,7 @@ class PaymentManagementScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: const Text('Supprimer ?'),
         content: Text('Voulez-vous vraiment supprimer "${m.label}" ?'),
         actions: [
@@ -241,6 +287,7 @@ class PaymentManagementScreen extends StatelessWidget {
                 await context.read<FirebaseService>().deletePaymentMethod(m.id);
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
+                _refresh();
               } catch (e) {
                 scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
               }

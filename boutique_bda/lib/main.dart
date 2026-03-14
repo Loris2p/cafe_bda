@@ -23,12 +23,6 @@ class AdminProvider with ChangeNotifier {
   bool _isAdmin = false;
   bool get isAdmin => _isAdmin;
 
-  // Liste des emails autorisés à activer le mode admin
-  static const List<String> _allowedAdmins = [
-    'loris.lahon@gmail.com',
-    'bdapaucytech@gmail.com',
-  ];
-
   /// Initialise l'état admin.
   /// Par défaut, le mode admin est toujours désactivé au lancement.
   Future<void> init() async {
@@ -36,31 +30,19 @@ class AdminProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Tente d'activer ou désactive le mode admin.
-  /// Vérifie l'éligibilité si [value] est vrai.
+  /// Active ou désactive le mode admin sans restriction d'email.
   void setAdmin(bool value, {String? userEmail, BuildContext? context}) async {
-    if (value && userEmail != null && context != null) {
-      if (_allowedAdmins.contains(userEmail)) {
-        _isAdmin = true;
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('is_admin_mode', true);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mode Administrateur activé'), backgroundColor: Colors.orange),
-          );
-        }
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Accès refusé : vous n\'êtes pas administrateur'), backgroundColor: Colors.red),
-          );
-        }
-        _isAdmin = false;
-      }
-    } else {
-      _isAdmin = value;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('is_admin_mode', value);
+    _isAdmin = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_admin_mode', value);
+    
+    if (context != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(value ? 'Mode Administrateur activé' : 'Mode Administrateur désactivé'), 
+          backgroundColor: value ? Colors.orange : Colors.grey,
+        ),
+      );
     }
     notifyListeners();
   }
