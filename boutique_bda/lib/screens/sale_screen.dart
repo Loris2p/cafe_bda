@@ -303,6 +303,22 @@ class _SaleScreenState extends State<SaleScreen> {
 
   Future<void> _processSale(ScaffoldMessengerState scaffoldMessenger, NavigatorState navigator) async {
     if (_selectedStudent == null || _selectedProduct == null) return;
+    
+    // Vérification de la connexion Internet (Crucial pour éviter les conflits Firestore)
+    final firebaseService = context.read<FirebaseService>();
+    final isConnected = await firebaseService.isConnected();
+    
+    if (!isConnected) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Aucune connexion Internet. Transaction impossible.'), 
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        )
+      );
+      return;
+    }
+
     if (_paymentMethod == 'Crédit' && _selectedStudent!.balance < _selectedProduct!.price) {
       scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Solde insuffisant !'), backgroundColor: Colors.red));
       return;
@@ -332,7 +348,7 @@ class _SaleScreenState extends State<SaleScreen> {
         timestamp: DateTime.now(),
       );
 
-      await context.read<FirebaseService>().addTransaction(transaction);
+      await firebaseService.addTransaction(transaction);
       
       if (!mounted) return;
 

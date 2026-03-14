@@ -200,6 +200,21 @@ class _TopUpScreenState extends State<TopUpScreen> {
       return;
     }
 
+    // Vérification de la connexion Internet
+    final firebaseService = context.read<FirebaseService>();
+    final isConnected = await firebaseService.isConnected();
+    
+    if (!isConnected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Aucune connexion Internet. Rechargement impossible.'), 
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        )
+      );
+      return;
+    }
+
     setState(() => _isProcessing = true);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
@@ -226,7 +241,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
         timestamp: DateTime.now(),
       );
 
-      await context.read<FirebaseService>().addTransaction(transaction);
+      await firebaseService.addTransaction(transaction);
       
       if (!mounted) return;
 

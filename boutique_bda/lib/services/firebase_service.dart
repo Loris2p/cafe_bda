@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:cloud_firestore/cloud_firestore.dart' as fb_store;
 import 'package:firedart/firedart.dart' as fd_store;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/student.dart';
 import '../models/product.dart';
 import '../models/transaction.dart';
@@ -16,6 +17,54 @@ import '../core/utils.dart';
 class FirebaseService {
   /// Indique si l'application tourne sur un bureau (hors Web).
   static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
+
+  /// Vérifie si l'appareil est connecté à Internet.
+  Future<bool> isConnected() async {
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+      return false;
+    }
+    return true;
+  }
+
+  // --- STATISTIQUES ---
+
+  /// Récupère les statistiques globales via les agrégations Firestore (si disponible).
+  Future<Map<String, dynamic>> getGlobalStats() async {
+    if (isDesktopNative) {
+      // Firedart ne supporte pas encore les agrégations natives
+      // On simule en récupérant les transactions récentes (comportement actuel)
+      final docs = await fd_store.Firestore.instance.collection('transactions').get();
+      double totalRevenue = 0;
+      int totalCount = 0;
+      for (var doc in docs) {
+        if (doc['type'] == 'purchase') {
+          totalRevenue += (doc['price'] ?? 0.0).toDouble();
+          totalCount += ((doc['amount'] ?? 0) as num).toInt();
+        }
+      }
+      return {
+        'totalRevenue': totalRevenue,
+        'totalCount': totalCount,
+      };
+    } else {
+      // Utilisation des agrégations natives Firestore (Optimisé et gratuit < 1000/jour)
+      final collection = fb_store.FirebaseFirestore.instance.collection('transactions');
+      final query = collection.where('type', isEqualTo: 'purchase');
+      
+      final aggregateSnapshot = await query.aggregate(
+        fb_store.sum('price'),
+        fb_store.sum('amount'),
+        fb_store.count(),
+      ).get();
+
+      return {
+        'totalRevenue': aggregateSnapshot.getSum('price') ?? 0.0,
+        'totalItems': aggregateSnapshot.getSum('amount') ?? 0.0,
+        'totalCount': aggregateSnapshot.count ?? 0,
+      };
+    }
+  }
 
   // --- ÉTUDIANTS ---
 

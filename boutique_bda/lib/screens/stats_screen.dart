@@ -15,22 +15,50 @@ class StatsScreen extends StatefulWidget {
 class _StatsScreenState extends State<StatsScreen> {
   late Stream<List<CafeTransaction>> _statsStream;
   bool _isInitialized = false;
+  
+  // États pour les stats agrégées (KPIs rapides, toutes périodes)
+  double _totalRevenue = 0;
+  int _totalItems = 0;
+  double _avgBasket = 0;
+  bool _loadingKPIs = true;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_isInitialized) {
-      final firebaseService = Provider.of<FirebaseService>(context);
-      _statsStream = firebaseService.getRecentTransactions(limit: 1000);
+      _loadData();
       _isInitialized = true;
     }
   }
 
-  void _refresh() {
+  Future<void> _loadData() async {
     final firebaseService = Provider.of<FirebaseService>(context, listen: false);
+    
     setState(() {
-      _statsStream = firebaseService.getRecentTransactions(limit: 1000);
+      _loadingKPIs = true;
+      _statsStream = firebaseService.getRecentTransactions(limit: 1000); 
     });
+
+    try {
+      final globalStats = await firebaseService.getGlobalStats();
+      if (!mounted) return;
+      
+      final revenue = (globalStats['totalRevenue'] as num).toDouble();
+      final count = (globalStats['totalCount'] as num).toInt();
+      
+      setState(() {
+        _totalRevenue = revenue;
+        _totalItems = (globalStats['totalItems'] as num).toInt();
+        _avgBasket = count > 0 ? (revenue / count) : 0.0;
+        _loadingKPIs = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _loadingKPIs = false);
+    }
+  }
+
+  void _refresh() {
+    _loadData();
   }
 
   @override
@@ -39,7 +67,7 @@ class _StatsScreenState extends State<StatsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Statistiques'),
+        title: const Text('Statistiques Globales'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh), 
@@ -48,149 +76,153 @@ class _StatsScreenState extends State<StatsScreen> {
           ),
         ],
       ),
-      body: StreamBuilder<List<CafeTransaction>>(
-        stream: _statsStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Erreur lors du chargement des statistiques',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(snapshot.error.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-                    const SizedBox(height: 16),
-                    ElevatedButton(onPressed: _refresh, child: const Text('Réessayer')),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          final transactions = snapshot.data ?? [];
-
-          if (transactions.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.analytics_outlined, size: 64, color: Colors.grey.shade300),
-                  const SizedBox(height: 16),
-                  Text('Aucune donnée disponible.', style: GoogleFonts.poppins(color: Colors.grey)),
-                  const SizedBox(height: 16),
-                  TextButton.icon(
-                    onPressed: _refresh, 
-                    icon: const Icon(Icons.refresh), 
-                    label: const Text('Rafraîchir'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          double totalRevenue = 0;
-          int totalCoffees = 0;
-          Map<String, int> paymentMethods = {};
-          Map<String, int> productsCount = {};
-
-          for (var tx in transactions) {
-            if (tx.type == TransactionType.purchase) {
-              totalRevenue += tx.price;
-              totalCoffees += tx.amount.toInt();
-              productsCount[tx.productName ?? 'Inconnu'] = (productsCount[tx.productName] ?? 0) + tx.amount.toInt();
-            }
-            
-            // Regroupement des méthodes "Autre"
-            String method = tx.paymentMethod;
-            if (method.startsWith('Autre')) {
-              method = 'Autre';
-            }
-            paymentMethods[method] = (paymentMethods[method] ?? 0) + 1;
-          }
-
-          final sortedProducts = productsCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // KPIs "Toutes Périodes" (via agrégations Firestore rapides)
+            _buildSectionHeader('Bilan Global (Tout temps)'),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                Row(
-                  children: [
-                    _ModernKpiCard(title: 'Revenu Total', value: '${totalRevenue.toStringAsFixed(2)} €', icon: Icons.euro, color: Colors.green),
-                    const SizedBox(width: 16),
-                    _ModernKpiCard(title: 'Cafés Servis', value: '$totalCoffees', icon: Icons.coffee, color: Colors.brown),
-                  ],
+                _ModernKpiCard(
+                  title: 'Revenu Total', 
+                  value: _loadingKPIs ? '...' : '${_totalRevenue.toStringAsFixed(2)} €', 
+                  icon: Icons.euro, 
+                  color: Colors.green
                 ),
-                const SizedBox(height: 40),
-                
-                _buildSectionHeader('Répartition des Paiements'),
-                const SizedBox(height: 24),
-                Container(
-                  height: 250,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
-                  child: PieChart(
-                    PieChartData(
-                      sectionsSpace: 4,
-                      centerSpaceRadius: 40,
-                      sections: paymentMethods.entries.map((e) {
-                        final index = paymentMethods.keys.toList().indexOf(e.key);
-                        return PieChartSectionData(
-                          value: e.value.toDouble(),
-                          title: '${e.key}\n${e.value}',
-                          color: Colors.primaries[index % Colors.primaries.length],
-                          radius: 60,
-                          titleStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 40),
-                _buildSectionHeader('Top Produits'),
-                const SizedBox(height: 16),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: sortedProducts.take(5).length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final e = sortedProducts[index];
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                            child: Text('#${index + 1}', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(child: Text(e.key, style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
-                          Text('${e.value} ventes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                        ],
-                      ),
-                    );
-                  },
+                const SizedBox(width: 16),
+                _ModernKpiCard(
+                  title: 'Articles Vendus', 
+                  value: _loadingKPIs ? '...' : '$_totalItems', 
+                  icon: Icons.coffee, 
+                  color: Colors.brown
                 ),
               ],
             ),
-          );
-        },
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _ModernKpiCard(
+                  title: 'Panier Moyen', 
+                  value: _loadingKPIs ? '...' : '${_avgBasket.toStringAsFixed(2)} €', 
+                  icon: Icons.shopping_cart_outlined, 
+                  color: Colors.blue
+                ),
+                const SizedBox(width: 16),
+                _ModernKpiCard(
+                  title: 'Période Analysée', 
+                  value: 'Aujourd\'hui', 
+                  icon: Icons.calendar_today, 
+                  color: Colors.orange
+                ),
+              ],
+            ),
+            const SizedBox(height: 40),
+
+            // Section Graphiques (Nécessite le téléchargement des documents récents)
+            _buildSectionHeader('Analyse Récente (1000 derniers)'),
+            const SizedBox(height: 16),
+            StreamBuilder<List<CafeTransaction>>(
+              stream: _statsStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+                  return const Center(child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: CircularProgressIndicator(),
+                  ));
+                }
+
+                if (snapshot.hasError) {
+                  return Center(child: Text('Erreur : ${snapshot.error}'));
+                }
+
+                final transactions = snapshot.data ?? [];
+                if (transactions.isEmpty) return const Center(child: Text('Aucune transaction récente.'));
+
+                Map<String, int> paymentMethods = {};
+                Map<String, int> productsCount = {};
+
+                for (var tx in transactions) {
+                  if (tx.type == TransactionType.purchase) {
+                    productsCount[tx.productName ?? 'Inconnu'] = (productsCount[tx.productName] ?? 0) + tx.amount.toInt();
+                  }
+                  
+                  String method = tx.paymentMethod;
+                  if (method.startsWith('Autre')) method = 'Autre';
+                  paymentMethods[method] = (paymentMethods[method] ?? 0) + 1;
+                }
+
+                final sortedProducts = productsCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    Text('Répartition des Moyens de Paiement', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 250,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white, 
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20)],
+                      ),
+                      child: PieChart(
+                        PieChartData(
+                          sectionsSpace: 4,
+                          centerSpaceRadius: 40,
+                          sections: paymentMethods.entries.map((e) {
+                            final index = paymentMethods.keys.toList().indexOf(e.key);
+                            return PieChartSectionData(
+                              value: e.value.toDouble(),
+                              title: '${e.key}\n${e.value}',
+                              color: Colors.primaries[index % Colors.primaries.length],
+                              radius: 60,
+                              titleStyle: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 40),
+                    Text('Top Produits (Ventes cumulées)', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+                    const SizedBox(height: 16),
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: sortedProducts.take(10).length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final e = sortedProducts[index];
+                        return Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                                child: Text('#${index + 1}', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(child: Text(e.key, style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
+                              Text('${e.value} ventes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
@@ -212,7 +244,7 @@ class _ModernKpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -226,9 +258,9 @@ class _ModernKpiCard extends StatelessWidget {
               decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(height: 16),
-            Text(value, style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-            Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+            const SizedBox(height: 12),
+            Text(value, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+            Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
           ],
         ),
       ),
