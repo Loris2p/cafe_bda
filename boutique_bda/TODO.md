@@ -21,5 +21,6 @@
 
 ## 🚀 4. Finalisation (À venir)
 - [ ] **Tests de bout en bout :** Valider le cycle complet Achat -> Historique -> Solde.
+- [ ] **Signature Android (Keystore) :** Créer une clé de signature réelle pour stabiliser les mises à jour et Play Protect.
 - [ ] **Nettoyage final :** Supprimer les fichiers de migration et logs temporaires.
 - [ ] **Documentation :** Mettre à jour le README avec les nouvelles étapes de déploiement.
