@@ -1,47 +1,73 @@
-# Boutique BDA - Application de Gestion
+# ☕ Boutique BDA - v10.0
 
-Application Flutter pour la gestion de la boutique du BDA (Ventes, Rechargements, Étudiants).
+L'application de gestion officielle du Bureau des Arts (BDA). Permet de gérer les ventes de café, les rechargements de comptes étudiants et de suivre les statistiques en temps réel.
 
-## 🚀 Architecture Hybride
+---
 
-Cette application est conçue pour fonctionner sur **Windows, Linux, Android, iOS et Web** avec une base de données Firebase unique.
+## 📖 Guide Utilisateur
 
-### Mode Desktop Native (Windows / Linux)
-Utilise le package **Firedart** pour communiquer directement avec Firebase sans passer par les services Google Play (qui ne sont pas disponibles nativement sur PC).
-- Authentification persistante via `SharedPreferences`.
-- Accès Firestore direct.
+### 🔑 Connexion
+- Connectez-vous avec votre email et mot de passe fournis par l'administrateur.
+- Lors de votre première connexion, il vous sera demandé de **changer votre mot de passe**.
 
-### Mode Mobile & Web
-Utilise les SDK officiels **FlutterFire**.
+### 🛒 Effectuer une Vente
+1. Allez sur l'onglet **Vente**.
+2. Sélectionnez l'étudiant dans la liste.
+3. Choisissez le produit.
+4. Sélectionnez le moyen de paiement (**Crédit** débitera le solde de l'étudiant).
+5. Validez. Une popup de succès confirmera l'enregistrement.
 
-## 🛠 Scripts Utiles
+### 💰 Recharger un Compte
+1. Allez sur l'onglet **Rechargement**.
+2. Sélectionnez l'étudiant.
+3. Saisissez le montant et choisissez le mode de paiement (Lydia, Espèces, etc.).
+4. Validez. Le solde est mis à jour instantanément.
 
-### Mise à jour de la version
-Un script Dart est disponible à la racine pour synchroniser la version du fichier `pubspec.yaml` avec celle stockée sur Firestore (utilisée pour le contrôle de version forcé).
+### 👥 Gestion des Étudiants
+- Utilisez l'onglet **Étudiants** pour ajouter un nouvel arrivant ou modifier les informations d'un élève.
+- Un bouton **Rafraîchir** en haut à droite permet de synchroniser manuellement la liste (utile sur Linux).
 
+### ⚙️ Mode Administrateur
+- Accessible via les **Paramètres**.
+- Permet de modifier les prix, ajouter des produits au catalogue et configurer les méthodes de paiement.
+
+---
+
+## 🚀 Guide de Déploiement (Développeur)
+
+### 🏗️ Pré-requis
+- Flutter SDK (dernière version stable).
+- Firebase CLI installé (`npm install -g firebase-tools`).
+
+### ⚙️ Configuration Firebase
+L'application utilise une architecture hybride :
+- **Firedart** pour le support natif Linux/Windows (Desktop).
+- **Cloud Firestore SDK** pour Mobile et Web.
+
+#### Déploiement des Règles de Sécurité
+Pour mettre à jour les règles Firestore :
 ```bash
-dart update_version.dart <version>
-# Exemple
-dart update_version.dart 10.1.0
+firebase use boutique-bda
+firebase deploy --only firestore:rules
 ```
 
-## 🔒 Sécurité & Administration
+### 🔨 Compilation
+#### Pour Linux :
+```bash
+flutter build linux --release
+```
+#### Pour Windows :
+```bash
+flutter build windows --release
+```
+#### Pour Android :
+```bash
+flutter build apk --release
+```
 
-### Mode Administrateur
-Le mode administrateur permet d'accéder aux statistiques, à la gestion des produits et à l'inscription de nouveaux Étudiants.
-- L'activation est restreinte par email (voir `lib/main.dart`, classe `AdminProvider`).
-- Les administrateurs peuvent inscrire des utilisateurs via le menu **Paramètres > Administration**.
+---
 
-### Inscription des utilisateurs
-1. L'admin saisit le nom et l'email.
-2. Un mot de passe aléatoire est généré.
-3. Un lien `mailto:` pré-rempli est proposé pour envoyer les identifiants au nouveau étudiant.
-4. L'utilisateur est **forcé** de changer son mot de passe lors de sa première connexion.
-
-## 📦 Dépendances Principales
-- `provider` : Gestion d'état.
-- `firedart` : Firebase pour Desktop.
-- `firebase_auth` & `cloud_firestore` : Firebase pour Mobile/Web.
-- `fl_chart` : Graphiques statistiques.
-- `package_info_plus` : Contrôle de version.
-- `url_launcher` : Ouverture des mails et liens GitHub.
+## 🛡️ Sécurité & Données
+- Les données sont stockées sur **Google Cloud Firestore**.
+- Les accès sont restreints aux utilisateurs authentifiés.
+- Le système applique automatiquement une règle de **fidélité** : 1 café offert (crédit de 0.50€) tous les 10 cafés achetés.

@@ -1,24 +1,25 @@
 # TODO - Boutique BDA
 
-## 1. Fonctionnalités de Gestion (Back-office)
-- [x] **Finaliser la Gestion des Produits :** Bouton dispo et modification prix/nom.
-- [x] **Module de Statistiques :** Graphique camembert et KPIs de base.
-- [x] **Logique de Fidélité :** Calcul automatique (1 gratuit pour 10).
+## ✅ 1. Fonctionnalités de Gestion (Terminé)
+- [x] **Gestion des Produits :** Bouton disponibilité et modification prix/nom fonctionnels.
+- [x] **Module de Statistiques :** Graphique camembert, évolution des ventes (LineChart) et KPIs (Revenu, Items, Panier Moyen, Rechargements).
+- [x] **Logique de Fidélité :** Crédit de 0.50€ offert automatiquement tous les 10 cafés achetés.
+- [x] **Gestion des Admins :** Liste blanche supprimée, accès admin pour tout utilisateur connecté.
+- [x] **Gestion des Paiements :** Configuration dynamique des moyens de paiement (Lydia, Espèces, etc.).
 
-## 2. Paiements & QR Codes
-- [x] **Écran d'infos Paiement :** QR Codes Lydia et numéros de téléphone.
+## ✅ 2. Migration Back-End (Terminé)
+- [x] **Migration Firebase :** Passage complet de Google Sheets à Firestore.
+- [x] **Rétrocompatibilité :** Les anciennes transactions (importées) sont comptabilisées dans les stats.
+- [x] **Sécurité :** Déploiement des `firestore.rules` (accès complet authentifié).
+- [x] **Robustesse :** Détection de connexion Internet avant chaque transaction critique.
 
-## 3. Sécurité & Rôles
-- [x] **Gestion des Admins :** Restreinte par email dans les paramètres.
-- [ ] **Règles Firestore :** Configurer les règles de sécurité sur la console Firebase.
+## 🛠️ 3. Interface & Expérience Utilisateur (En cours)
+- [x] **Navigation TabBar :** Switch entre Vente, Rechargement, Étudiants et Admin unifié.
+- [x] **Boutons "Rafraîchir" :** Ajoutés sur Historique, Produits, Paiements, Stats et Étudiants (optimisé Linux).
+- [x] **Harmonisation UI :** Dialogues modernes arrondis (28px) généralisés.
+- [ ] **Uniformisation SnackBars :** S'assurer que tous les messages utilisent le style flottant arrondi.
 
-## 4. Import des données
-- [x] **Migration :** Script d'import depuis l'ancien Google Sheets fonctionnel.
-
-## 5. Finition & Stabilité
-- [x] **Recherche sur le Dashboard :** Barre de recherche centrale opérationnelle.
-- [x] **Persistance de Session :** Reconnexion automatique sur toutes les plateformes.
-- [x] **Paramètres :** Panneau de configuration restauré et fonctionnel.
-- [x] **Déconnexion :** Système de logout unifié (Hybride).
-- [ ] **Boutons "Rafraîchir" :** Les ajouter sur les écrans Historique et Produits (nécessaire pour Linux).
-- [ ] **Harmonisation UI :** S'assurer que tous les messages de succès/erreur utilisent le même style moderne.
+## 🚀 4. Finalisation (À venir)
+- [ ] **Tests de bout en bout :** Valider le cycle complet Achat -> Historique -> Solde.
+- [ ] **Nettoyage final :** Supprimer les fichiers de migration et logs temporaires.
+- [ ] **Documentation :** Mettre à jour le README avec les nouvelles étapes de déploiement.
