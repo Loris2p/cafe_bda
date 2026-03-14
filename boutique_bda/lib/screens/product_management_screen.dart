@@ -119,11 +119,11 @@ class ProductManagementScreen extends StatelessWidget {
                       context: context,
                       builder: (successCtx) => AlertDialog(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                        title: const Row(
+                        title: Row(
                           children: [
-                            Icon(Icons.check_circle, color: Colors.green, size: 30),
-                            SizedBox(width: 12),
-                            Text('Produit Ajouté'),
+                            const Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            const SizedBox(width: 12),
+                            const Expanded(child: Text('Produit Ajouté', overflow: TextOverflow.visible)),
                           ],
                         ),
                         content: Text('Le produit "$name" a été ajouté au catalogue.'),
@@ -191,11 +191,11 @@ class ProductManagementScreen extends StatelessWidget {
                       context: context,
                       builder: (successCtx) => AlertDialog(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                        title: const Row(
+                        title: Row(
                           children: [
-                            Icon(Icons.check_circle, color: Colors.green, size: 30),
-                            SizedBox(width: 12),
-                            Text('Produit Modifié'),
+                            const Icon(Icons.check_circle, color: Colors.green, size: 30),
+                            const SizedBox(width: 12),
+                            const Expanded(child: Text('Produit Modifié', overflow: TextOverflow.visible)),
                           ],
                         ),
                         content: Text('Le produit "$name" a été mis à jour.'),

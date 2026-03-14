@@ -51,11 +51,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 30),
-              SizedBox(width: 12),
-              Text('Sécurisé !'),
+              const Icon(Icons.check_circle, color: Colors.green, size: 30),
+              const SizedBox(width: 12),
+              const Expanded(child: Text('Sécurisé !', overflow: TextOverflow.visible)),
             ],
           ),
           content: const Text('Votre mot de passe a été mis à jour avec succès. Vous allez maintenant accéder à l\'application.'),

@@ -28,6 +28,22 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  image_path: "assets/icon/logoBDA_4_complet.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  windows:
+    image_path: "assets/icon/logoBDA_4_complet.png"
+    generate: true
+  linux:
+    image_path: "assets/icon/logoBDA_4_complet.png"
+    generate: true
+  macos:
+    image_path: "assets/icon/logoBDA_4_complet.png"
+    generate: true
 
 flutter:
   uses-material-design: true
