@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android signing
+/android/key.properties
+*.jks
+
+# Gemini
+.gemini/
+
