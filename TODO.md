@@ -17,10 +17,10 @@
 - [x] **Navigation TabBar :** Switch entre Vente, Rechargement, Étudiants et Admin unifié.
 - [x] **Boutons "Rafraîchir" :** Ajoutés sur Historique, Produits, Paiements, Stats et Étudiants (optimisé Linux).
 - [x] **Harmonisation UI :** Dialogues modernes arrondis (28px) généralisés.
-- [ ] **Uniformisation SnackBars :** S'assurer que tous les messages utilisent le style flottant arrondi.
+- [x] **Uniformisation SnackBars :** S'assurer que tous les messages utilisent le style flottant arrondi.
 
 ## 🚀 4. Finalisation (À venir)
 - [ ] **Tests de bout en bout :** Valider le cycle complet Achat -> Historique -> Solde.
 - [ ] **Signature Android (Keystore) :** Créer une clé de signature réelle pour stabiliser les mises à jour et Play Protect.
-- [ ] **Nettoyage final :** Supprimer les fichiers de migration et logs temporaires.
+- [x] **Nettoyage final :** Supprimer les fichiers de migration et logs temporaires.
 - [ ] **Documentation :** Mettre à jour le README avec les nouvelles étapes de déploiement.
