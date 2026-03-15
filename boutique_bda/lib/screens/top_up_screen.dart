@@ -194,8 +194,11 @@ class _TopUpScreenState extends State<TopUpScreen> {
     final amount = double.tryParse(amountText);
     
     if (_selectedStudent == null || amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner un étudiant et saisir un montant valide.'), backgroundColor: Colors.orange)
+      showCustomSnackBar(
+        context, 
+        message: 'Veuillez sélectionner un étudiant et un montant valide.', 
+        backgroundColor: Colors.orange,
+        icon: Icons.info_outline,
       );
       return;
     }
@@ -205,18 +208,18 @@ class _TopUpScreenState extends State<TopUpScreen> {
     final isConnected = await firebaseService.isConnected();
     
     if (!isConnected) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucune connexion Internet. Rechargement impossible.'), 
+      if (mounted) {
+        showCustomSnackBar(
+          context, 
+          message: 'Aucune connexion Internet. Rechargement impossible.', 
           backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-        )
-      );
+          icon: Icons.wifi_off,
+        );
+      }
       return;
     }
 
     setState(() => _isProcessing = true);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
     try {
@@ -245,7 +248,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
       
       if (!mounted) return;
 
-      // Affichage d'une popup de succès au lieu d'un simple SnackBar
+      // Affichage d'une popup de succès
       await showDialog(
         context: context,
         barrierDismissible: false,
@@ -288,7 +291,14 @@ class _TopUpScreenState extends State<TopUpScreen> {
       }
       
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+      if (mounted) {
+        showCustomSnackBar(
+          context, 
+          message: 'Erreur : $e', 
+          backgroundColor: Colors.red,
+          icon: Icons.error_outline,
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isProcessing = false);

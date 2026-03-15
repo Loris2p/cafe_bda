@@ -16,9 +16,9 @@ import 'screens/main_screen.dart';
 import 'screens/change_password_screen.dart';
 import 'models/app_user.dart';
 import 'core/app_theme.dart';
+import 'core/utils.dart';
 
 /// Provider gérant les droits d'accès administrateur.
-/// L'accès est vérifié par rapport à une liste blanche d'emails.
 class AdminProvider with ChangeNotifier {
   bool _isAdmin = false;
   bool get isAdmin => _isAdmin;
@@ -40,11 +40,11 @@ class AdminProvider with ChangeNotifier {
     await prefs.setBool('is_admin_mode', value);
     
     if (context != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(value ? 'Mode Administrateur activé' : 'Mode Administrateur désactivé'), 
-          backgroundColor: value ? Colors.orange : Colors.grey,
-        ),
+      showCustomSnackBar(
+        context,
+        message: value ? 'Mode Administrateur activé' : 'Mode Administrateur désactivé',
+        backgroundColor: value ? Colors.orange : Colors.blueGrey,
+        icon: value ? Icons.admin_panel_settings : Icons.person_outline,
       );
     }
     notifyListeners();
@@ -391,9 +391,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleForgotPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez saisir votre email pour réinitialiser le mot de passe')),
-      );
+      showCustomSnackBar(context, message: 'Veuillez saisir votre email', backgroundColor: Colors.orange, icon: Icons.warning_amber);
       return;
     }
 
@@ -403,8 +401,9 @@ class _LoginScreenState extends State<LoginScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           title: const Text('Email envoyé'),
-          content: Text('Un lien de réinitialisation a été envoyé à $email. Vérifiez vos courriers indésirables si besoin.'),
+          content: Text('Un lien de réinitialisation a été envoyé à $email. Vérifiez vos courriers indésirables.'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
           ],
@@ -412,9 +411,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
-      );
+      showCustomSnackBar(context, message: 'Erreur : $e', backgroundColor: Colors.red, icon: Icons.error_outline);
     }
   }
 
@@ -431,13 +428,11 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur : $e'),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+      showCustomSnackBar(
+        context, 
+        message: 'Échec de connexion : $e', 
+        backgroundColor: Colors.redAccent,
+        icon: Icons.lock_person_outlined,
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);

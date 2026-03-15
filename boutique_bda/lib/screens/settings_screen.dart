@@ -191,13 +191,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await context.read<AuthService>().sendPasswordResetEmail(email);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lien de réinitialisation envoyé à $email'), backgroundColor: Colors.green),
+      showCustomSnackBar(
+        context, 
+        message: 'Lien de réinitialisation envoyé à $email', 
+        backgroundColor: Colors.green,
+        icon: Icons.mark_email_read_outlined,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+      showCustomSnackBar(
+        context, 
+        message: 'Erreur : $e', 
+        backgroundColor: Colors.red,
+        icon: Icons.error_outline,
       );
     }
   }
@@ -305,8 +311,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _showSuccessDialog(context, email, name);
                   } catch (e) {
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
+                    showCustomSnackBar(
+                      context, 
+                      message: 'Erreur d\'inscription : $e', 
+                      backgroundColor: Colors.red,
+                      icon: Icons.error_outline,
                     );
                     setState(() => isLoading = false);
                   }

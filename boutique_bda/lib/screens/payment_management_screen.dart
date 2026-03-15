@@ -260,7 +260,9 @@ class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
                   }
                   _refresh();
                 } catch (e) {
-                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+                  if (context.mounted) {
+                    showCustomSnackBar(context, message: 'Erreur : $e', backgroundColor: Colors.red, icon: Icons.error_outline);
+                  }
                 }
               }
             },
@@ -282,14 +284,18 @@ class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
           TextButton(
             onPressed: () async {
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
               try {
                 await context.read<FirebaseService>().deletePaymentMethod(m.id);
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
+                if (context.mounted) {
+                  showCustomSnackBar(context, message: 'Moyen de paiement supprimé', backgroundColor: Colors.blueGrey, icon: Icons.delete_sweep_outlined);
+                }
                 _refresh();
               } catch (e) {
-                scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+                if (context.mounted) {
+                  showCustomSnackBar(context, message: 'Erreur : $e', backgroundColor: Colors.red, icon: Icons.error_outline);
+                }
               }
             },
             child: const Text('Supprimer', style: TextStyle(color: Colors.red)),

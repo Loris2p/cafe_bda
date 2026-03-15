@@ -8,6 +8,7 @@ import '../models/app_user.dart';
 import '../services/firebase_service.dart';
 import '../widgets/student_search_delegate.dart';
 import '../main.dart';
+import '../core/utils.dart';
 
 class SaleScreen extends StatefulWidget {
   const SaleScreen({super.key});
@@ -301,26 +302,32 @@ class _SaleScreenState extends State<SaleScreen> {
     );
   }
 
-  Future<void> _processSale(ScaffoldMessengerState scaffoldMessenger, NavigatorState navigator) async {
+  Future<void> _processSale(NavigatorState navigator) async {
     if (_selectedStudent == null || _selectedProduct == null) return;
     
-    // Vérification de la connexion Internet (Crucial pour éviter les conflits Firestore)
+    // Vérification de la connexion Internet
     final firebaseService = context.read<FirebaseService>();
     final isConnected = await firebaseService.isConnected();
     
     if (!isConnected) {
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Aucune connexion Internet. Transaction impossible.'), 
+      if (mounted) {
+        showCustomSnackBar(
+          context, 
+          message: 'Aucune connexion Internet. Transaction impossible.', 
           backgroundColor: Colors.orange,
-          behavior: SnackBarBehavior.floating,
-        )
-      );
+          icon: Icons.wifi_off,
+        );
+      }
       return;
     }
 
     if (_paymentMethod == 'Crédit' && _selectedStudent!.balance < _selectedProduct!.price) {
-      scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Solde insuffisant !'), backgroundColor: Colors.red));
+      showCustomSnackBar(
+        context, 
+        message: 'Solde insuffisant !', 
+        backgroundColor: Colors.red,
+        icon: Icons.warning_amber,
+      );
       return;
     }
 
@@ -352,7 +359,7 @@ class _SaleScreenState extends State<SaleScreen> {
       
       if (!mounted) return;
 
-      // Affichage d'une popup de succès au lieu d'un simple SnackBar
+      // Affichage d'une popup de succès
       await showDialog(
         context: context,
         barrierDismissible: false,
@@ -393,7 +400,14 @@ class _SaleScreenState extends State<SaleScreen> {
         context.read<TabProvider>().setTab(0);
       }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+      if (mounted) {
+        showCustomSnackBar(
+          context, 
+          message: 'Erreur : $e', 
+          backgroundColor: Colors.red,
+          icon: Icons.error_outline,
+        );
+      }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }

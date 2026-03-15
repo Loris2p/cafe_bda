@@ -262,7 +262,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                   }
                   _refresh();
                 } catch (e) {
-                  scaffoldMessenger.showSnackBar(SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red));
+                  if (context.mounted) {
+                    showCustomSnackBar(context, message: 'Erreur : $e', backgroundColor: Colors.red, icon: Icons.error_outline);
+                  }
                 }
               }
             },
