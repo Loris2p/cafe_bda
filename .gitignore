@@ -46,3 +46,4 @@ app.*.map.json
 
 .gemini/
 gha-creds-*.json
+/SAUVEGARDE_CRITIQUE_BDA/
