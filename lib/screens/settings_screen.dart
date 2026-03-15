@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
 import '../models/app_user.dart';
@@ -306,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await ctx.read<AuthService>().registerUser(email, name, tempPassword);
                     if (!context.mounted) return;
                     Navigator.pop(ctx);
-                    _showSuccessDialog(context, email, name);
+                    _showSuccessDialog(context, email, name, tempPassword);
                   } catch (e) {
                     if (!context.mounted) return;
                     showCustomSnackBar(
@@ -326,7 +327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showSuccessDialog(BuildContext context, String email, String name) {
+  void _showSuccessDialog(BuildContext context, String email, String name, String password) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -336,13 +337,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Le compte de $name ($email) a été créé.'),
+            Text('Le compte de $name a été créé.'),
             const SizedBox(height: 16),
-            const Text('Un email de configuration de mot de passe lui a été envoyé automatiquement.'),
+            const Text('Veuillez envoyer ses accès manuellement :'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Email : $email', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Mot de passe : $password', style: const TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
           ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer')),
+          ElevatedButton.icon(
+            onPressed: () async {
+              final String subject = Uri.encodeComponent("Tes accès - Boutique BDA");
+              final String body = Uri.encodeComponent(
+                "Salut $name !\n\n"
+                "Voici tes identifiants pour te connecter à l'application Boutique BDA :\n"
+                "- Email : $email\n"
+                "- Mot de passe : $password\n\n"
+                "Tu pourras changer ton mot de passe lors de ta première connexion.\n\n"
+                "Tu peux télécharger l'application ici : https://github.com/Loris2p/cafe_bda/releases\n\n"
+                "À bientôt !"
+              );
+              final Uri mailUri = Uri.parse("mailto:$email?subject=$subject&body=$body");
+              
+              if (await canLaunchUrl(mailUri)) {
+                await launchUrl(mailUri);
+              }
+            },
+            icon: const Icon(Icons.send_rounded),
+            label: const Text('ENVOYER LES ACCÈS'),
+          ),
         ],
       ),
     );

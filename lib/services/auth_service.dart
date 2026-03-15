@@ -170,10 +170,7 @@ class AuthService {
     }
     
     // Initialisation du document utilisateur dans Firestore
-    await _firebaseService.createUserDocument(uid, email, name, false);
-
-    // Envoyer immédiatement un email de réinitialisation
-    await sendPasswordResetEmail(email);
+    await _firebaseService.createUserDocument(uid, email, name, true); // true pour forcer le changement au 1er login
   }
 
   /// Met à jour le mot de passe de l'utilisateur actuel et lève le flag [mustChangePassword].
