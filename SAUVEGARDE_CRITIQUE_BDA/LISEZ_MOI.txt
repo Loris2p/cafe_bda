@@ -1,0 +1,11 @@
+Dossier de Sauvegarde Critique - Boutique BDA
+---------------------------------------------
+Ce dossier contient les fichiers NE PAS METTRE SUR GITHUB.
+Ils sont indispensables pour reconfigurer le projet sur un nouvel ordi.
+
+INSTRUCTIONS MIGRATION :
+1. Copiez 'key.properties' dans 'android/'
+2. Copiez 'upload-keystore.jks' dans 'android/app/'
+3. Copiez 'google-services.json' dans 'android/app/'
+
+Gardez ce dossier dans un endroit SÛR (Drive, Clé USB).
