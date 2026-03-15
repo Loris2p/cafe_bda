@@ -115,25 +115,34 @@ class _DataTableWidgetState extends State<DataTableWidget> {
               child: SizedBox(
                 width: constraints.maxWidth,
                 child: SingleChildScrollView(
-                  child: PaginatedDataTable(
-                    header: null,
-                    showCheckboxColumn: false,
-                    headingRowHeight: 50,
-                    dataRowMinHeight: 40,
-                    dataRowMaxHeight: 55,
-                    columns: widget.headers.asMap().entries.map((e) {
-                      return DataColumn(
-                        label: SelectableText(e.value),
-                        onSort: (index, ascending) => _onSort(index, ascending),
-                      );
-                    }).toList(),
-                    source: _DataSource(_sortedData, widget.onRowTap),
-                    rowsPerPage: _rowsPerPage,
-                    availableRowsPerPage: const [10, 20, 50],
-                    onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
-                    showFirstLastButtons: true,
-                    sortColumnIndex: _sortColumnIndex,
-                    sortAscending: _sortAscending,
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                      child: PaginatedDataTable(
+                        header: null,
+                        showCheckboxColumn: false,
+                        headingRowHeight: 50,
+                        dataRowMinHeight: 40,
+                        dataRowMaxHeight: 55,
+                        columnSpacing: 20, // Réduit l'espacement pour gagner de la place
+                        horizontalMargin: 12,
+                        columns: widget.headers.asMap().entries.map((e) {
+                          return DataColumn(
+                            label: Text(e.value),
+                            onSort: (index, ascending) => _onSort(index, ascending),
+                          );
+                        }).toList(),
+                        source: _DataSource(_sortedData, widget.onRowTap),
+                        rowsPerPage: _rowsPerPage,
+                        availableRowsPerPage: const [10, 20, 50],
+                        onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
+                        showFirstLastButtons: true,
+                        sortColumnIndex: _sortColumnIndex,
+                        sortAscending: _sortAscending,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -167,7 +176,7 @@ class _DataSource extends DataTableSource {
     return DataRow(
       onSelectChanged: onRowTap != null ? (_) => onRowTap!(index) : null,
       cells: row.map((cell) {
-        return DataCell(SelectableText(cell?.toString() ?? ''));
+        return DataCell(Text(cell?.toString() ?? ''));
       }).toList(),
     );
   }
