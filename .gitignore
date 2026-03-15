@@ -46,7 +46,11 @@ app.*.map.json
 
 # Android signing
 /android/key.properties
+/android/app/google-services.json
 *.jks
+
+# Backup folder (contains sensitive keys)
+SAUVEGARDE_CRITIQUE_BDA/
 
 # Gemini
 .gemini/

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class DataTableWidget extends StatefulWidget {
@@ -62,12 +61,10 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       if (aValue == null) return ascending ? -1 : 1;
       if (bValue == null) return ascending ? 1 : -1;
 
-      // Tri numérique direct si les valeurs sont des nombres
       if (aValue is num && bValue is num) {
         return ascending ? aValue.compareTo(bValue) : bValue.compareTo(aValue);
       }
       
-      // Gestion spéciale pour les montants affichés (ex: "10.00 €")
       String aStr = aValue.toString();
       String bStr = bValue.toString();
       
@@ -77,7 +74,6 @@ class _DataTableWidgetState extends State<DataTableWidget> {
         return ascending ? aNum.compareTo(bNum) : bNum.compareTo(aNum);
       }
 
-      // Tri textuel par défaut (insensible à la casse)
       return ascending ? aStr.toLowerCase().compareTo(bStr.toLowerCase()) : bStr.toLowerCase().compareTo(aStr.toLowerCase());
     });
   }
@@ -112,50 +108,45 @@ class _DataTableWidgetState extends State<DataTableWidget> {
                   ),
                 ),
               ),
-              child: SizedBox(
-                width: constraints.maxWidth,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                      child: PaginatedDataTable(
-                        header: null,
-                        showCheckboxColumn: false,
-                        headingRowHeight: 50,
-                        dataRowMinHeight: 40,
-                        dataRowMaxHeight: 55,
-                        columnSpacing: 20, // Réduit l'espacement pour gagner de la place
-                        horizontalMargin: 12,
-                        columns: widget.headers.asMap().entries.map((e) {
-                          return DataColumn(
-                            label: Text(e.value),
-                            onSort: (index, ascending) => _onSort(index, ascending),
-                          );
-                        }).toList(),
-                        source: _DataSource(_sortedData, widget.onRowTap),
-                        rowsPerPage: _rowsPerPage,
-                        availableRowsPerPage: const [10, 20, 50],
-                        onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
-                        showFirstLastButtons: true,
-                        sortColumnIndex: _sortColumnIndex,
-                        sortAscending: _sortAscending,
-                      ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: constraints.maxWidth,
+                      maxWidth: 1200, 
+                    ),
+                    child: PaginatedDataTable(
+                      header: null,
+                      showCheckboxColumn: false,
+                      headingRowHeight: 50,
+                      dataRowMinHeight: 40,
+                      dataRowMaxHeight: 55,
+                      columnSpacing: 16,
+                      horizontalMargin: 12,
+                      columns: widget.headers.asMap().entries.map((e) {
+                        return DataColumn(
+                          label: Text(e.value),
+                          onSort: (index, ascending) => _onSort(index, ascending),
+                        );
+                      }).toList(),
+                      source: _DataSource(_sortedData, widget.onRowTap),
+                      rowsPerPage: _rowsPerPage,
+                      availableRowsPerPage: const [10, 20, 50],
+                      onRowsPerPageChanged: (value) => setState(() => _rowsPerPage = value ?? 10),
+                      showFirstLastButtons: true,
+                      sortColumnIndex: _sortColumnIndex,
+                      sortAscending: _sortAscending,
                     ),
                   ),
                 ),
               ),
             ),
             if (widget.isLoading)
-              Positioned.fill(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                  child: Container(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-                ),
+              Container(
+                color: Colors.white.withValues(alpha: 0.5),
+                child: const Center(child: CircularProgressIndicator()),
               ),
           ],
         );

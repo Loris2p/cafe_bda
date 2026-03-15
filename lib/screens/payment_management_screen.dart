@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/payment_method.dart';
 import '../services/firebase_service.dart';
+import '../core/utils.dart';
 
 class PaymentManagementScreen extends StatefulWidget {
   const PaymentManagementScreen({super.key});
@@ -219,7 +220,6 @@ class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 final label = labelController.text.trim();
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
                 try {
                   final service = context.read<FirebaseService>();
                   final updatedMethod = PaymentMethod(

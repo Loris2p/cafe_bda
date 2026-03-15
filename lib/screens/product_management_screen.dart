@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/product.dart';
 import '../services/firebase_service.dart';
+import '../core/utils.dart';
 
 class ProductManagementScreen extends StatefulWidget {
   const ProductManagementScreen({super.key});
@@ -221,7 +222,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 final priceText = priceController.text.replaceAll(',', '.').trim();
                 final price = double.tryParse(priceText) ?? 0.0;
                 
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
                 try {
                   final service = context.read<FirebaseService>();
                   final newProduct = Product(

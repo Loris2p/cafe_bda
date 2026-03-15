@@ -270,7 +270,6 @@ class _SaleScreenState extends State<SaleScreen> {
   Widget _buildCheckoutSection() {
     final total = _selectedProduct?.price ?? 0.0;
     final canProcess = _selectedStudent != null && _selectedProduct != null;
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
     return Container(
@@ -293,7 +292,7 @@ class _SaleScreenState extends State<SaleScreen> {
           _isProcessing
               ? const CircularProgressIndicator()
               : ElevatedButton(
-                  onPressed: canProcess ? () => _processSale(scaffoldMessenger, navigator) : null,
+                  onPressed: canProcess ? () => _processSale(navigator) : null,
                   style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 60)),
                   child: const Text('CONFIRMER L\'ACHAT'),
                 ),
