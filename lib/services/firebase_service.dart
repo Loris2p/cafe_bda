@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:cloud_firestore/cloud_firestore.dart' as fb_store;
 import 'package:firedart/firedart.dart' as fd_store;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:rxdart/rxdart.dart';
 import '../models/student.dart';
 import '../models/product.dart';
 import '../models/transaction.dart';
@@ -93,9 +94,17 @@ class FirebaseService {
   /// Récupère le flux des étudiants inscrits.
   Stream<List<Student>> getStudents() {
     if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('students').stream.map(
-            (docs) => docs.map((doc) => _studentFromFiredart(doc)).toList(),
-          );
+      final collection = fd_store.Firestore.instance.collection('students');
+      return Rx.concat([
+        Stream.fromFuture(collection.get()),
+        collection.stream,
+      ]).map(
+        (docs) {
+          final list = docs.map((doc) => _studentFromFiredart(doc)).toList();
+          list.sort((a, b) => a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase()));
+          return list;
+        },
+      );
     } else {
       return fb_store.FirebaseFirestore.instance.collection('students').orderBy('lastName').snapshots().map(
             (snapshot) => snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList(),
@@ -126,9 +135,13 @@ class FirebaseService {
   /// Récupère la liste des produits disponibles ou non.
   Stream<List<Product>> getProducts() {
     if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('products').stream.map(
-            (docs) => docs.map((doc) => _productFromFiredart(doc)).toList(),
-          );
+      final query = fd_store.Firestore.instance.collection('products');
+      return Rx.concat([
+        Stream.fromFuture(query.get()),
+        query.stream,
+      ]).map(
+        (docs) => docs.map((doc) => _productFromFiredart(doc)).toList(),
+      );
     } else {
       return fb_store.FirebaseFirestore.instance.collection('products').snapshots().map(
             (snapshot) => snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList(),
@@ -157,9 +170,13 @@ class FirebaseService {
   /// Récupère les configurations de paiement (Lydia, Espèces, etc.).
   Stream<List<PaymentMethod>> getPaymentMethods() {
     if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('payment_methods').stream.map(
-            (docs) => docs.map((doc) => PaymentMethod.fromMap(doc.id, doc.map)).toList(),
-          );
+      final query = fd_store.Firestore.instance.collection('payment_methods');
+      return Rx.concat([
+        Stream.fromFuture(query.get()),
+        query.stream,
+      ]).map(
+        (docs) => docs.map((doc) => PaymentMethod.fromMap(doc.id, doc.map)).toList(),
+      );
     } else {
       return fb_store.FirebaseFirestore.instance.collection('payment_methods').snapshots().map(
             (snapshot) => snapshot.docs.map((doc) => PaymentMethod.fromFirestore(doc)).toList(),
@@ -274,9 +291,17 @@ class FirebaseService {
   /// Récupère l'historique paginé des transactions.
   Stream<List<CafeTransaction>> getRecentTransactions({int limit = 20}) {
     if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('transactions').stream.map(
-            (docs) => docs.map((doc) => _transactionFromFiredart(doc)).toList(),
-          );
+      final collection = fd_store.Firestore.instance.collection('transactions');
+      return Rx.concat([
+        Stream.fromFuture(collection.get()),
+        collection.stream,
+      ]).map(
+        (docs) {
+          final list = docs.map((doc) => _transactionFromFiredart(doc)).toList();
+          list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          return list.take(limit).toList();
+        },
+      );
     } else {
       return fb_store.FirebaseFirestore.instance
           .collection('transactions')

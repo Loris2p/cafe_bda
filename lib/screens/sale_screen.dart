@@ -20,6 +20,7 @@ class SaleScreen extends StatefulWidget {
 class _SaleScreenState extends State<SaleScreen> {
   Student? _selectedStudent;
   Product? _selectedProduct;
+  int _quantity = 1;
   String _paymentMethod = 'Crédit';
   final TextEditingController _otherPaymentController = TextEditingController();
   bool _isProcessing = false;
@@ -82,6 +83,10 @@ class _SaleScreenState extends State<SaleScreen> {
             const SizedBox(height: 32),
 
             if (_selectedProduct != null) ...[
+              _buildSectionTitle('Quantité'),
+              const SizedBox(height: 12),
+              _buildQuantitySelector(),
+              const SizedBox(height: 32),
               _buildCheckoutSection(),
             ],
           ],
@@ -268,7 +273,7 @@ class _SaleScreenState extends State<SaleScreen> {
   }
 
   Widget _buildCheckoutSection() {
-    final total = _selectedProduct?.price ?? 0.0;
+    final total = (_selectedProduct?.price ?? 0.0) * _quantity;
     final canProcess = _selectedStudent != null && _selectedProduct != null;
     final navigator = Navigator.of(context);
 
@@ -320,7 +325,11 @@ class _SaleScreenState extends State<SaleScreen> {
       return;
     }
 
-    if (_paymentMethod == 'Crédit' && _selectedStudent!.balance < _selectedProduct!.price) {
+    setState(() => _isProcessing = true);
+    final totalPrice = _selectedProduct!.price * _quantity;
+
+    if (_paymentMethod == 'Crédit' && _selectedStudent!.balance < totalPrice) {
+      setState(() => _isProcessing = false);
       final confirm = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -333,7 +342,7 @@ class _SaleScreenState extends State<SaleScreen> {
             ],
           ),
           content: Text(
-            'Le solde de ${_selectedStudent!.fullName} va devenir négatif (${(_selectedStudent!.balance - _selectedProduct!.price).toStringAsFixed(2)} €).\nVoulez-vous quand même valider cette vente ?',
+            'Le solde de ${_selectedStudent!.fullName} va devenir négatif (${(_selectedStudent!.balance - totalPrice).toStringAsFixed(2)} €).\nVoulez-vous quand même valider cette vente ?',
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -353,9 +362,8 @@ class _SaleScreenState extends State<SaleScreen> {
       if (confirm != true) {
         return;
       }
+      setState(() => _isProcessing = true);
     }
-
-    setState(() => _isProcessing = true);
     try {
       final user = Provider.of<AppUser?>(context, listen: false);
       
@@ -371,8 +379,8 @@ class _SaleScreenState extends State<SaleScreen> {
         studentName: _selectedStudent!.fullName,
         responsibleId: user?.id ?? 'unknown',
         responsibleName: user?.displayName ?? user?.email ?? 'Anonyme',
-        amount: 1,
-        price: _selectedProduct!.price,
+        amount: _quantity.toDouble(),
+        price: totalPrice,
         type: TransactionType.purchase,
         paymentMethod: finalPaymentMethod,
         productName: _selectedProduct!.name,
@@ -397,7 +405,7 @@ class _SaleScreenState extends State<SaleScreen> {
             ],
           ),
           content: Text(
-            'La vente de ${_selectedProduct!.name} pour ${_selectedStudent!.fullName} a été enregistrée avec succès.',
+            'La vente de ${_selectedProduct!.name} (x$_quantity) pour ${_selectedStudent!.fullName} a été enregistrée avec succès.',
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -415,6 +423,7 @@ class _SaleScreenState extends State<SaleScreen> {
       setState(() {
         _selectedProduct = null;
         _selectedStudent = null;
+        _quantity = 1;
       });
 
       // Navigation sécurisée
@@ -435,5 +444,31 @@ class _SaleScreenState extends State<SaleScreen> {
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
+  }
+
+  Widget _buildQuantitySelector() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+          icon: const Icon(Icons.remove_circle_outline),
+          iconSize: 32,
+          color: Theme.of(context).primaryColor,
+        ),
+        const SizedBox(width: 24),
+        Text(
+          '$_quantity',
+          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(width: 24),
+        IconButton(
+          onPressed: () => setState(() => _quantity++),
+          icon: const Icon(Icons.add_circle_outline),
+          iconSize: 32,
+          color: Theme.of(context).primaryColor,
+        ),
+      ],
+    );
   }
 }
