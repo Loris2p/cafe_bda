@@ -321,13 +321,38 @@ class _SaleScreenState extends State<SaleScreen> {
     }
 
     if (_paymentMethod == 'Crédit' && _selectedStudent!.balance < _selectedProduct!.price) {
-      showCustomSnackBar(
-        context, 
-        message: 'Solde insuffisant !', 
-        backgroundColor: Colors.red,
-        icon: Icons.warning_amber,
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          title: Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 30),
+              const SizedBox(width: 12),
+              const Expanded(child: Text('Solde insuffisant', overflow: TextOverflow.visible)),
+            ],
+          ),
+          content: Text(
+            'Le solde de ${_selectedStudent!.fullName} va devenir négatif (${(_selectedStudent!.balance - _selectedProduct!.price).toStringAsFixed(2)} €).\nVoulez-vous quand même valider cette vente ?',
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: const Text('Valider'),
+            ),
+          ],
+        ),
       );
-      return;
+
+      if (confirm != true) {
+        return;
+      }
     }
 
     setState(() => _isProcessing = true);
