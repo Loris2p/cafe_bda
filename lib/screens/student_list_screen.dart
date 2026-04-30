@@ -42,6 +42,11 @@ class _StudentListScreenState extends State<StudentListScreen> {
         title: const Text('Étudiants'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person_add),
+            onPressed: () => _showAddStudentDialog(context),
+            tooltip: 'Nouvel étudiant',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _refresh,
             tooltip: 'Rafraîchir',
@@ -142,14 +147,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'add_student_fab',
-        onPressed: () => _showAddStudentDialog(context),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: Text('Nouvel étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-      ),
+
     );
   }
 
