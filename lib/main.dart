@@ -170,10 +170,11 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
 
   Future<void> _checkVersion() async {
     try {
+      final firebaseService = context.read<FirebaseService>();
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
       
-      final latestVersion = await context.read<FirebaseService>().getLatestVersion();
+      final latestVersion = await firebaseService.getLatestVersion();
       
       if (!mounted) return;
 

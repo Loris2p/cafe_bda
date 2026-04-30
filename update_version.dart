@@ -1,12 +1,14 @@
 import 'dart:io';
 
+// ignore_for_file: avoid_print
+
 /// SCRIPT DE MISE À JOUR DE VERSION (LOCAL UNIQUEMENT)
 /// 
 /// Ce script met à jour la version dans le fichier pubspec.yaml.
 /// La version Firestore doit être mise à jour manuellement sur la console.
 /// 
 /// POUR EXÉCUTER :
-/// dart run update_version.dart <new_version>
+/// dart run update_version.dart [new_version]
 
 void main(List<String> args) async {
   if (args.isEmpty) {

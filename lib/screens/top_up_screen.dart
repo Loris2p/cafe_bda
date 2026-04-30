@@ -207,16 +207,15 @@ class _TopUpScreenState extends State<TopUpScreen> {
     // Vérification de la connexion Internet
     final firebaseService = context.read<FirebaseService>();
     final isConnected = await firebaseService.isConnected();
-    
+
+    if (!mounted) return;
     if (!isConnected) {
-      if (mounted) {
-        showCustomSnackBar(
-          context, 
-          message: 'Aucune connexion Internet. Rechargement impossible.', 
-          backgroundColor: Colors.orange,
-          icon: Icons.wifi_off,
-        );
-      }
+      showCustomSnackBar(
+        context, 
+        message: 'Aucune connexion Internet. Rechargement impossible.', 
+        backgroundColor: Colors.orange,
+        icon: Icons.wifi_off,
+      );
       return;
     }
 
@@ -224,6 +223,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
     final navigator = Navigator.of(context);
 
     try {
+      if (!mounted) return;
       final user = Provider.of<AppUser?>(context, listen: false);
       
       String finalPaymentMethod = _paymentMethod;
@@ -250,7 +250,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
       if (!mounted) return;
 
       // Affichage d'une popup de succès
-      await showDialog(
+      final shouldStay = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
@@ -267,9 +267,13 @@ class _TopUpScreenState extends State<TopUpScreen> {
             style: GoogleFonts.poppins(),
           ),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Retour à l\'accueil'),
+            ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Nouveau Rechargement'),
             ),
           ],
         ),
@@ -284,11 +288,13 @@ class _TopUpScreenState extends State<TopUpScreen> {
         _otherPaymentController.clear();
       });
 
-      // Navigation sécurisée
-      if (navigator.canPop()) {
-        navigator.pop();
-      } else {
-        context.read<TabProvider>().setTab(0);
+      if (shouldStay != true) {
+        // Navigation sécurisée
+        if (navigator.canPop()) {
+          navigator.pop();
+        } else {
+          context.read<TabProvider>().setTab(0);
+        }
       }
       
     } catch (e) {

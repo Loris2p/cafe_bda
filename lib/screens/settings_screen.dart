@@ -188,8 +188,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _sendResetEmail(BuildContext context, String? email) async {
     if (email == null) return;
     try {
-      await context.read<AuthService>().sendPasswordResetEmail(email);
-      if (!mounted) return;
+      final authService = context.read<AuthService>();
+      await authService.sendPasswordResetEmail(email);
+      if (!context.mounted) return;
       showCustomSnackBar(
         context, 
         message: 'Lien de réinitialisation envoyé à $email', 
@@ -197,7 +198,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         icon: Icons.mark_email_read_outlined,
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       showCustomSnackBar(
         context, 
         message: 'Erreur : $e', 

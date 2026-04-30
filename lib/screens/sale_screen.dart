@@ -313,15 +313,14 @@ class _SaleScreenState extends State<SaleScreen> {
     final firebaseService = context.read<FirebaseService>();
     final isConnected = await firebaseService.isConnected();
     
+    if (!mounted) return;
     if (!isConnected) {
-      if (mounted) {
-        showCustomSnackBar(
-          context, 
-          message: 'Aucune connexion Internet. Transaction impossible.', 
-          backgroundColor: Colors.orange,
-          icon: Icons.wifi_off,
-        );
-      }
+      showCustomSnackBar(
+        context, 
+        message: 'Aucune connexion Internet. Transaction impossible.', 
+        backgroundColor: Colors.orange,
+        icon: Icons.wifi_off,
+      );
       return;
     }
 
@@ -362,9 +361,11 @@ class _SaleScreenState extends State<SaleScreen> {
       if (confirm != true) {
         return;
       }
+      if (!mounted) return;
       setState(() => _isProcessing = true);
     }
     try {
+      if (!mounted) return;
       final user = Provider.of<AppUser?>(context, listen: false);
       
       String finalPaymentMethod = _paymentMethod;
@@ -392,7 +393,7 @@ class _SaleScreenState extends State<SaleScreen> {
       if (!mounted) return;
 
       // Affichage d'une popup de succès
-      await showDialog(
+      final shouldStay = await showDialog<bool>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
@@ -409,9 +410,13 @@ class _SaleScreenState extends State<SaleScreen> {
             style: GoogleFonts.poppins(),
           ),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Retour à l\'accueil'),
+            ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Nouvelle Vente'),
             ),
           ],
         ),
@@ -419,18 +424,20 @@ class _SaleScreenState extends State<SaleScreen> {
 
       if (!mounted) return;
       
-      // Réinitialiser l'état local avant de changer d'écran
+      // Réinitialiser l'état local
       setState(() {
         _selectedProduct = null;
         _selectedStudent = null;
         _quantity = 1;
       });
 
-      // Navigation sécurisée
-      if (navigator.canPop()) {
-        navigator.pop();
-      } else {
-        context.read<TabProvider>().setTab(0);
+      if (shouldStay != true) {
+        // Navigation sécurisée vers l'accueil
+        if (navigator.canPop()) {
+          navigator.pop();
+        } else {
+          context.read<TabProvider>().setTab(0);
+        }
       }
     } catch (e) {
       if (mounted) {
