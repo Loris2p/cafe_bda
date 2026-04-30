@@ -91,10 +91,9 @@ class FirebaseService {
   // --- ÉTUDIANTS ---
 
   /// Récupère le flux des étudiants inscrits.
-  /// Note: Sur Desktop, le flux est simulé à partir d'un Future unique.
   Stream<List<Student>> getStudents() {
     if (isDesktopNative) {
-      return Stream.fromFuture(fd_store.Firestore.instance.collection('students').get()).map(
+      return fd_store.Firestore.instance.collection('students').stream.map(
             (docs) => docs.map((doc) => _studentFromFiredart(doc)).toList(),
           );
     } else {
@@ -127,7 +126,7 @@ class FirebaseService {
   /// Récupère la liste des produits disponibles ou non.
   Stream<List<Product>> getProducts() {
     if (isDesktopNative) {
-      return Stream.fromFuture(fd_store.Firestore.instance.collection('products').get()).map(
+      return fd_store.Firestore.instance.collection('products').stream.map(
             (docs) => docs.map((doc) => _productFromFiredart(doc)).toList(),
           );
     } else {
@@ -158,7 +157,7 @@ class FirebaseService {
   /// Récupère les configurations de paiement (Lydia, Espèces, etc.).
   Stream<List<PaymentMethod>> getPaymentMethods() {
     if (isDesktopNative) {
-      return Stream.fromFuture(fd_store.Firestore.instance.collection('payment_methods').get()).map(
+      return fd_store.Firestore.instance.collection('payment_methods').stream.map(
             (docs) => docs.map((doc) => PaymentMethod.fromMap(doc.id, doc.map)).toList(),
           );
     } else {
@@ -275,7 +274,7 @@ class FirebaseService {
   /// Récupère l'historique paginé des transactions.
   Stream<List<CafeTransaction>> getRecentTransactions({int limit = 20}) {
     if (isDesktopNative) {
-      return Stream.fromFuture(fd_store.Firestore.instance.collection('transactions').get()).map(
+      return fd_store.Firestore.instance.collection('transactions').stream.map(
             (docs) => docs.map((doc) => _transactionFromFiredart(doc)).toList(),
           );
     } else {
