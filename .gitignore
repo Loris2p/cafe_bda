@@ -55,4 +55,8 @@ SAUVEGARDE_CRITIQUE_BDA/
 # Gemini
 .gemini/
 
+# Firebase cache
+.firebase/
+
 SAUVEGARDE_CRITIQUE_BDA.zip
+

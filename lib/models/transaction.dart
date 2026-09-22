@@ -27,6 +27,9 @@ class CafeTransaction {
   /// Méthode de règlement (Lydia, Espèces, Crédit, Autre...).
   final String paymentMethod;
   
+  /// ID du produit vendu (si type == purchase).
+  final String? productId;
+
   /// Nom du produit vendu (si type == purchase).
   final String? productName;
   
@@ -42,6 +45,7 @@ class CafeTransaction {
     required this.price,
     required this.type,
     required this.paymentMethod,
+    this.productId,
     this.productName,
     required this.timestamp,
   });
@@ -58,6 +62,7 @@ class CafeTransaction {
       price: parseDouble(data['price']),
       type: data['type'] == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
       paymentMethod: data['paymentMethod'] ?? '',
+      productId: data['productId'],
       productName: data['productName'],
       timestamp: parseRequiredFirestoreDate(data['timestamp']),
     );
@@ -73,6 +78,7 @@ class CafeTransaction {
       'price': price,
       'type': type == TransactionType.topUp ? 'topUp' : 'purchase',
       'paymentMethod': paymentMethod,
+      'productId': productId,
       'productName': productName,
       'timestamp': timestamp,
     };

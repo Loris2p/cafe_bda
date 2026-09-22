@@ -25,6 +25,8 @@ class _SaleScreenState extends State<SaleScreen> {
   final TextEditingController _otherPaymentController = TextEditingController();
   bool _isProcessing = false;
 
+  String _selectedCategoryFilter = 'Tous'; // 'Tous', 'Nespresso', 'Dolce Gusto', 'Thé'
+
   late Stream<List<Student>> _studentsStream;
   late Stream<List<Product>> _productsStream;
   bool _isInitialized = false;
@@ -46,6 +48,34 @@ class _SaleScreenState extends State<SaleScreen> {
     }
   }
 
+  // Produits express pour ventes "à la va-vite" en cas de rush
+  final List<Product> _expressProducts = [
+    Product(
+      id: '',
+      name: 'Café Nespresso (Express)',
+      price: 0.50,
+      category: ProductCategories.cafe,
+      subCategory: ProductCategories.subNespresso,
+      trackStock: false,
+    ),
+    Product(
+      id: '',
+      name: 'Café Dolce Gusto (Express)',
+      price: 0.80,
+      category: ProductCategories.cafe,
+      subCategory: ProductCategories.subDolceGusto,
+      trackStock: false,
+    ),
+    Product(
+      id: '',
+      name: 'Thé / Infusion (Express)',
+      price: 0.60,
+      category: ProductCategories.the,
+      subCategory: 'Général',
+      trackStock: false,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +88,7 @@ class _SaleScreenState extends State<SaleScreen> {
             _buildSectionTitle('Client'),
             const SizedBox(height: 12),
             _buildStudentSelector(),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
             _buildSectionTitle('Mode de règlement'),
             const SizedBox(height: 12),
@@ -75,9 +105,16 @@ class _SaleScreenState extends State<SaleScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
-            _buildSectionTitle('Sélectionner un produit'),
+            // Section Ventes Express (Rush)
+            _buildExpressSalesSection(),
+            const SizedBox(height: 28),
+
+            // Section Catalogue de dosettes
+            _buildSectionTitle('Sélectionner une dosette / variété'),
+            const SizedBox(height: 12),
+            _buildCategoryFilterChips(),
             const SizedBox(height: 12),
             _buildProductGrid(),
             const SizedBox(height: 32),
@@ -97,6 +134,107 @@ class _SaleScreenState extends State<SaleScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87));
+  }
+
+  // --- SECTION VENTES EXPRESS EN CAS DE RUSH ---
+  Widget _buildExpressSalesSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bolt, color: Colors.amber.shade900, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'Vente Express (sans noter le café exact)',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.amber.shade900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'En heure de rush, encaissez directement sans choisir de dosette. L\'inventaire réalignera le stock.',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+          ),
+          const SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 500;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _expressProducts.map((p) {
+                  final isSelected = _selectedProduct?.name == p.name;
+                  return SizedBox(
+                    width: isNarrow ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedProduct = p;
+                          _quantity = 1;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.amber.shade700 : Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected ? Colors.amber.shade800 : Colors.amber.shade200,
+                            width: isSelected ? 2 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.shade200.withValues(alpha: 0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              p.name.replaceAll(' (Express)', ''),
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: isSelected ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '${p.price.toStringAsFixed(2)} €',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: isSelected ? Colors.white : Colors.amber.shade900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildStudentSelector() {
@@ -138,23 +276,84 @@ class _SaleScreenState extends State<SaleScreen> {
             ),
           ),
         );
-      }
+      },
+    );
+  }
+
+  Widget _buildCategoryFilterChips() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildFilterChip('Tous', Icons.apps),
+          const SizedBox(width: 8),
+          _buildFilterChip('Nespresso', Icons.coffee),
+          const SizedBox(width: 8),
+          _buildFilterChip('Dolce Gusto', Icons.coffee_maker),
+          const SizedBox(width: 8),
+          _buildFilterChip('Thé', Icons.emoji_food_beverage),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, IconData icon) {
+    final isSelected = _selectedCategoryFilter == label;
+    final theme = Theme.of(context);
+    return FilterChip(
+      selected: isSelected,
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: isSelected ? Colors.white : Colors.black87),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isSelected ? Colors.white : Colors.black87)),
+        ],
+      ),
+      selectedColor: theme.primaryColor,
+      backgroundColor: Colors.white,
+      checkmarkColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: isSelected ? theme.primaryColor : Colors.grey.shade300),
+      ),
+      onSelected: (_) => setState(() => _selectedCategoryFilter = label),
     );
   }
 
   Widget _buildProductGrid() {
     final width = MediaQuery.of(context).size.width;
     final crossAxisCount = width > 1000 ? 5 : (width > 600 ? 4 : 2);
-    
+
     return StreamBuilder<List<Product>>(
       stream: _productsStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
         final allProducts = snapshot.data ?? [];
-        final products = allProducts.where((p) => p.isAvailable).toList();
+        final availableProducts = allProducts.where((p) => p.isAvailable).toList();
+
+        final products = availableProducts.where((p) {
+          if (_selectedCategoryFilter == 'Nespresso') {
+            return p.subCategory == ProductCategories.subNespresso;
+          }
+          if (_selectedCategoryFilter == 'Dolce Gusto') {
+            return p.subCategory == ProductCategories.subDolceGusto;
+          }
+          if (_selectedCategoryFilter == 'Thé') {
+            return p.category == ProductCategories.the;
+          }
+          return true;
+        }).toList();
 
         if (products.isEmpty && snapshot.hasData) {
-          return const Center(child: Text('Aucun produit disponible en stock.'));
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text('Aucun produit disponible dans cette sélection.'),
+            ),
+          );
         }
 
         return GridView.builder(
@@ -164,33 +363,59 @@ class _SaleScreenState extends State<SaleScreen> {
             crossAxisCount: crossAxisCount,
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
-            childAspectRatio: width > 600 ? 2.2 : 1.8,
+            childAspectRatio: width > 600 ? 2.0 : 1.6,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
             final p = products[index];
-            final isSelected = _selectedProduct?.id == p.id;
+            final isSelected = _selectedProduct?.id == p.id && p.id.isNotEmpty;
+
+            // États de stock
+            final isOutOfStock = p.isOutOfStock;
+            final needsTransfer = p.needsDeskTransfer;
 
             return InkWell(
-              onTap: () => setState(() => _selectedProduct = p),
+              onTap: () {
+                if (isOutOfStock) {
+                  showCustomSnackBar(
+                    context,
+                    message: '${p.name} est en rupture totale (ni au bureau, ni en réserve).',
+                    backgroundColor: Colors.red,
+                    icon: Icons.cancel,
+                  );
+                  return;
+                }
+                if (needsTransfer) {
+                  _showPromptTransferDialog(context, p);
+                  return;
+                }
+                setState(() {
+                  _selectedProduct = p;
+                  _quantity = 1;
+                });
+              },
               borderRadius: BorderRadius.circular(16),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
-                  color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                  color: isOutOfStock
+                      ? Colors.grey.shade100
+                      : (isSelected ? Theme.of(context).primaryColor : Colors.white),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: isSelected 
-                        ? Theme.of(context).primaryColor.withValues(alpha: 0.2) 
-                        : Colors.black.withValues(alpha: 0.03),
+                      color: isSelected
+                          ? Theme.of(context).primaryColor.withValues(alpha: 0.2)
+                          : Colors.black.withValues(alpha: 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
                   border: Border.all(
-                    color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade200, 
-                    width: 2
+                    color: isSelected
+                        ? Theme.of(context).primaryColor
+                        : (needsTransfer ? Colors.amber.shade300 : (isOutOfStock ? Colors.grey.shade300 : Colors.grey.shade200)),
+                    width: isSelected || needsTransfer ? 2 : 1,
                   ),
                 ),
                 child: Padding(
@@ -199,26 +424,34 @@ class _SaleScreenState extends State<SaleScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        p.name, 
-                        textAlign: TextAlign.center, 
+                        p.name,
+                        textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold, 
+                          fontWeight: FontWeight.bold,
                           fontSize: width > 600 ? 13 : 12,
-                          color: isSelected ? Colors.white : Colors.black,
+                          color: isSelected
+                              ? Colors.white
+                              : (isOutOfStock ? Colors.grey.shade500 : Colors.black),
                           height: 1.2,
-                        )
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${p.price.toStringAsFixed(2)} €', 
+                        '${p.price.toStringAsFixed(2)} €',
                         style: GoogleFonts.poppins(
                           fontSize: width > 600 ? 12 : 11,
-                          fontWeight: FontWeight.w600, 
-                          color: isSelected ? Colors.white.withValues(alpha: 0.9) : Colors.black54
-                        )
+                          fontWeight: FontWeight.w600,
+                          color: isSelected
+                              ? Colors.white.withValues(alpha: 0.9)
+                              : (isOutOfStock ? Colors.grey.shade400 : Colors.black54),
+                        ),
                       ),
+                      const SizedBox(height: 6),
+
+                      // Badge de stock dynamique
+                      _buildStockBadge(p, isSelected),
                     ],
                   ),
                 ),
@@ -227,6 +460,137 @@ class _SaleScreenState extends State<SaleScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildStockBadge(Product p, bool isSelected) {
+    if (!p.trackStock) return const SizedBox.shrink();
+
+    if (p.isOutOfStock) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.red.shade100,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Text(
+          'Épuisé',
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red),
+        ),
+      );
+    }
+
+    if (p.needsDeskTransfer) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white.withValues(alpha: 0.25) : Colors.amber.shade100,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.inventory_2, size: 10, color: isSelected ? Colors.white : Colors.amber.shade900),
+            const SizedBox(width: 3),
+            Text(
+              'En réserve (${p.stockReserve})',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : Colors.amber.shade900,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Stock bureau OK
+    final isLow = p.isLowStock;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: isSelected
+            ? Colors.white.withValues(alpha: 0.25)
+            : (isLow ? Colors.orange.shade100 : Colors.blue.shade50),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        '${p.stockBureau} dispo',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: isSelected
+              ? Colors.white
+              : (isLow ? Colors.orange.shade900 : Colors.blue.shade900),
+        ),
+      ),
+    );
+  }
+
+  // Dialogue de transfert rapide si bureau vide lors de la vente
+  void _showPromptTransferDialog(BuildContext context, Product p) {
+    final boxSize = p.standardBoxSize.clamp(1, p.stockReserve);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        title: Row(
+          children: [
+            Icon(Icons.move_to_inbox, color: Colors.amber.shade800, size: 28),
+            const SizedBox(width: 12),
+            const Expanded(child: Text('Bureau vide')),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Il n\'y a plus de ${p.name} au bureau, mais il en reste ${p.stockReserve} en réserve.',
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Transférer une boîte (+$boxSize) au bureau maintenant pour débloquer la vente ?',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                final service = context.read<FirebaseService>();
+                await service.transferStock(productId: p.id, quantity: boxSize);
+
+                if (!ctx.mounted) return;
+                Navigator.pop(ctx);
+
+                if (mounted) {
+                  setState(() {
+                    _selectedProduct = p;
+                    _quantity = 1;
+                  });
+                  showCustomSnackBar(
+                    context,
+                    message: 'Boîte de $boxSize dosette(s) transférée au bureau.',
+                    backgroundColor: Colors.green,
+                    icon: Icons.check_circle,
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  showCustomSnackBar(context, message: 'Erreur transfert : $e', backgroundColor: Colors.red);
+                }
+              }
+            },
+            child: Text('Transférer +$boxSize et vendre'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -252,15 +616,15 @@ class _SaleScreenState extends State<SaleScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        m, 
+                        m,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: constraints.maxWidth < 400 ? 11 : 13,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, 
-                          color: isSelected ? Theme.of(context).primaryColor : Colors.black45
-                        )
-                      )
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected ? Theme.of(context).primaryColor : Colors.black45,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -268,7 +632,49 @@ class _SaleScreenState extends State<SaleScreen> {
             }).toList(),
           ),
         );
-      }
+      },
+    );
+  }
+
+  Widget _buildQuantitySelector() {
+    final maxAvailable = (_selectedProduct != null && _selectedProduct!.trackStock)
+        ? _selectedProduct!.stockBureau
+        : 999;
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+              icon: const Icon(Icons.remove_circle_outline),
+              iconSize: 32,
+              color: Theme.of(context).primaryColor,
+            ),
+            const SizedBox(width: 24),
+            Text(
+              '$_quantity',
+              style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 24),
+            IconButton(
+              onPressed: (_quantity < maxAvailable) ? () => setState(() => _quantity++) : null,
+              icon: const Icon(Icons.add_circle_outline),
+              iconSize: 32,
+              color: Theme.of(context).primaryColor,
+            ),
+          ],
+        ),
+        if (_selectedProduct != null && _selectedProduct!.trackStock && _quantity >= maxAvailable && maxAvailable > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              'Stock bureau maximum atteint ($maxAvailable dispo)',
+              style: TextStyle(fontSize: 11, color: Colors.orange.shade800, fontWeight: FontWeight.bold),
+            ),
+          ),
+      ],
     );
   }
 
@@ -308,16 +714,16 @@ class _SaleScreenState extends State<SaleScreen> {
 
   Future<void> _processSale(NavigatorState navigator) async {
     if (_selectedStudent == null || _selectedProduct == null) return;
-    
+
     // Vérification de la connexion Internet
     final firebaseService = context.read<FirebaseService>();
     final isConnected = await firebaseService.isConnected();
-    
+
     if (!mounted) return;
     if (!isConnected) {
       showCustomSnackBar(
-        context, 
-        message: 'Aucune connexion Internet. Transaction impossible.', 
+        context,
+        message: 'Aucune connexion Internet. Transaction impossible.',
         backgroundColor: Colors.orange,
         icon: Icons.wifi_off,
       );
@@ -364,10 +770,11 @@ class _SaleScreenState extends State<SaleScreen> {
       if (!mounted) return;
       setState(() => _isProcessing = true);
     }
+
     try {
       if (!mounted) return;
       final user = Provider.of<AppUser?>(context, listen: false);
-      
+
       String finalPaymentMethod = _paymentMethod;
       if (_paymentMethod == 'Autre') {
         final reason = _otherPaymentController.text.trim();
@@ -384,12 +791,13 @@ class _SaleScreenState extends State<SaleScreen> {
         price: totalPrice,
         type: TransactionType.purchase,
         paymentMethod: finalPaymentMethod,
+        productId: _selectedProduct!.id.isNotEmpty ? _selectedProduct!.id : null,
         productName: _selectedProduct!.name,
         timestamp: DateTime.now(),
       );
 
       await firebaseService.addTransaction(transaction);
-      
+
       if (!mounted) return;
 
       // Affichage d'une popup de succès
@@ -423,7 +831,7 @@ class _SaleScreenState extends State<SaleScreen> {
       );
 
       if (!mounted) return;
-      
+
       // Réinitialiser l'état local
       setState(() {
         _selectedProduct = null;
@@ -432,7 +840,6 @@ class _SaleScreenState extends State<SaleScreen> {
       });
 
       if (shouldStay != true) {
-        // Navigation sécurisée vers l'accueil
         if (navigator.canPop()) {
           navigator.pop();
         } else {
@@ -442,8 +849,8 @@ class _SaleScreenState extends State<SaleScreen> {
     } catch (e) {
       if (mounted) {
         showCustomSnackBar(
-          context, 
-          message: 'Erreur : $e', 
+          context,
+          message: 'Erreur : $e',
           backgroundColor: Colors.red,
           icon: Icons.error_outline,
         );
@@ -451,31 +858,5 @@ class _SaleScreenState extends State<SaleScreen> {
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
-  }
-
-  Widget _buildQuantitySelector() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-          icon: const Icon(Icons.remove_circle_outline),
-          iconSize: 32,
-          color: Theme.of(context).primaryColor,
-        ),
-        const SizedBox(width: 24),
-        Text(
-          '$_quantity',
-          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(width: 24),
-        IconButton(
-          onPressed: () => setState(() => _quantity++),
-          icon: const Icon(Icons.add_circle_outline),
-          iconSize: 32,
-          color: Theme.of(context).primaryColor,
-        ),
-      ],
-    );
   }
 }

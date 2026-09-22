@@ -165,6 +165,96 @@ class FirebaseService {
     }
   }
 
+  /// Transfère une quantité de produit de la Réserve vers le Bureau.
+  Future<void> transferStock({required String productId, required int quantity}) async {
+    if (quantity <= 0) return;
+    if (isDesktopNative) {
+      final docRef = fd_store.Firestore.instance.collection('products').document(productId);
+      final doc = await docRef.get();
+      final currentBureau = parseInt(doc['stockBureau'], 0);
+      final currentReserve = parseInt(doc['stockReserve'], 0);
+      final actualTransfer = quantity.clamp(0, currentReserve);
+      await docRef.update({
+        'stockBureau': currentBureau + actualTransfer,
+        'stockReserve': currentReserve - actualTransfer,
+      });
+    } else {
+      final docRef = fb_store.FirebaseFirestore.instance.collection('products').doc(productId);
+      return fb_store.FirebaseFirestore.instance.runTransaction((transactionObj) async {
+        final snap = await transactionObj.get(docRef);
+        if (!snap.exists) return;
+        final data = snap.data() ?? {};
+        final currentBureau = parseInt(data['stockBureau'], 0);
+        final currentReserve = parseInt(data['stockReserve'], 0);
+        final actualTransfer = quantity.clamp(0, currentReserve);
+        transactionObj.update(docRef, {
+          'stockBureau': currentBureau + actualTransfer,
+          'stockReserve': currentReserve - actualTransfer,
+        });
+      });
+    }
+  }
+
+  /// Ajoute du stock (arrivage fournisseur) en Réserve ou au Bureau.
+  Future<void> restockProduct({required String productId, required int quantity, bool toReserve = true}) async {
+    if (quantity <= 0) return;
+    final field = toReserve ? 'stockReserve' : 'stockBureau';
+    if (isDesktopNative) {
+      final docRef = fd_store.Firestore.instance.collection('products').document(productId);
+      final doc = await docRef.get();
+      final current = parseInt(doc[field], 0);
+      await docRef.update({field: current + quantity});
+    } else {
+      final docRef = fb_store.FirebaseFirestore.instance.collection('products').doc(productId);
+      await docRef.update({
+        field: fb_store.FieldValue.increment(quantity),
+      });
+    }
+  }
+
+  /// Met à jour manuellement les stocks d'un produit.
+  Future<void> updateProductStocks({
+    required String productId,
+    required int stockBureau,
+    required int stockReserve,
+  }) async {
+    final cleanBureau = stockBureau < 0 ? 0 : stockBureau;
+    final cleanReserve = stockReserve < 0 ? 0 : stockReserve;
+    if (isDesktopNative) {
+      await fd_store.Firestore.instance.collection('products').document(productId).update({
+        'stockBureau': cleanBureau,
+        'stockReserve': cleanReserve,
+      });
+    } else {
+      await fb_store.FirebaseFirestore.instance.collection('products').doc(productId).update({
+        'stockBureau': cleanBureau,
+        'stockReserve': cleanReserve,
+      });
+    }
+  }
+
+  /// Met à jour en lot tous les stocks lors d'un inventaire physique.
+  Future<void> batchUpdateInventory(Map<String, ({int bureau, int reserve})> inventory) async {
+    if (isDesktopNative) {
+      for (final entry in inventory.entries) {
+        await fd_store.Firestore.instance.collection('products').document(entry.key).update({
+          'stockBureau': entry.value.bureau < 0 ? 0 : entry.value.bureau,
+          'stockReserve': entry.value.reserve < 0 ? 0 : entry.value.reserve,
+        });
+      }
+    } else {
+      final batch = fb_store.FirebaseFirestore.instance.batch();
+      for (final entry in inventory.entries) {
+        final docRef = fb_store.FirebaseFirestore.instance.collection('products').doc(entry.key);
+        batch.update(docRef, {
+          'stockBureau': entry.value.bureau < 0 ? 0 : entry.value.bureau,
+          'stockReserve': entry.value.reserve < 0 ? 0 : entry.value.reserve,
+        });
+      }
+      await batch.commit();
+    }
+  }
+
   // --- MÉTHODES DE PAIEMENT ---
 
   /// Récupère les configurations de paiement (Lydia, Espèces, etc.).
@@ -247,12 +337,35 @@ class FirebaseService {
         'totalBought': currentTotalBought + boughtChange,
         'loyaltyBonus': currentLoyaltyBonus + bonusChange,
       });
+
+      // Décrémentation du stock bureau si produit spécifié
+      if (transaction.type == TransactionType.purchase && transaction.productId != null && transaction.productId!.isNotEmpty) {
+        try {
+          final productRef = fd_store.Firestore.instance.collection('products').document(transaction.productId!);
+          final productDoc = await productRef.get();
+          final track = productDoc['trackStock'] ?? true;
+          if (track) {
+            final int currentBureau = parseInt(productDoc['stockBureau'], 0);
+            final int newBureau = currentBureau - transaction.amount.toInt();
+            await productRef.update({
+              'stockBureau': newBureau < 0 ? 0 : newBureau,
+            });
+          }
+        } catch (_) {}
+      }
     } else {
       // Version Mobile/Web : Transaction Firestore atomique
       return fb_store.FirebaseFirestore.instance.runTransaction((transactionObj) async {
         final studentRef = fb_store.FirebaseFirestore.instance.collection('students').doc(transaction.studentId);
         final studentSnapshot = await transactionObj.get(studentRef);
         if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
+
+        fb_store.DocumentReference? productRef;
+        fb_store.DocumentSnapshot? productSnapshot;
+        if (transaction.type == TransactionType.purchase && transaction.productId != null && transaction.productId!.isNotEmpty) {
+          productRef = fb_store.FirebaseFirestore.instance.collection('products').doc(transaction.productId);
+          productSnapshot = await transactionObj.get(productRef);
+        }
 
         final studentData = studentSnapshot.data()!;
         final double currentBalance = parseDouble(studentData['balance']);
@@ -284,6 +397,19 @@ class FirebaseService {
           'loyaltyBonus': currentLoyaltyBonus + bonusChange,
           'lastTransactionAt': fb_store.FieldValue.serverTimestamp(),
         });
+
+        // Décrémentation du stock bureau si produit spécifié
+        if (productRef != null && productSnapshot != null && productSnapshot.exists) {
+          final productData = (productSnapshot.data() as Map<String, dynamic>?) ?? {};
+          final bool track = productData['trackStock'] ?? true;
+          if (track) {
+            final int currentBureau = parseInt(productData['stockBureau'], 0);
+            final int newBureau = currentBureau - transaction.amount.toInt();
+            transactionObj.update(productRef, {
+              'stockBureau': newBureau < 0 ? 0 : newBureau,
+            });
+          }
+        }
       });
     }
   }
@@ -408,13 +534,7 @@ class FirebaseService {
   }
 
   Product _productFromFiredart(fd_store.Document doc) {
-    return Product(
-      id: doc.id,
-      name: doc['name'] ?? '',
-      price: (doc['price'] ?? 0.0).toDouble(),
-      isAvailable: doc['isAvailable'] ?? true,
-      category: doc['category'] ?? 'Café',
-    );
+    return Product.fromMap(doc.id, doc.map);
   }
 
   CafeTransaction _transactionFromFiredart(fd_store.Document doc) {
@@ -432,6 +552,7 @@ class FirebaseService {
       price: (data['price'] ?? 0.0).toDouble(),
       type: typeStr == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
       paymentMethod: data['paymentMethod'] ?? 'Inconnu',
+      productId: data['productId'],
       productName: data['productName'],
       timestamp: parseRequiredFirestoreDate(data['timestamp']),
     );
