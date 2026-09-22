@@ -24,12 +24,6 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
-      case TargetPlatform.macOS:
-        return macos;
-      case TargetPlatform.windows:
-        return windows;
-      case TargetPlatform.linux:
-        return windows;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
@@ -63,26 +57,6 @@ class DefaultFirebaseOptions {
     androidClientId: '278248091968-f4p7ngbptolr23rt1onmohvja9dmckg8.apps.googleusercontent.com',
     iosClientId: '278248091968-eeccuih9f56vqrkisjg5jgpt147fi6m0.apps.googleusercontent.com',
     iosBundleId: 'com.example.boutiqueBda',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBoWsB9blbCxGp_IHRZntbvWgQXbbjVLJg',
-    appId: '1:278248091968:ios:6e9a5ac31acc27eb3d8aa5',
-    messagingSenderId: '278248091968',
-    projectId: 'boutique-bda',
-    storageBucket: 'boutique-bda.firebasestorage.app',
-    androidClientId: '278248091968-f4p7ngbptolr23rt1onmohvja9dmckg8.apps.googleusercontent.com',
-    iosClientId: '278248091968-eeccuih9f56vqrkisjg5jgpt147fi6m0.apps.googleusercontent.com',
-    iosBundleId: 'com.example.boutiqueBda',
-  );
-
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDMHf7EBW5epoiNba0-apBFtD9m5sqxvbM',
-    appId: '1:278248091968:web:1e55c27e67886deb3d8aa5',
-    messagingSenderId: '278248091968',
-    projectId: 'boutique-bda',
-    authDomain: 'boutique-bda.firebaseapp.com',
-    storageBucket: 'boutique-bda.firebasestorage.app',
   );
 
 }

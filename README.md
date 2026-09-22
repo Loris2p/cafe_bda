@@ -29,7 +29,7 @@ L'application de gestion officielle du Bureau des Arts (BDA). Permet de gérer l
 ### 👥 Gestion des Étudiants
 - Utilisez l'onglet **Étudiants** pour ajouter un nouvel arrivant ou modifier les informations d'un élève.
 - Le bouton **Ajouter (+)** se trouve dans la barre d'outils en haut à droite.
-- Les données sont synchronisées en temps réel sur tous les supports (incluant Linux/Windows).
+- Les données sont synchronisées en temps réel sur tous les supports (Mobile et Web).
 
 ### ⚙️ Mode Administrateur
 - Accessible via les **Paramètres**.
@@ -44,9 +44,7 @@ L'application de gestion officielle du Bureau des Arts (BDA). Permet de gérer l
 - Firebase CLI installé (`npm install -g firebase-tools`).
 
 ### ⚙️ Configuration Firebase
-L'application utilise une architecture hybride :
-- **Firedart + RxDart** pour le support natif Linux/Windows (Desktop) avec flux temps réel.
-- **Cloud Firestore SDK** pour Mobile et Web.
+L'application utilise le **SDK officiel FlutterFire** (`firebase_core`, `cloud_firestore`, `firebase_auth`) pour Mobile (Android, iOS) et Web.
 
 #### Déploiement des Règles de Sécurité
 Pour mettre à jour les règles Firestore :
@@ -55,18 +53,17 @@ firebase use boutique-bda
 firebase deploy --only firestore:rules
 ```
 
-### 🔨 Compilation
-#### Pour Linux :
+### 🔨 Compilation & Déploiement
+#### Pour le Web (PWA / Firebase Hosting) :
 ```bash
-flutter build linux --release
-```
-#### Pour Windows :
-```bash
-flutter build windows --release
+flutter build web --release
+firebase deploy --only hosting
 ```
 #### Pour Android :
 ```bash
 flutter build apk --release
+# ou pour le Play Store :
+flutter build appbundle --release
 ```
 
 ---

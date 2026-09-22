@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 String generateRandomPassword([int length = 10]) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -45,14 +46,8 @@ void showCustomSnackBar(BuildContext context, {
 DateTime? parseFirestoreDate(dynamic value) {
   if (value == null) return null;
   
-  // Utilisation du nom du type pour éviter l'import direct de cloud_firestore sur desktop
-  final typeName = value.runtimeType.toString();
-  if (typeName == 'Timestamp' || typeName == '_JsonTimestamp') {
-    try {
-      return (value as dynamic).toDate();
-    } catch (e) {
-      return null;
-    }
+  if (value is Timestamp) {
+    return value.toDate();
   }
   
   if (value is DateTime) return value;
