@@ -27,7 +27,7 @@ void main() {
       final p = Product(
         id: '2',
         name: 'Dolce Gusto Cappuccino',
-        price: 0.80,
+        price: 0.50,
         category: ProductCategories.cafe,
         subCategory: ProductCategories.subDolceGusto,
         stockBureau: 0,
@@ -47,7 +47,7 @@ void main() {
       final p = Product(
         id: '3',
         name: 'Thé Vert',
-        price: 0.60,
+        price: 0.50,
         category: ProductCategories.the,
         subCategory: 'Thé Vert',
         stockBureau: 2,

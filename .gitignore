@@ -48,6 +48,7 @@ app.*.map.json
 /android/key.properties
 /android/app/google-services.json
 *.jks
+*.keystore
 
 # Backup folder (contains sensitive keys)
 SAUVEGARDE_CRITIQUE_BDA/

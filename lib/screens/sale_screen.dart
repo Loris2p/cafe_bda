@@ -61,7 +61,7 @@ class _SaleScreenState extends State<SaleScreen> {
     Product(
       id: '',
       name: 'Café Dolce Gusto (Express)',
-      price: 0.80,
+      price: 0.50,
       category: ProductCategories.cafe,
       subCategory: ProductCategories.subDolceGusto,
       trackStock: false,
@@ -69,7 +69,7 @@ class _SaleScreenState extends State<SaleScreen> {
     Product(
       id: '',
       name: 'Thé / Infusion (Express)',
-      price: 0.60,
+      price: 0.50,
       category: ProductCategories.the,
       subCategory: 'Général',
       trackStock: false,

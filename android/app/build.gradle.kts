@@ -46,9 +46,16 @@ android {
         }
     }
 
+    val releaseStoreFile = signingConfigs.getByName("release").storeFile
+    val hasReleaseSigning = releaseStoreFile != null && releaseStoreFile.exists()
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
