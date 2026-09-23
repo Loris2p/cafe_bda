@@ -1,6 +1,3 @@
-import 'dart:io' show Platform;
-import 'package:firedart/firedart.dart' as fd;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +8,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_service.dart';
-import 'services/prefs_token_store.dart';
 import 'screens/main_screen.dart';
 import 'screens/change_password_screen.dart';
 import 'models/app_user.dart';
@@ -68,21 +64,10 @@ void main() async {
   final adminProvider = AdminProvider();
   await adminProvider.init();
 
-  // Initialisation hybride Firebase
-  if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
-    // Mode Desktop Native (Firedart)
-    final prefs = await SharedPreferences.getInstance();
-    fd.FirebaseAuth.initialize(
-      DefaultFirebaseOptions.windows.apiKey, 
-      PrefsTokenStore(prefs)
-    );
-    fd.Firestore.initialize(DefaultFirebaseOptions.windows.projectId);
-  } else {
-    // Mode Mobile/Web (SDK Officiel)
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  // Initialisation Firebase SDK Officiel
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(
     MultiProvider(

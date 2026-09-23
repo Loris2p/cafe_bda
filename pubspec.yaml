@@ -15,8 +15,6 @@ dependencies:
   provider: ^6.1.5+1
   google_sign_in: 6.2.1
   intl: ^0.20.2
-  firedart: ^0.9.8
-  rxdart: ^0.28.0
   fl_chart: ^1.1.1
   qr_flutter: ^4.1.0
   package_info_plus: ^9.0.0
@@ -24,7 +22,6 @@ dependencies:
   shared_preferences: ^2.5.4
   google_fonts: ^8.0.2
   connectivity_plus: ^7.0.0
-  http: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -37,15 +34,6 @@ flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  windows:
-    image_path: "assets/icon/logoBDA_4_complet.png"
-    generate: true
-  linux:
-    image_path: "assets/icon/logoBDA_4_complet.png"
-    generate: true
-  macos:
-    image_path: "assets/icon/logoBDA_4_complet.png"
-    generate: true
 
 flutter:
   uses-material-design: true

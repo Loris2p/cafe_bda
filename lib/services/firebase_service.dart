@@ -1,23 +1,15 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:cloud_firestore/cloud_firestore.dart' as fb_store;
-import 'package:firedart/firedart.dart' as fd_store;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:rxdart/rxdart.dart';
 import '../models/student.dart';
 import '../models/product.dart';
 import '../models/transaction.dart';
 import '../models/payment_method.dart';
 import '../core/utils.dart';
 
-/// Service central gérant toutes les opérations de données avec Firebase Firestore.
-/// 
-/// Ce service utilise une architecture hybride pour supporter :
-/// 1. Le mode "Desktop Native" (Windows/Linux) via le package [firedart].
-/// 2. Le mode "Standard" (Android/iOS/Web) via le SDK officiel [cloud_firestore].
+/// Service central gérant toutes les opérations de données avec Firebase Firestore
+/// via le SDK officiel [cloud_firestore].
 class FirebaseService {
-  /// Indique si l'application tourne sur un bureau (hors Web).
-  static bool get isDesktopNative => !kIsWeb && (Platform.isLinux || Platform.isWindows);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Vérifie si l'appareil est connecté à Internet.
   Future<bool> isConnected() async {
@@ -30,186 +22,102 @@ class FirebaseService {
 
   // --- STATISTIQUES ---
 
-  /// Récupère les statistiques globales via les agrégations Firestore (si disponible).
+  /// Récupère les statistiques globales via les agrégations Firestore natives.
   Future<Map<String, dynamic>> getGlobalStats() async {
-    if (isDesktopNative) {
-      // Firedart ne supporte pas encore les agrégations natives
-      final docs = await fd_store.Firestore.instance.collection('transactions').get();
-      double totalRevenue = 0;
-      double totalCredits = 0;
-      double totalItems = 0;
-      int totalCount = 0;
-      for (var doc in docs) {
-        final data = doc.map;
-        // Déduction du type pour les anciennes données
-        final type = data['type'] ?? (data.containsKey('productName') ? 'purchase' : 'topUp');
-        final price = (data['price'] ?? 0.0).toDouble();
-        final amount = (data['amount'] ?? 1.0).toDouble();
+    final collection = _firestore.collection('transactions');
+    
+    // On récupère tout ce qui est identifié comme achat (a un produit)
+    final purchaseQuery = collection.where('productName', isNull: false);
+    final purchaseSnapshot = await purchaseQuery.aggregate(
+      sum('price'),
+      sum('amount'),
+      count(),
+    ).get();
 
-        if (type == 'purchase') {
-          totalRevenue += price;
-          totalItems += amount;
-          totalCount++;
-        } else if (type == 'topUp') {
-          totalCredits += price;
-        }
-      }
-      return {
-        'totalRevenue': totalRevenue,
-        'totalCredits': totalCredits,
-        'totalItems': totalItems,
-        'totalCount': totalCount,
-      };
-    } else {
-      // Pour inclure les vieux docs sans champ 'type', on utilise la présence de 'productName'
-      final collection = fb_store.FirebaseFirestore.instance.collection('transactions');
-      
-      // On récupère tout ce qui est identifié comme achat (a un produit)
-      final purchaseQuery = collection.where('productName', isNull: false);
-      final purchaseSnapshot = await purchaseQuery.aggregate(
-        fb_store.sum('price'),
-        fb_store.sum('amount'),
-        fb_store.count(),
-      ).get();
+    // On récupère le TOTAL global pour déduire les rechargements
+    final totalSnapshot = await collection.aggregate(
+      sum('price'),
+    ).get();
 
-      // On récupère le TOTAL global pour déduire les rechargements
-      final totalSnapshot = await collection.aggregate(
-        fb_store.sum('price'),
-      ).get();
+    final purchaseRev = purchaseSnapshot.getSum('price') ?? 0.0;
+    final globalRev = totalSnapshot.getSum('price') ?? 0.0;
 
-      final purchaseRev = purchaseSnapshot.getSum('price') ?? 0.0;
-      final globalRev = totalSnapshot.getSum('price') ?? 0.0;
-
-      return {
-        'totalRevenue': purchaseRev,
-        'totalItems': purchaseSnapshot.getSum('amount') ?? 0.0,
-        'totalCount': purchaseSnapshot.count ?? 0,
-        'totalCredits': globalRev - purchaseRev, // Le reste est du rechargement
-      };
-    }
+    return {
+      'totalRevenue': purchaseRev,
+      'totalItems': purchaseSnapshot.getSum('amount') ?? 0.0,
+      'totalCount': purchaseSnapshot.count ?? 0,
+      'totalCredits': globalRev - purchaseRev, // Le reste est du rechargement
+    };
   }
 
   // --- ÉTUDIANTS ---
 
-  /// Récupère le flux des étudiants inscrits.
+  /// Récupère le flux des étudiants inscrits, triés par nom.
   Stream<List<Student>> getStudents() {
-    if (isDesktopNative) {
-      final collection = fd_store.Firestore.instance.collection('students');
-      return Rx.concat([
-        Stream.fromFuture(collection.get()),
-        collection.stream,
-      ]).map(
-        (docs) {
-          final list = docs.map((doc) => _studentFromFiredart(doc)).toList();
-          list.sort((a, b) => a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase()));
-          return list;
-        },
-      );
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('students').orderBy('lastName').snapshots().map(
-            (snapshot) => snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList(),
-          );
-    }
+    return _firestore
+        .collection('students')
+        .orderBy('lastName')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.map((doc) => Student.fromFirestore(doc)).toList(),
+        );
   }
 
   /// Ajoute un nouvel étudiant. L'ID du document est son N° Étudiant (studentId).
   Future<void> addStudent(Student student) {
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('students').document(student.studentId).set(student.toFirestore());
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('students').doc(student.studentId).set(student.toFirestore());
-    }
+    return _firestore.collection('students').doc(student.studentId).set(student.toFirestore());
   }
 
   /// Met à jour les informations d'un étudiant.
   Future<void> updateStudent(Student student) {
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('students').document(student.id).update(student.toFirestore());
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('students').doc(student.id).update(student.toFirestore());
-    }
+    return _firestore.collection('students').doc(student.id).update(student.toFirestore());
   }
 
   // --- PRODUITS (CATALOGUE) ---
 
-  /// Récupère la liste des produits disponibles ou non.
+  /// Récupère la liste des produits en temps réel.
   Stream<List<Product>> getProducts() {
-    if (isDesktopNative) {
-      final query = fd_store.Firestore.instance.collection('products');
-      return Rx.concat([
-        Stream.fromFuture(query.get()),
-        query.stream,
-      ]).map(
-        (docs) => docs.map((doc) => _productFromFiredart(doc)).toList(),
-      );
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('products').snapshots().map(
-            (snapshot) => snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList(),
-          );
-    }
+    return _firestore.collection('products').snapshots().map(
+          (snapshot) => snapshot.docs.map((doc) => Product.fromFirestore(doc)).toList(),
+        );
   }
 
+  /// Ajoute un produit au catalogue.
   Future<void> addProduct(Product product) {
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('products').add(product.toFirestore());
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('products').add(product.toFirestore());
-    }
+    return _firestore.collection('products').add(product.toFirestore());
   }
 
+  /// Met à jour les données d'un produit existant.
   Future<void> updateProduct(Product product) {
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('products').document(product.id).update(product.toFirestore());
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('products').doc(product.id).update(product.toFirestore());
-    }
+    return _firestore.collection('products').doc(product.id).update(product.toFirestore());
   }
 
-  /// Transfère une quantité de produit de la Réserve vers le Bureau.
+  /// Transfère une quantité de produit de la Réserve vers le Bureau de manière atomique.
   Future<void> transferStock({required String productId, required int quantity}) async {
     if (quantity <= 0) return;
-    if (isDesktopNative) {
-      final docRef = fd_store.Firestore.instance.collection('products').document(productId);
-      final doc = await docRef.get();
-      final currentBureau = parseInt(doc['stockBureau'], 0);
-      final currentReserve = parseInt(doc['stockReserve'], 0);
+    final docRef = _firestore.collection('products').doc(productId);
+    return _firestore.runTransaction((transactionObj) async {
+      final snap = await transactionObj.get(docRef);
+      if (!snap.exists) return;
+      final data = snap.data() ?? {};
+      final currentBureau = parseInt(data['stockBureau'], 0);
+      final currentReserve = parseInt(data['stockReserve'], 0);
       final actualTransfer = quantity.clamp(0, currentReserve);
-      await docRef.update({
+      transactionObj.update(docRef, {
         'stockBureau': currentBureau + actualTransfer,
         'stockReserve': currentReserve - actualTransfer,
       });
-    } else {
-      final docRef = fb_store.FirebaseFirestore.instance.collection('products').doc(productId);
-      return fb_store.FirebaseFirestore.instance.runTransaction((transactionObj) async {
-        final snap = await transactionObj.get(docRef);
-        if (!snap.exists) return;
-        final data = snap.data() ?? {};
-        final currentBureau = parseInt(data['stockBureau'], 0);
-        final currentReserve = parseInt(data['stockReserve'], 0);
-        final actualTransfer = quantity.clamp(0, currentReserve);
-        transactionObj.update(docRef, {
-          'stockBureau': currentBureau + actualTransfer,
-          'stockReserve': currentReserve - actualTransfer,
-        });
-      });
-    }
+    });
   }
 
   /// Ajoute du stock (arrivage fournisseur) en Réserve ou au Bureau.
   Future<void> restockProduct({required String productId, required int quantity, bool toReserve = true}) async {
     if (quantity <= 0) return;
     final field = toReserve ? 'stockReserve' : 'stockBureau';
-    if (isDesktopNative) {
-      final docRef = fd_store.Firestore.instance.collection('products').document(productId);
-      final doc = await docRef.get();
-      final current = parseInt(doc[field], 0);
-      await docRef.update({field: current + quantity});
-    } else {
-      final docRef = fb_store.FirebaseFirestore.instance.collection('products').doc(productId);
-      await docRef.update({
-        field: fb_store.FieldValue.increment(quantity),
-      });
-    }
+    final docRef = _firestore.collection('products').doc(productId);
+    await docRef.update({
+      field: FieldValue.increment(quantity),
+    });
   }
 
   /// Met à jour manuellement les stocks d'un produit.
@@ -220,101 +128,70 @@ class FirebaseService {
   }) async {
     final cleanBureau = stockBureau < 0 ? 0 : stockBureau;
     final cleanReserve = stockReserve < 0 ? 0 : stockReserve;
-    if (isDesktopNative) {
-      await fd_store.Firestore.instance.collection('products').document(productId).update({
-        'stockBureau': cleanBureau,
-        'stockReserve': cleanReserve,
-      });
-    } else {
-      await fb_store.FirebaseFirestore.instance.collection('products').doc(productId).update({
-        'stockBureau': cleanBureau,
-        'stockReserve': cleanReserve,
-      });
-    }
+    await _firestore.collection('products').doc(productId).update({
+      'stockBureau': cleanBureau,
+      'stockReserve': cleanReserve,
+    });
   }
 
   /// Met à jour en lot tous les stocks lors d'un inventaire physique.
   Future<void> batchUpdateInventory(Map<String, ({int bureau, int reserve})> inventory) async {
-    if (isDesktopNative) {
-      for (final entry in inventory.entries) {
-        await fd_store.Firestore.instance.collection('products').document(entry.key).update({
-          'stockBureau': entry.value.bureau < 0 ? 0 : entry.value.bureau,
-          'stockReserve': entry.value.reserve < 0 ? 0 : entry.value.reserve,
-        });
-      }
-    } else {
-      final batch = fb_store.FirebaseFirestore.instance.batch();
-      for (final entry in inventory.entries) {
-        final docRef = fb_store.FirebaseFirestore.instance.collection('products').doc(entry.key);
-        batch.update(docRef, {
-          'stockBureau': entry.value.bureau < 0 ? 0 : entry.value.bureau,
-          'stockReserve': entry.value.reserve < 0 ? 0 : entry.value.reserve,
-        });
-      }
-      await batch.commit();
+    final batch = _firestore.batch();
+    for (final entry in inventory.entries) {
+      final docRef = _firestore.collection('products').doc(entry.key);
+      batch.update(docRef, {
+        'stockBureau': entry.value.bureau < 0 ? 0 : entry.value.bureau,
+        'stockReserve': entry.value.reserve < 0 ? 0 : entry.value.reserve,
+      });
     }
+    await batch.commit();
   }
 
   // --- MÉTHODES DE PAIEMENT ---
 
   /// Récupère les configurations de paiement (Lydia, Espèces, etc.).
   Stream<List<PaymentMethod>> getPaymentMethods() {
-    if (isDesktopNative) {
-      final query = fd_store.Firestore.instance.collection('payment_methods');
-      return Rx.concat([
-        Stream.fromFuture(query.get()),
-        query.stream,
-      ]).map(
-        (docs) => docs.map((doc) => PaymentMethod.fromMap(doc.id, doc.map)).toList(),
-      );
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('payment_methods').snapshots().map(
-            (snapshot) => snapshot.docs.map((doc) => PaymentMethod.fromFirestore(doc)).toList(),
-          );
-    }
+    return _firestore.collection('payment_methods').snapshots().map(
+          (snapshot) => snapshot.docs.map((doc) => PaymentMethod.fromFirestore(doc)).toList(),
+        );
   }
 
   Future<void> addPaymentMethod(PaymentMethod method) {
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('payment_methods').add(method.toFirestore());
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('payment_methods').add(method.toFirestore());
-    }
+    return _firestore.collection('payment_methods').add(method.toFirestore());
   }
 
   Future<void> updatePaymentMethod(PaymentMethod method) {
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('payment_methods').document(method.id).update(method.toFirestore());
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('payment_methods').doc(method.id).update(method.toFirestore());
-    }
+    return _firestore.collection('payment_methods').doc(method.id).update(method.toFirestore());
   }
 
   Future<void> deletePaymentMethod(String id) {
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('payment_methods').document(id).delete();
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('payment_methods').doc(id).delete();
-    }
+    return _firestore.collection('payment_methods').doc(id).delete();
   }
 
   // --- TRANSACTIONS & LOGIQUE MÉTIER ---
 
-  /// Enregistre une vente ou un rechargement et met à jour le solde de l'étudiant.
+  /// Enregistre une vente ou un rechargement et met à jour le solde de l'étudiant
+  /// via une transaction Firestore atomique.
   /// 
   /// Applique la logique de fidélité : 1 crédit de 0.50€ offert tous les 10 cafés achetés.
   Future<void> addTransaction(CafeTransaction transaction) async {
-    if (isDesktopNative) {
-      // Version Desktop : Opérations séquentielles
-      await fd_store.Firestore.instance.collection('transactions').add(transaction.toFirestore());
-      
-      final studentRef = fd_store.Firestore.instance.collection('students').document(transaction.studentId);
-      final studentDoc = await studentRef.get();
-      
-      final double currentBalance = parseDouble(studentDoc['balance']);
-      final int currentTotalBought = parseInt(studentDoc['totalBought']);
-      final int currentLoyaltyBonus = parseInt(studentDoc['loyaltyBonus']);
-      
+    return _firestore.runTransaction((transactionObj) async {
+      final studentRef = _firestore.collection('students').doc(transaction.studentId);
+      final studentSnapshot = await transactionObj.get(studentRef);
+      if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
+
+      DocumentReference? productRef;
+      DocumentSnapshot? productSnapshot;
+      if (transaction.type == TransactionType.purchase && transaction.productId != null && transaction.productId!.isNotEmpty) {
+        productRef = _firestore.collection('products').doc(transaction.productId);
+        productSnapshot = await transactionObj.get(productRef);
+      }
+
+      final studentData = studentSnapshot.data()!;
+      final double currentBalance = parseDouble(studentData['balance']);
+      final int currentTotalBought = parseInt(studentData['totalBought']);
+      final int currentLoyaltyBonus = parseInt(studentData['loyaltyBonus']);
+
       double balanceChange = 0;
       int boughtChange = 0;
       int bonusChange = 0;
@@ -324,7 +201,6 @@ class FirebaseService {
         if (transaction.paymentMethod == 'Crédit') {
           balanceChange = -transaction.price;
         }
-        // Calcul du bonus fidélité (nb de tranches de 10 atteintes)
         int newTotalBought = currentTotalBought + boughtChange;
         bonusChange = (newTotalBought ~/ 10) - (currentTotalBought ~/ 10);
         balanceChange += (bonusChange * 0.50);
@@ -332,143 +208,60 @@ class FirebaseService {
         balanceChange = transaction.amount;
       }
 
-      await studentRef.update({
+      final transRef = _firestore.collection('transactions').doc();
+      transactionObj.set(transRef, transaction.toFirestore());
+
+      transactionObj.update(studentRef, {
         'balance': currentBalance + balanceChange,
         'totalBought': currentTotalBought + boughtChange,
         'loyaltyBonus': currentLoyaltyBonus + bonusChange,
+        'lastTransactionAt': FieldValue.serverTimestamp(),
       });
 
-      // Décrémentation du stock bureau si produit spécifié
-      if (transaction.type == TransactionType.purchase && transaction.productId != null && transaction.productId!.isNotEmpty) {
-        try {
-          final productRef = fd_store.Firestore.instance.collection('products').document(transaction.productId!);
-          final productDoc = await productRef.get();
-          final track = productDoc['trackStock'] ?? true;
-          if (track) {
-            final int currentBureau = parseInt(productDoc['stockBureau'], 0);
-            final int newBureau = currentBureau - transaction.amount.toInt();
-            await productRef.update({
-              'stockBureau': newBureau < 0 ? 0 : newBureau,
-            });
-          }
-        } catch (_) {}
+      // Décrémentation du stock bureau si produit spécifié et suivi de stock actif
+      if (productRef != null && productSnapshot != null && productSnapshot.exists) {
+        final productData = (productSnapshot.data() as Map<String, dynamic>?) ?? {};
+        final bool track = productData['trackStock'] ?? true;
+        if (track) {
+          final int currentBureau = parseInt(productData['stockBureau'], 0);
+          final int newBureau = currentBureau - transaction.amount.toInt();
+          transactionObj.update(productRef, {
+            'stockBureau': newBureau < 0 ? 0 : newBureau,
+          });
+        }
       }
-    } else {
-      // Version Mobile/Web : Transaction Firestore atomique
-      return fb_store.FirebaseFirestore.instance.runTransaction((transactionObj) async {
-        final studentRef = fb_store.FirebaseFirestore.instance.collection('students').doc(transaction.studentId);
-        final studentSnapshot = await transactionObj.get(studentRef);
-        if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
-
-        fb_store.DocumentReference? productRef;
-        fb_store.DocumentSnapshot? productSnapshot;
-        if (transaction.type == TransactionType.purchase && transaction.productId != null && transaction.productId!.isNotEmpty) {
-          productRef = fb_store.FirebaseFirestore.instance.collection('products').doc(transaction.productId);
-          productSnapshot = await transactionObj.get(productRef);
-        }
-
-        final studentData = studentSnapshot.data()!;
-        final double currentBalance = parseDouble(studentData['balance']);
-        final int currentTotalBought = parseInt(studentData['totalBought']);
-        final int currentLoyaltyBonus = parseInt(studentData['loyaltyBonus']);
-
-        double balanceChange = 0;
-        int boughtChange = 0;
-        int bonusChange = 0;
-
-        if (transaction.type == TransactionType.purchase) {
-          boughtChange = transaction.amount.toInt();
-          if (transaction.paymentMethod == 'Crédit') {
-            balanceChange = -transaction.price;
-          }
-          int newTotalBought = currentTotalBought + boughtChange;
-          bonusChange = (newTotalBought ~/ 10) - (currentTotalBought ~/ 10);
-          balanceChange += (bonusChange * 0.50);
-        } else {
-          balanceChange = transaction.amount;
-        }
-
-        final transRef = fb_store.FirebaseFirestore.instance.collection('transactions').doc();
-        transactionObj.set(transRef, transaction.toFirestore());
-
-        transactionObj.update(studentRef, {
-          'balance': currentBalance + balanceChange,
-          'totalBought': currentTotalBought + boughtChange,
-          'loyaltyBonus': currentLoyaltyBonus + bonusChange,
-          'lastTransactionAt': fb_store.FieldValue.serverTimestamp(),
-        });
-
-        // Décrémentation du stock bureau si produit spécifié
-        if (productRef != null && productSnapshot != null && productSnapshot.exists) {
-          final productData = (productSnapshot.data() as Map<String, dynamic>?) ?? {};
-          final bool track = productData['trackStock'] ?? true;
-          if (track) {
-            final int currentBureau = parseInt(productData['stockBureau'], 0);
-            final int newBureau = currentBureau - transaction.amount.toInt();
-            transactionObj.update(productRef, {
-              'stockBureau': newBureau < 0 ? 0 : newBureau,
-            });
-          }
-        }
-      });
-    }
+    });
   }
 
-  /// Récupère l'historique paginé des transactions.
+  /// Récupère l'historique paginé des transactions en temps réel.
   Stream<List<CafeTransaction>> getRecentTransactions({int limit = 20}) {
-    if (isDesktopNative) {
-      final collection = fd_store.Firestore.instance.collection('transactions');
-      return Rx.concat([
-        Stream.fromFuture(collection.get()),
-        collection.stream,
-      ]).map(
-        (docs) {
-          final list = docs.map((doc) => _transactionFromFiredart(doc)).toList();
-          list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return list.take(limit).toList();
-        },
-      );
-    } else {
-      return fb_store.FirebaseFirestore.instance
-          .collection('transactions')
-          .orderBy('timestamp', descending: true)
-          .limit(limit)
-          .snapshots()
-          .map(
-            (snapshot) => snapshot.docs.map((doc) => CafeTransaction.fromFirestore(doc)).toList(),
-          );
-    }
+    return _firestore
+        .collection('transactions')
+        .orderBy('timestamp', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.map((doc) => CafeTransaction.fromFirestore(doc)).toList(),
+        );
   }
 
   // --- UTILISATEURS DE L'APP ---
 
   /// Initialise le document Firestore d'un nouvel utilisateur.
   Future<void> createUserDocument(String uid, String email, String name, bool mustChangePassword) {
-    final data = {
+    return _firestore.collection('users').doc(uid).set({
       'email': email,
       'displayName': name,
       'mustChangePassword': mustChangePassword,
-    };
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('users').document(uid).set(data);
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('users').doc(uid).set({
-        ...data,
-        'createdAt': fb_store.FieldValue.serverTimestamp(),
-      });
-    }
+      'createdAt': FieldValue.serverTimestamp(),
+    });
   }
 
   /// Récupère le profil utilisateur.
   Future<Map<String, dynamic>?> getUserDocument(String uid) async {
     try {
-      if (isDesktopNative) {
-        final doc = await fd_store.Firestore.instance.collection('users').document(uid).get();
-        return doc.map;
-      } else {
-        final doc = await fb_store.FirebaseFirestore.instance.collection('users').doc(uid).get();
-        return doc.data();
-      }
+      final doc = await _firestore.collection('users').doc(uid).get();
+      return doc.data();
     } catch (e) {
       return null;
     }
@@ -476,12 +269,9 @@ class FirebaseService {
 
   /// Active ou désactive l'obligation de changement de mot de passe.
   Future<void> updateUserPasswordFlag(String uid, bool mustChangePassword) {
-    final data = {'mustChangePassword': mustChangePassword};
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('users').document(uid).update(data);
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('users').doc(uid).update(data);
-    }
+    return _firestore.collection('users').doc(uid).update({
+      'mustChangePassword': mustChangePassword,
+    });
   }
 
   // --- CONTRÔLE DE VERSION ---
@@ -489,13 +279,8 @@ class FirebaseService {
   /// Récupère le numéro de la dernière version publiée.
   Future<String?> getLatestVersion() async {
     try {
-      if (isDesktopNative) {
-        final doc = await fd_store.Firestore.instance.collection('config').document('app_version').get();
-        return doc.map['latest'];
-      } else {
-        final doc = await fb_store.FirebaseFirestore.instance.collection('config').doc('app_version').get();
-        return doc.data()?['latest'] as String?;
-      }
+      final doc = await _firestore.collection('config').doc('app_version').get();
+      return doc.data()?['latest'] as String?;
     } catch (e) {
       return null;
     }
@@ -503,58 +288,9 @@ class FirebaseService {
 
   /// Met à jour la version de référence sur le serveur.
   Future<void> updateRemoteVersion(String version) {
-    final data = {'latest': version};
-    if (isDesktopNative) {
-      return fd_store.Firestore.instance.collection('config').document('app_version').set({
-        ...data,
-        'updatedAt': DateTime.now().toIso8601String(),
-      });
-    } else {
-      return fb_store.FirebaseFirestore.instance.collection('config').doc('app_version').set({
-        ...data,
-        'updatedAt': fb_store.FieldValue.serverTimestamp(),
-      });
-    }
-  }
-
-  // --- HELPERS DE CONVERSION ---
-
-  Student _studentFromFiredart(fd_store.Document doc) {
-    return Student(
-      id: doc.id,
-      firstName: doc['firstName'] ?? '',
-      lastName: doc['lastName'] ?? '',
-      studentId: doc['studentId'] ?? '',
-      classGroup: doc['classGroup'] ?? '',
-      balance: (doc['balance'] ?? 0.0).toDouble(),
-      loyaltyBonus: (doc['loyaltyBonus'] ?? 0).toInt(),
-      totalBought: (doc['totalBought'] ?? 0).toInt(),
-      lastTransactionAt: parseFirestoreDate(doc['lastTransactionAt']),
-    );
-  }
-
-  Product _productFromFiredart(fd_store.Document doc) {
-    return Product.fromMap(doc.id, doc.map);
-  }
-
-  CafeTransaction _transactionFromFiredart(fd_store.Document doc) {
-    final data = doc.map;
-    // Déduction du type si absent
-    final typeStr = data['type'] ?? (data.containsKey('productName') ? 'purchase' : 'topUp');
-
-    return CafeTransaction(
-      id: doc.id,
-      studentId: data['studentId'] ?? '',
-      studentName: data['studentName'] ?? '',
-      responsibleId: data['responsibleId'] ?? '',
-      responsibleName: data['responsibleName'] ?? '',
-      amount: (data['amount'] ?? 1.0).toDouble(),
-      price: (data['price'] ?? 0.0).toDouble(),
-      type: typeStr == 'topUp' ? TransactionType.topUp : TransactionType.purchase,
-      paymentMethod: data['paymentMethod'] ?? 'Inconnu',
-      productId: data['productId'],
-      productName: data['productName'],
-      timestamp: parseRequiredFirestoreDate(data['timestamp']),
-    );
+    return _firestore.collection('config').doc('app_version').set({
+      'latest': version,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 }
