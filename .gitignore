@@ -61,3 +61,12 @@ SAUVEGARDE_CRITIQUE_BDA/
 
 SAUVEGARDE_CRITIQUE_BDA.zip
 
+
+# Secrets (ne jamais committer)
+.env
+.env.*
+!.env.example
+scripts/Jeton.sh
+
+# Node
+node_modules/
