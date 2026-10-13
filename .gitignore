@@ -70,3 +70,6 @@ scripts/Jeton.sh
 
 # Node
 node_modules/
+
+# Local security audits
+github_*_alerts.json
