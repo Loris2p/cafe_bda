@@ -366,7 +366,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 "- Email : $email\n"
                 "- Mot de passe : $password\n\n"
                 "Tu pourras changer ton mot de passe lors de ta première connexion.\n\n"
-                "Tu peux télécharger l'application ici : https://github.com/Loris2p/cafe_bda/releases\n\n"
+                "Tu peux te connecter directement à l'application web ici : https://boutique-bda.web.app\n\n"
                 "À bientôt !"
               );
               final Uri mailUri = Uri.parse("mailto:$email?subject=$subject&body=$body");
