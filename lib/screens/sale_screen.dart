@@ -109,7 +109,7 @@ class _SaleScreenState extends State<SaleScreen> {
 
             // Section Ventes Express (Rush)
             _buildExpressSalesSection(),
-            const SizedBox(height: 28),
+            const SizedBox(height: 12),
 
             // Section Catalogue de dosettes
             _buildSectionTitle('Sélectionner une dosette / variété'),
@@ -138,99 +138,42 @@ class _SaleScreenState extends State<SaleScreen> {
 
   // --- SECTION VENTES EXPRESS EN CAS DE RUSH ---
   Widget _buildExpressSalesSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.amber.shade50.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.amber.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final isExpressSelected = _expressProducts.any((p) => p.name == _selectedProduct?.name);
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        dense: true,
+        initiallyExpanded: isExpressSelected,
+        tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+        childrenPadding: const EdgeInsets.only(bottom: 4),
+        leading: Icon(Icons.bolt, color: Colors.grey.shade500, size: 16),
+        title: Text(
+          'Vente express (rush uniquement)',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
         children: [
-          Row(
-            children: [
-              Icon(Icons.bolt, color: Colors.amber.shade900, size: 22),
-              const SizedBox(width: 8),
-              Text(
-                'Vente Express (sans noter le café exact)',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.amber.shade900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'En heure de rush, encaissez directement sans choisir de dosette. L\'inventaire réalignera le stock.',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-          ),
-          const SizedBox(height: 12),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 500;
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _expressProducts.map((p) {
-                  final isSelected = _selectedProduct?.name == p.name;
-                  return SizedBox(
-                    width: isNarrow ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
-                    child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          _selectedProduct = p;
-                          _quantity = 1;
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.amber.shade700 : Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isSelected ? Colors.amber.shade800 : Colors.amber.shade200,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.amber.shade200.withValues(alpha: 0.3),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              p.name.replaceAll(' (Express)', ''),
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: isSelected ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${p.price.toStringAsFixed(2)} €',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: isSelected ? Colors.white : Colors.amber.shade900,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              );
-            },
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: _expressProducts.map((p) {
+                final isSelected = _selectedProduct?.name == p.name;
+                return ChoiceChip(
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  label: Text(
+                    '${p.name.replaceAll(' (Express)', '')} · ${p.price.toStringAsFixed(2)} €',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  selected: isSelected,
+                  onSelected: (_) => setState(() {
+                    _selectedProduct = p;
+                    _quantity = 1;
+                  }),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
