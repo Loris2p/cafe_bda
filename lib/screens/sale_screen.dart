@@ -277,7 +277,7 @@ class _SaleScreenState extends State<SaleScreen> {
         final allProducts = snapshot.data ?? [];
         final availableProducts = allProducts.where((p) => p.isAvailable).toList();
 
-        final products = availableProducts.where((p) {
+        final filtered = availableProducts.where((p) {
           if (_selectedCategoryFilter == 'Nespresso') {
             return p.subCategory == ProductCategories.subNespresso;
           }
@@ -290,7 +290,12 @@ class _SaleScreenState extends State<SaleScreen> {
           return true;
         }).toList();
 
-        if (products.isEmpty && snapshot.hasData) {
+        // Seuls les produits en stock au bureau sont affichés dans la grille
+        final products = filtered.where((p) => !p.isOutOfStock && !p.needsDeskTransfer).toList();
+        // Produits dont le bureau est vide mais présents en réserve
+        final reserveProducts = filtered.where((p) => p.needsDeskTransfer).toList();
+
+        if (products.isEmpty && reserveProducts.isEmpty && snapshot.hasData) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(20.0),
@@ -299,7 +304,7 @@ class _SaleScreenState extends State<SaleScreen> {
           );
         }
 
-        return GridView.builder(
+        final grid = GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -402,9 +407,83 @@ class _SaleScreenState extends State<SaleScreen> {
             );
           },
         );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (products.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Center(child: Text('Aucun produit en stock au bureau dans cette sélection.')),
+              )
+            else
+              grid,
+            if (reserveProducts.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildReserveExpander(reserveProducts),
+            ],
+          ],
+        );
       },
     );
   }
+
+  // --- EXPANDER DES PRODUITS EN RÉSERVE (bureau vide) ---
+  Widget _buildReserveExpander(List<Product> reserveProducts) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.amber.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.amber.shade200),
+        ),
+        child: ExpansionTile(
+          dense: true,
+          leading: Icon(Icons.inventory_2, color: Colors.amber.shade900, size: 20),
+          title: Text(
+            'En réserve (${reserveProducts.length})',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.amber.shade900),
+          ),
+          subtitle: Text(
+            'Bureau vide : passer au stock pour vendre',
+            style: TextStyle(fontSize: 11, color: Colors.amber.shade900),
+          ),
+          children: reserveProducts.map((p) {
+            final boxSize = p.standardBoxSize.clamp(1, p.stockReserve);
+            return ListTile(
+              dense: true,
+              title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              subtitle: Text('${p.stockReserve} en réserve · ${p.price.toStringAsFixed(2)} €', style: const TextStyle(fontSize: 11)),
+              trailing: TextButton.icon(
+                onPressed: () => _quickTransfer(p, boxSize),
+                icon: const Icon(Icons.move_to_inbox, size: 16),
+                label: Text('+$boxSize au stock'),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _quickTransfer(Product p, int boxSize) async {
+    try {
+      await context.read<FirebaseService>().transferStock(productId: p.id, quantity: boxSize);
+      if (!mounted) return;
+      showCustomSnackBar(
+        context,
+        message: '${p.name} : +$boxSize passé(s) au stock du bureau.',
+        backgroundColor: Colors.green,
+        icon: Icons.check_circle,
+      );
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackBar(context, message: 'Erreur transfert : $e', backgroundColor: Colors.red);
+      }
+    }
+  }
+
 
   Widget _buildStockBadge(Product p, bool isSelected) {
     if (!p.trackStock) return const SizedBox.shrink();
