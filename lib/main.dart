@@ -230,14 +230,14 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
               ),
               const SizedBox(height: 48),
               ElevatedButton.icon(
-                onPressed: () => launchUrl(Uri.parse('https://github.com/Loris2p/cafe_bda/releases')),
+                onPressed: () => launchUrl(Uri.parse('https://boutique-bda.web.app')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.red.shade900,
                   minimumSize: const Size(double.infinity, 60),
                 ),
-                icon: const Icon(Icons.download),
-                label: const Text('TÉLÉCHARGER LA DERNIÈRE VERSION'),
+                icon: const Icon(Icons.refresh),
+                label: const Text('ACCÉDER À LA DERNIÈRE VERSION'),
               ),
             ],
           ),
