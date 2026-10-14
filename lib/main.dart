@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -309,7 +310,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                     child: Padding(
                       padding: const EdgeInsets.all(32.0),
-                      child: Column(
+                      child: AutofillGroup(
+                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
@@ -323,6 +325,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 32),
                           TextField(
                             controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.username, AutofillHints.email],
                             textInputAction: TextInputAction.next,
                             decoration: const InputDecoration(
                               labelText: 'Email',
@@ -332,6 +336,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 20),
                           TextField(
                             controller: _passwordController,
+                            autofillHints: const [AutofillHints.password],
                             textInputAction: TextInputAction.done,
                             onSubmitted: (_) => _handleLogin(),
                             decoration: const InputDecoration(
@@ -362,6 +367,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                         ],
+                       ),
                       ),
                     ),
                   ),
@@ -410,6 +416,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await context.read<AuthService>().signInWithEmail(email, password);
       if (mounted) {
+        TextInput.finishAutofillContext();
         context.read<AdminProvider>().setAdmin(false);
       }
     } catch (e) {

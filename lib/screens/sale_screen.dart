@@ -432,11 +432,12 @@ class _SaleScreenState extends State<SaleScreen> {
   Widget _buildReserveExpander(List<Product> reserveProducts) {
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.amber.shade50,
+      child: Material(
+        color: Colors.amber.shade50,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.amber.shade200),
+          side: BorderSide(color: Colors.amber.shade200),
         ),
         child: ExpansionTile(
           dense: true,
