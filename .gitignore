@@ -73,3 +73,6 @@ node_modules/
 
 # Local security audits
 github_*_alerts.json
+
+# Roadmap locale
+ROADMAP.md
