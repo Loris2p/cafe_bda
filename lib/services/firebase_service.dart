@@ -4,6 +4,7 @@ import '../models/student.dart';
 import '../models/product.dart';
 import '../models/transaction.dart';
 import '../models/payment_method.dart';
+import '../models/feedback_item.dart';
 import '../core/utils.dart';
 
 /// Service central gérant toutes les opérations de données avec Firebase Firestore
@@ -292,5 +293,24 @@ class FirebaseService {
       'latest': version,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  // --- RETOURS & IDÉES D'AMÉLIORATION (GITHUB SYNC) ---
+
+  /// Ajoute un retour (idée ou bug) dans Firestore pour synchronisation avec GitHub Issues.
+  Future<void> addFeedback(FeedbackItem feedback) {
+    return _firestore.collection('feedbacks').add(feedback.toFirestore());
+  }
+
+  /// Récupère la liste des retours soumis, triés du plus récent au plus ancien.
+  Stream<List<FeedbackItem>> getFeedbacks({int limit = 30}) {
+    return _firestore
+        .collection('feedbacks')
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.map((doc) => FeedbackItem.fromFirestore(doc)).toList(),
+        );
   }
 }
