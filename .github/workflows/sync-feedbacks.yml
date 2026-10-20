@@ -1,0 +1,128 @@
+name: Synchroniser les retours Firestore vers GitHub Issues
+
+on:
+  schedule:
+    # Exécution automatique toutes les 6 heures
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Permet de lancer la synchro manuellement depuis l'onglet Actions
+  push:
+    branches:
+      - main
+      - release
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  sync_feedbacks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Installer firebase-admin
+        run: npm install --no-save firebase-admin
+
+      - name: Synchroniser Firestore -> GitHub Issues
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BOUTIQUE_BDA }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node << 'EOF'
+          const admin = require('firebase-admin');
+
+          const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+          if (!rawServiceAccount) {
+            console.error('Secret FIREBASE_SERVICE_ACCOUNT_BOUTIQUE_BDA manquant.');
+            process.exit(1);
+          }
+
+          const serviceAccount = JSON.parse(rawServiceAccount);
+          admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+          });
+
+          const db = admin.firestore();
+          const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
+          const githubToken = process.env.GITHUB_TOKEN;
+
+          async function syncFeedbacks() {
+            const snapshot = await db
+              .collection('feedbacks')
+              .where('syncedToGithub', '==', false)
+              .get();
+
+            if (snapshot.empty) {
+              console.log('Aucun nouveau retour à synchroniser.');
+              return;
+            }
+
+            console.log(`${snapshot.size} retour(s) à synchroniser vers GitHub Issues...`);
+
+            for (const doc of snapshot.docs) {
+              const data = doc.data();
+              const isBug = data.type === 'bug';
+              const prefix = isBug ? '[🐛 Bug]' : '[💡 Idée]';
+              const label = isBug ? 'bug' : 'enhancement';
+              const issueTitle = `${prefix} ${data.title || 'Retour application'}`;
+
+              const createdAtDate = data.createdAt && data.createdAt.toDate
+                ? data.createdAt.toDate().toISOString()
+                : new Date().toISOString();
+
+              const issueBody = [
+                `### Description`,
+                data.description || '_Aucune description fournie._',
+                ``,
+                `---`,
+                `### Informations contextuelles`,
+                `- **Type** : ${isBug ? 'Signalement de bug 🐛' : 'Idée d\'amélioration 💡'}`,
+                `- **Auteur** : ${data.authorName || 'Anonyme'}${data.authorEmail ? ` (${data.authorEmail})` : ''}`,
+                `- **Version de l'application** : \`${data.appVersion || 'Inconnue'}\``,
+                `- **Plateforme** : \`${data.platform || 'Inconnue'}\``,
+                `- **Date de soumission** : \`${createdAtDate}\``,
+                `- **ID Firestore** : \`${doc.id}\``,
+              ].join('\n');
+
+              const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${githubToken}`,
+                  'Accept': 'application/vnd.github+json',
+                  'Content-Type': 'application/json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                },
+                body: JSON.stringify({
+                  title: issueTitle,
+                  body: issueBody,
+                  labels: [label],
+                }),
+              });
+
+              if (!response.ok) {
+                const errText = await response.text();
+                console.error(`Erreur création issue pour ${doc.id} (${response.status}): ${errText}`);
+                continue;
+              }
+
+              const issue = await response.json();
+              console.log(`Issue #${issue.number} créée : ${issue.html_url}`);
+
+              await doc.ref.update({
+                syncedToGithub: true,
+                githubIssueNumber: issue.number,
+                githubIssueUrl: issue.html_url,
+                syncedAt: admin.firestore.FieldValue.serverTimestamp(),
+              });
+            }
+          }
+
+          syncFeedbacks().catch((err) => {
+            console.error(err);
+            process.exit(1);
+          });
+          EOF
