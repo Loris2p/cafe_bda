@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -95,6 +96,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Initialisation de Firebase Performance Monitoring
+  // L'appel à newTrace force l'initialisation effective de getPerformance() sur le Web
+  final startupTrace = FirebasePerformance.instance.newTrace('app_start');
+  await startupTrace.start();
+
   runApp(
     MultiProvider(
       providers: [
@@ -112,6 +118,8 @@ void main() async {
       child: const MyApp(),
     ),
   );
+
+  await startupTrace.stop();
 }
 
 class MyApp extends StatelessWidget {
@@ -184,16 +192,20 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
   }
 
   Future<void> _checkVersion() async {
+    final firebaseService = context.read<FirebaseService>();
+    final trace = FirebasePerformance.instance.newTrace('version_check');
+    await trace.start();
     try {
-      final firebaseService = context.read<FirebaseService>();
       final packageInfo = await PackageInfo.fromPlatform();
       final currentVersion = packageInfo.version;
       
       final latestVersion = await firebaseService.getLatestVersion();
+      final needsUpdate = latestVersion != null && _isVersionLower(currentVersion, latestVersion);
+      trace.putAttribute('needs_update', needsUpdate.toString());
       
       if (!mounted) return;
 
-      if (latestVersion != null && _isVersionLower(currentVersion, latestVersion)) {
+      if (needsUpdate) {
         setState(() {
           _needsUpdate = true;
           _latestVersion = latestVersion;
@@ -203,8 +215,11 @@ class _VersionCheckWrapperState extends State<VersionCheckWrapper> {
         setState(() => _isChecking = false);
       }
     } catch (e) {
+      trace.putAttribute('status', 'error');
       // En cas d'erreur réseau, on laisse passer l'utilisateur
       if (mounted) setState(() => _isChecking = false);
+    } finally {
+      await trace.stop();
     }
   }
 

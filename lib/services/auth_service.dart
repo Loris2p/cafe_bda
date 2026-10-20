@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import '../models/app_user.dart';
 import 'firebase_service.dart';
 
@@ -7,6 +8,7 @@ import 'firebase_service.dart';
 class AuthService {
   final FirebaseService _firebaseService = FirebaseService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebasePerformance _performance = FirebasePerformance.instance;
 
   /// Flux unifié émettant l'utilisateur actuellement connecté ([AppUser]).
   /// Enrichit les données de base (Firebase Auth) avec les métadonnées de Firestore.
@@ -36,10 +38,20 @@ class AuthService {
 
   /// Connecte un utilisateur via email/mot de passe.
   Future<void> signInWithEmail(String email, String password) async {
-    await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    final trace = _performance.newTrace('auth_sign_in');
+    await trace.start();
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      trace.putAttribute('status', 'success');
+    } catch (e) {
+      trace.putAttribute('status', 'error');
+      rethrow;
+    } finally {
+      await trace.stop();
+    }
   }
 
   /// Déconnecte l'utilisateur actuel.
@@ -54,23 +66,33 @@ class AuthService {
 
   /// Inscrit un nouvel utilisateur sans déconnecter l'administrateur actuel.
   Future<void> registerUser(String email, String name, String password) async {
-    // Création via une instance secondaire pour ne pas perdre la session admin
-    FirebaseApp tempApp = await Firebase.initializeApp(
-      name: 'TempApp-${DateTime.now().millisecondsSinceEpoch}',
-      options: Firebase.app().options,
-    );
-    String uid;
+    final trace = _performance.newTrace('auth_register_user');
+    await trace.start();
     try {
-      final credential = await FirebaseAuth.instanceFor(app: tempApp)
-          .createUserWithEmailAndPassword(email: email, password: password);
-      uid = credential.user!.uid;
-      await credential.user?.updateDisplayName(name);
+      // Création via une instance secondaire pour ne pas perdre la session admin
+      FirebaseApp tempApp = await Firebase.initializeApp(
+        name: 'TempApp-${DateTime.now().millisecondsSinceEpoch}',
+        options: Firebase.app().options,
+      );
+      String uid;
+      try {
+        final credential = await FirebaseAuth.instanceFor(app: tempApp)
+            .createUserWithEmailAndPassword(email: email, password: password);
+        uid = credential.user!.uid;
+        await credential.user?.updateDisplayName(name);
+      } finally {
+        await tempApp.delete();
+      }
+      
+      // Initialisation du document utilisateur dans Firestore
+      await _firebaseService.createUserDocument(uid, email, name, true); // true pour forcer le changement au 1er login
+      trace.putAttribute('status', 'success');
+    } catch (e) {
+      trace.putAttribute('status', 'error');
+      rethrow;
     } finally {
-      await tempApp.delete();
+      await trace.stop();
     }
-    
-    // Initialisation du document utilisateur dans Firestore
-    await _firebaseService.createUserDocument(uid, email, name, true); // true pour forcer le changement au 1er login
   }
 
   /// Met à jour le mot de passe de l'utilisateur actuel et lève le flag [mustChangePassword].

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import '../models/student.dart';
 import '../models/product.dart';
 import '../models/transaction.dart';
@@ -11,6 +12,34 @@ import '../core/utils.dart';
 /// via le SDK officiel [cloud_firestore].
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebasePerformance _performance = FirebasePerformance.instance;
+
+  /// Exécute une opération asynchrone en mesurant sa durée via une trace Firebase Performance.
+  Future<T> _traceOperation<T>(
+    String traceName,
+    Future<T> Function(Trace trace) operation, {
+    Map<String, String>? attributes,
+    Map<String, int>? metrics,
+  }) async {
+    final trace = _performance.newTrace(traceName);
+    await trace.start();
+    if (attributes != null) {
+      attributes.forEach(trace.putAttribute);
+    }
+    if (metrics != null) {
+      metrics.forEach(trace.setMetric);
+    }
+    try {
+      final result = await operation(trace);
+      trace.putAttribute('status', 'success');
+      return result;
+    } catch (e) {
+      trace.putAttribute('status', 'error');
+      rethrow;
+    } finally {
+      await trace.stop();
+    }
+  }
 
   /// Vérifie si l'appareil est connecté à Internet.
   Future<bool> isConnected() async {
@@ -25,30 +54,35 @@ class FirebaseService {
 
   /// Récupère les statistiques globales via les agrégations Firestore natives.
   Future<Map<String, dynamic>> getGlobalStats() async {
-    final collection = _firestore.collection('transactions');
-    
-    // On récupère tout ce qui est identifié comme achat (a un produit)
-    final purchaseQuery = collection.where('productName', isNull: false);
-    final purchaseSnapshot = await purchaseQuery.aggregate(
-      sum('price'),
-      sum('amount'),
-      count(),
-    ).get();
+    return _traceOperation('firestore_global_stats', (trace) async {
+      final collection = _firestore.collection('transactions');
+      
+      // On récupère tout ce qui est identifié comme achat (a un produit)
+      final purchaseQuery = collection.where('productName', isNull: false);
+      final purchaseSnapshot = await purchaseQuery.aggregate(
+        sum('price'),
+        sum('amount'),
+        count(),
+      ).get();
 
-    // On récupère le TOTAL global pour déduire les rechargements
-    final totalSnapshot = await collection.aggregate(
-      sum('price'),
-    ).get();
+      // On récupère le TOTAL global pour déduire les rechargements
+      final totalSnapshot = await collection.aggregate(
+        sum('price'),
+      ).get();
 
-    final purchaseRev = purchaseSnapshot.getSum('price') ?? 0.0;
-    final globalRev = totalSnapshot.getSum('price') ?? 0.0;
+      final purchaseRev = purchaseSnapshot.getSum('price') ?? 0.0;
+      final globalRev = totalSnapshot.getSum('price') ?? 0.0;
+      final totalCount = purchaseSnapshot.count ?? 0;
 
-    return {
-      'totalRevenue': purchaseRev,
-      'totalItems': purchaseSnapshot.getSum('amount') ?? 0.0,
-      'totalCount': purchaseSnapshot.count ?? 0,
-      'totalCredits': globalRev - purchaseRev, // Le reste est du rechargement
-    };
+      trace.setMetric('purchase_count', totalCount);
+
+      return {
+        'totalRevenue': purchaseRev,
+        'totalItems': purchaseSnapshot.getSum('amount') ?? 0.0,
+        'totalCount': totalCount,
+        'totalCredits': globalRev - purchaseRev, // Le reste est du rechargement
+      };
+    });
   }
 
   // --- ÉTUDIANTS ---
@@ -96,19 +130,25 @@ class FirebaseService {
   /// Transfère une quantité de produit de la Réserve vers le Bureau de manière atomique.
   Future<void> transferStock({required String productId, required int quantity}) async {
     if (quantity <= 0) return;
-    final docRef = _firestore.collection('products').doc(productId);
-    return _firestore.runTransaction((transactionObj) async {
-      final snap = await transactionObj.get(docRef);
-      if (!snap.exists) return;
-      final data = snap.data() ?? {};
-      final currentBureau = parseInt(data['stockBureau'], 0);
-      final currentReserve = parseInt(data['stockReserve'], 0);
-      final actualTransfer = quantity.clamp(0, currentReserve);
-      transactionObj.update(docRef, {
-        'stockBureau': currentBureau + actualTransfer,
-        'stockReserve': currentReserve - actualTransfer,
-      });
-    });
+    return _traceOperation(
+      'firestore_transfer_stock',
+      (_) async {
+        final docRef = _firestore.collection('products').doc(productId);
+        return _firestore.runTransaction((transactionObj) async {
+          final snap = await transactionObj.get(docRef);
+          if (!snap.exists) return;
+          final data = snap.data() ?? {};
+          final currentBureau = parseInt(data['stockBureau'], 0);
+          final currentReserve = parseInt(data['stockReserve'], 0);
+          final actualTransfer = quantity.clamp(0, currentReserve);
+          transactionObj.update(docRef, {
+            'stockBureau': currentBureau + actualTransfer,
+            'stockReserve': currentReserve - actualTransfer,
+          });
+        });
+      },
+      metrics: {'requested_quantity': quantity},
+    );
   }
 
   /// Ajoute du stock (arrivage fournisseur) en Réserve ou au Bureau.
@@ -137,15 +177,21 @@ class FirebaseService {
 
   /// Met à jour en lot tous les stocks lors d'un inventaire physique.
   Future<void> batchUpdateInventory(Map<String, ({int bureau, int reserve})> inventory) async {
-    final batch = _firestore.batch();
-    for (final entry in inventory.entries) {
-      final docRef = _firestore.collection('products').doc(entry.key);
-      batch.update(docRef, {
-        'stockBureau': entry.value.bureau < 0 ? 0 : entry.value.bureau,
-        'stockReserve': entry.value.reserve < 0 ? 0 : entry.value.reserve,
-      });
-    }
-    await batch.commit();
+    return _traceOperation(
+      'firestore_batch_inventory',
+      (_) async {
+        final batch = _firestore.batch();
+        for (final entry in inventory.entries) {
+          final docRef = _firestore.collection('products').doc(entry.key);
+          batch.update(docRef, {
+            'stockBureau': entry.value.bureau < 0 ? 0 : entry.value.bureau,
+            'stockReserve': entry.value.reserve < 0 ? 0 : entry.value.reserve,
+          });
+        }
+        await batch.commit();
+      },
+      metrics: {'products_updated': inventory.length},
+    );
   }
 
   // --- MÉTHODES DE PAIEMENT ---
@@ -176,62 +222,76 @@ class FirebaseService {
   /// 
   /// Applique la logique de fidélité : 1 crédit de 0.50€ offert tous les 10 cafés achetés.
   Future<void> addTransaction(CafeTransaction transaction) async {
-    return _firestore.runTransaction((transactionObj) async {
-      final studentRef = _firestore.collection('students').doc(transaction.studentId);
-      final studentSnapshot = await transactionObj.get(studentRef);
-      if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
+    return _traceOperation(
+      'firestore_add_transaction',
+      (trace) async {
+        return _firestore.runTransaction((transactionObj) async {
+          final studentRef = _firestore.collection('students').doc(transaction.studentId);
+          final studentSnapshot = await transactionObj.get(studentRef);
+          if (!studentSnapshot.exists) throw Exception("Étudiant introuvable");
 
-      DocumentReference? productRef;
-      DocumentSnapshot? productSnapshot;
-      if (transaction.type == TransactionType.purchase && transaction.productId != null && transaction.productId!.isNotEmpty) {
-        productRef = _firestore.collection('products').doc(transaction.productId);
-        productSnapshot = await transactionObj.get(productRef);
-      }
+          DocumentReference? productRef;
+          DocumentSnapshot? productSnapshot;
+          if (transaction.type == TransactionType.purchase && transaction.productId != null && transaction.productId!.isNotEmpty) {
+            productRef = _firestore.collection('products').doc(transaction.productId);
+            productSnapshot = await transactionObj.get(productRef);
+          }
 
-      final studentData = studentSnapshot.data()!;
-      final double currentBalance = parseDouble(studentData['balance']);
-      final int currentTotalBought = parseInt(studentData['totalBought']);
-      final int currentLoyaltyBonus = parseInt(studentData['loyaltyBonus']);
+          final studentData = studentSnapshot.data()!;
+          final double currentBalance = parseDouble(studentData['balance']);
+          final int currentTotalBought = parseInt(studentData['totalBought']);
+          final int currentLoyaltyBonus = parseInt(studentData['loyaltyBonus']);
 
-      double balanceChange = 0;
-      int boughtChange = 0;
-      int bonusChange = 0;
+          double balanceChange = 0;
+          int boughtChange = 0;
+          int bonusChange = 0;
 
-      if (transaction.type == TransactionType.purchase) {
-        boughtChange = transaction.amount.toInt();
-        if (transaction.paymentMethod == 'Crédit') {
-          balanceChange = -transaction.price;
-        }
-        int newTotalBought = currentTotalBought + boughtChange;
-        bonusChange = (newTotalBought ~/ 10) - (currentTotalBought ~/ 10);
-        balanceChange += (bonusChange * 0.50);
-      } else {
-        balanceChange = transaction.amount;
-      }
+          if (transaction.type == TransactionType.purchase) {
+            boughtChange = transaction.amount.toInt();
+            if (transaction.paymentMethod == 'Crédit') {
+              balanceChange = -transaction.price;
+            }
+            int newTotalBought = currentTotalBought + boughtChange;
+            bonusChange = (newTotalBought ~/ 10) - (currentTotalBought ~/ 10);
+            balanceChange += (bonusChange * 0.50);
+          } else {
+            balanceChange = transaction.amount;
+          }
 
-      final transRef = _firestore.collection('transactions').doc();
-      transactionObj.set(transRef, transaction.toFirestore());
+          final transRef = _firestore.collection('transactions').doc();
+          transactionObj.set(transRef, transaction.toFirestore());
 
-      transactionObj.update(studentRef, {
-        'balance': currentBalance + balanceChange,
-        'totalBought': currentTotalBought + boughtChange,
-        'loyaltyBonus': currentLoyaltyBonus + bonusChange,
-        'lastTransactionAt': FieldValue.serverTimestamp(),
-      });
-
-      // Décrémentation du stock bureau si produit spécifié et suivi de stock actif
-      if (productRef != null && productSnapshot != null && productSnapshot.exists) {
-        final productData = (productSnapshot.data() as Map<String, dynamic>?) ?? {};
-        final bool track = productData['trackStock'] ?? true;
-        if (track) {
-          final int currentBureau = parseInt(productData['stockBureau'], 0);
-          final int newBureau = currentBureau - transaction.amount.toInt();
-          transactionObj.update(productRef, {
-            'stockBureau': newBureau < 0 ? 0 : newBureau,
+          transactionObj.update(studentRef, {
+            'balance': currentBalance + balanceChange,
+            'totalBought': currentTotalBought + boughtChange,
+            'loyaltyBonus': currentLoyaltyBonus + bonusChange,
+            'lastTransactionAt': FieldValue.serverTimestamp(),
           });
-        }
-      }
-    });
+
+          // Décrémentation du stock bureau si produit spécifié et suivi de stock actif
+          if (productRef != null && productSnapshot != null && productSnapshot.exists) {
+            final productData = (productSnapshot.data() as Map<String, dynamic>?) ?? {};
+            final bool track = productData['trackStock'] ?? true;
+            if (track) {
+              final int currentBureau = parseInt(productData['stockBureau'], 0);
+              final int newBureau = currentBureau - transaction.amount.toInt();
+              transactionObj.update(productRef, {
+                'stockBureau': newBureau < 0 ? 0 : newBureau,
+              });
+            }
+          }
+        });
+      },
+      attributes: {
+        'transaction_type': transaction.type.name,
+        if (transaction.paymentMethod.isNotEmpty)
+          'payment_method': transaction.paymentMethod,
+      },
+      metrics: {
+        if (transaction.type == TransactionType.purchase)
+          'items_count': transaction.amount.toInt(),
+      },
+    );
   }
 
   /// Récupère l'historique paginé des transactions en temps réel.
