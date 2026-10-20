@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/auth_service.dart';
+import '../core/app_theme.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -55,6 +56,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = context.isDark;
 
     return Scaffold(
       body: Container(
@@ -62,7 +64,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.7)],
+            colors: isDark
+                ? [
+                    Color.alphaBlend(
+                      theme.colorScheme.primary.withValues(alpha: 0.35),
+                      AppTheme.darkBackground,
+                    ),
+                    AppTheme.darkBackground,
+                  ]
+                : [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.primary.withValues(alpha: 0.7),
+                  ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

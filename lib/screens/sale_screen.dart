@@ -8,6 +8,7 @@ import '../models/app_user.dart';
 import '../services/firebase_service.dart';
 import '../widgets/student_search_delegate.dart';
 import '../main.dart';
+import '../core/app_theme.dart';
 import '../core/utils.dart';
 
 class SaleScreen extends StatefulWidget {
@@ -97,11 +98,10 @@ class _SaleScreenState extends State<SaleScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _otherPaymentController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Précisez le moyen de paiement',
                   hintText: 'Ex: Chèque, BDA...',
-                  prefixIcon: const Icon(Icons.edit_note),
-                  fillColor: Colors.white,
+                  prefixIcon: Icon(Icons.edit_note),
                 ),
               ),
             ],
@@ -133,7 +133,7 @@ class _SaleScreenState extends State<SaleScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87));
+    return Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: context.textSecondary));
   }
 
   // --- SECTION VENTES EXPRESS EN CAS DE RUSH ---
@@ -193,28 +193,28 @@ class _SaleScreenState extends State<SaleScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.surfaceColor,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _selectedStudent != null ? Theme.of(context).primaryColor : Colors.grey.shade200, width: 2),
+              border: Border.all(color: _selectedStudent != null ? Theme.of(context).primaryColor : context.borderColor, width: 2),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: _selectedStudent != null ? Theme.of(context).primaryColor : Colors.grey.shade100,
-                  child: Icon(_selectedStudent != null ? Icons.person : Icons.person_search, color: _selectedStudent != null ? Colors.white : Colors.black45),
+                  backgroundColor: _selectedStudent != null ? Theme.of(context).primaryColor : context.surfaceVariantColor,
+                  child: Icon(_selectedStudent != null ? Icons.person : Icons.person_search, color: _selectedStudent != null ? Colors.white : context.textMuted),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_selectedStudent?.fullName ?? 'Choisir un étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                      Text(_selectedStudent?.fullName ?? 'Choisir un étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: context.textPrimary)),
                       if (_selectedStudent != null)
-                        Text('Solde actuel: ${_selectedStudent!.balance.toStringAsFixed(2)} €', style: GoogleFonts.poppins(color: Colors.black54, fontSize: 13, fontWeight: FontWeight.w500)),
+                        Text('Solde actuel: ${_selectedStudent!.balance.toStringAsFixed(2)} €', style: GoogleFonts.poppins(color: context.textMuted, fontSize: 13, fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.black26),
+                Icon(Icons.chevron_right, color: context.textMuted),
               ],
             ),
           ),
@@ -248,17 +248,17 @@ class _SaleScreenState extends State<SaleScreen> {
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: isSelected ? Colors.white : Colors.black87),
+          Icon(icon, size: 15, color: isSelected ? Colors.white : context.textSecondary),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isSelected ? Colors.white : Colors.black87)),
+          Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isSelected ? Colors.white : context.textSecondary)),
         ],
       ),
       selectedColor: theme.primaryColor,
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaceColor,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: isSelected ? theme.primaryColor : Colors.grey.shade300),
+        side: BorderSide(color: isSelected ? theme.primaryColor : context.strongBorderColor),
       ),
       onSelected: (_) => setState(() => _selectedCategoryFilter = label),
     );
@@ -347,14 +347,14 @@ class _SaleScreenState extends State<SaleScreen> {
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   color: isOutOfStock
-                      ? Colors.grey.shade100
-                      : (isSelected ? Theme.of(context).primaryColor : Colors.white),
+                      ? context.surfaceVariantColor
+                      : (isSelected ? Theme.of(context).primaryColor : context.surfaceColor),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: isSelected
                           ? Theme.of(context).primaryColor.withValues(alpha: 0.2)
-                          : Colors.black.withValues(alpha: 0.03),
+                          : Colors.black.withValues(alpha: context.isDark ? 0.15 : 0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -362,7 +362,7 @@ class _SaleScreenState extends State<SaleScreen> {
                   border: Border.all(
                     color: isSelected
                         ? Theme.of(context).primaryColor
-                        : (needsTransfer ? Colors.amber.shade300 : (isOutOfStock ? Colors.grey.shade300 : Colors.grey.shade200)),
+                        : (needsTransfer ? Colors.amber.shade400 : (isOutOfStock ? context.strongBorderColor : context.borderColor)),
                     width: isSelected || needsTransfer ? 2 : 1,
                   ),
                 ),
@@ -381,7 +381,7 @@ class _SaleScreenState extends State<SaleScreen> {
                           fontSize: width > 600 ? 13 : 12,
                           color: isSelected
                               ? Colors.white
-                              : (isOutOfStock ? Colors.grey.shade500 : Colors.black),
+                              : (isOutOfStock ? Colors.grey.shade500 : context.textPrimary),
                           height: 1.2,
                         ),
                       ),
@@ -393,7 +393,7 @@ class _SaleScreenState extends State<SaleScreen> {
                           fontWeight: FontWeight.w600,
                           color: isSelected
                               ? Colors.white.withValues(alpha: 0.9)
-                              : (isOutOfStock ? Colors.grey.shade400 : Colors.black54),
+                              : (isOutOfStock ? Colors.grey.shade400 : context.textMuted),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -430,25 +430,28 @@ class _SaleScreenState extends State<SaleScreen> {
 
   // --- EXPANDER DES PRODUITS EN RÉSERVE (bureau vide) ---
   Widget _buildReserveExpander(List<Product> reserveProducts) {
+    final isDark = context.isDark;
+    final amberFg = isDark ? Colors.amber.shade300 : Colors.amber.shade900;
+
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: Material(
-        color: Colors.amber.shade50,
+        color: isDark ? Colors.amber.withValues(alpha: 0.12) : Colors.amber.shade50,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.amber.shade200),
+          side: BorderSide(color: isDark ? Colors.amber.withValues(alpha: 0.35) : Colors.amber.shade200),
         ),
         child: ExpansionTile(
           dense: true,
-          leading: Icon(Icons.inventory_2, color: Colors.amber.shade900, size: 20),
+          leading: Icon(Icons.inventory_2, color: amberFg, size: 20),
           title: Text(
             'En réserve (${reserveProducts.length})',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.amber.shade900),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: amberFg),
           ),
           subtitle: Text(
             'Bureau vide : passer au stock pour vendre',
-            style: TextStyle(fontSize: 11, color: Colors.amber.shade900),
+            style: TextStyle(fontSize: 11, color: amberFg),
           ),
           children: reserveProducts.map((p) {
             final boxSize = p.standardBoxSize.clamp(1, p.stockReserve);
@@ -488,39 +491,43 @@ class _SaleScreenState extends State<SaleScreen> {
 
   Widget _buildStockBadge(Product p, bool isSelected) {
     if (!p.trackStock) return const SizedBox.shrink();
+    final isDark = context.isDark;
 
     if (p.isOutOfStock) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.red.shade100,
+          color: isDark ? Colors.red.withValues(alpha: 0.2) : Colors.red.shade100,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: const Text(
+        child: Text(
           'Épuisé',
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red),
+          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDark ? Colors.red.shade300 : Colors.red),
         ),
       );
     }
 
     if (p.needsDeskTransfer) {
+      final amberFg = isDark ? Colors.amber.shade300 : Colors.amber.shade900;
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withValues(alpha: 0.25) : Colors.amber.shade100,
+          color: isSelected
+              ? Colors.white.withValues(alpha: 0.25)
+              : (isDark ? Colors.amber.withValues(alpha: 0.2) : Colors.amber.shade100),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.inventory_2, size: 10, color: isSelected ? Colors.white : Colors.amber.shade900),
+            Icon(Icons.inventory_2, size: 10, color: isSelected ? Colors.white : amberFg),
             const SizedBox(width: 3),
             Text(
               'En réserve (${p.stockReserve})',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.amber.shade900,
+                color: isSelected ? Colors.white : amberFg,
               ),
             ),
           ],
@@ -530,12 +537,21 @@ class _SaleScreenState extends State<SaleScreen> {
 
     // Stock bureau OK
     final isLow = p.isLowStock;
+    final badgeBg = isSelected
+        ? Colors.white.withValues(alpha: 0.25)
+        : (isLow
+            ? (isDark ? Colors.orange.withValues(alpha: 0.2) : Colors.orange.shade100)
+            : (isDark ? Colors.blue.withValues(alpha: 0.2) : Colors.blue.shade50));
+    final badgeFg = isSelected
+        ? Colors.white
+        : (isLow
+            ? (isDark ? Colors.orange.shade300 : Colors.orange.shade900)
+            : (isDark ? Colors.blue.shade200 : Colors.blue.shade900));
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected
-            ? Colors.white.withValues(alpha: 0.25)
-            : (isLow ? Colors.orange.shade100 : Colors.blue.shade50),
+        color: badgeBg,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -543,9 +559,7 @@ class _SaleScreenState extends State<SaleScreen> {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: isSelected
-              ? Colors.white
-              : (isLow ? Colors.orange.shade900 : Colors.blue.shade900),
+          color: badgeFg,
         ),
       ),
     );
@@ -623,7 +637,7 @@ class _SaleScreenState extends State<SaleScreen> {
       builder: (context, constraints) {
         return Container(
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(color: context.surfaceVariantColor, borderRadius: BorderRadius.circular(16)),
           child: Row(
             children: methods.map((m) {
               final isSelected = _paymentMethod == m;
@@ -633,9 +647,9 @@ class _SaleScreenState extends State<SaleScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : Colors.transparent,
+                      color: isSelected ? context.surfaceColor : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)] : [],
+                      boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.2 : 0.05), blurRadius: 5)] : [],
                     ),
                     child: Center(
                       child: Text(
@@ -645,7 +659,7 @@ class _SaleScreenState extends State<SaleScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: constraints.maxWidth < 400 ? 11 : 13,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? Theme.of(context).primaryColor : Colors.black45,
+                          color: isSelected ? Theme.of(context).primaryColor : context.textMuted,
                         ),
                       ),
                     ),
@@ -709,16 +723,17 @@ class _SaleScreenState extends State<SaleScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20)],
+        border: Border.all(color: context.borderColor),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.2 : 0.05), blurRadius: 20)],
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total', style: GoogleFonts.poppins(fontSize: 18, color: Colors.black54, fontWeight: FontWeight.w500)),
+              Text('Total', style: GoogleFonts.poppins(fontSize: 18, color: context.textMuted, fontWeight: FontWeight.w500)),
               Text('${total.toStringAsFixed(2)} €', style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
             ],
           ),

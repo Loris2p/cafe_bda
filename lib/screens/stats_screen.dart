@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../services/firebase_service.dart';
 import '../models/transaction.dart';
+import '../core/app_theme.dart';
 
 class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
@@ -200,7 +201,11 @@ class _StatsScreenState extends State<StatsScreen> {
     return Container(
       height: 200,
       padding: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: context.borderColor),
+      ),
       child: LineChart(
         LineChartData(
           gridData: const FlGridData(show: false),
@@ -216,7 +221,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     if (value.toInt() == 0 || value.toInt() == data.length - 1 || value.toInt() == data.length ~/ 2) {
                       return Padding(
                         padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(DateFormat('dd/MM').format(data[value.toInt()].key), style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                        child: Text(DateFormat('dd/MM').format(data[value.toInt()].key), style: TextStyle(fontSize: 10, color: context.textMuted)),
                       );
                     }
                   }
@@ -250,9 +255,10 @@ class _StatsScreenState extends State<StatsScreen> {
       height: 250,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: context.surfaceColor, 
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20)],
+        border: Border.all(color: context.borderColor),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.15 : 0.02), blurRadius: 20)],
       ),
       child: PieChart(
         PieChartData(
@@ -283,7 +289,11 @@ class _StatsScreenState extends State<StatsScreen> {
         final e = sortedProducts[index];
         return Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+            color: context.surfaceColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: context.borderColor),
+          ),
           child: Row(
             children: [
               Container(
@@ -293,7 +303,7 @@ class _StatsScreenState extends State<StatsScreen> {
               ),
               const SizedBox(width: 16),
               Expanded(child: Text(e.key, style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
-              Text('${e.value} ventes', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+              Text('${e.value} ventes', style: TextStyle(fontWeight: FontWeight.bold, color: context.textMuted)),
             ],
           ),
         );
@@ -316,8 +326,9 @@ class _ModernKpiCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surfaceColor,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: context.borderColor),
           boxShadow: [BoxShadow(color: color.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8))],
         ),
         child: Column(
@@ -325,12 +336,12 @@ class _ModernKpiCard extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(height: 12),
             Text(value, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
-            Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+            Text(title, style: TextStyle(color: context.textMuted, fontSize: 11)),
           ],
         ),
       ),

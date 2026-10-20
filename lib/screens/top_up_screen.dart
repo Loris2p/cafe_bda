@@ -7,6 +7,7 @@ import '../models/app_user.dart';
 import '../services/firebase_service.dart';
 import '../widgets/student_search_delegate.dart';
 import '../main.dart';
+import '../core/app_theme.dart';
 import '../core/utils.dart';
 
 class TopUpScreen extends StatefulWidget {
@@ -96,7 +97,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey.shade700));
+    return Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: context.textSecondary));
   }
 
   Widget _buildStudentSelector(FirebaseService service) {
@@ -110,15 +111,15 @@ class _TopUpScreenState extends State<TopUpScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surfaceColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _selectedStudent != null ? Theme.of(context).primaryColor : Colors.grey.shade200, width: 2),
+          border: Border.all(color: _selectedStudent != null ? Theme.of(context).primaryColor : context.borderColor, width: 2),
         ),
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: _selectedStudent != null ? Theme.of(context).primaryColor : Colors.grey.shade100,
-              child: Icon(_selectedStudent != null ? Icons.person : Icons.person_search, color: _selectedStudent != null ? Colors.white : Colors.grey),
+              backgroundColor: _selectedStudent != null ? Theme.of(context).primaryColor : context.surfaceVariantColor,
+              child: Icon(_selectedStudent != null ? Icons.person : Icons.person_search, color: _selectedStudent != null ? Colors.white : context.textMuted),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -127,11 +128,11 @@ class _TopUpScreenState extends State<TopUpScreen> {
                 children: [
                   Text(_selectedStudent?.fullName ?? 'Sélectionner un étudiant', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
                   if (_selectedStudent != null)
-                    Text('Solde actuel: ${_selectedStudent!.balance.toStringAsFixed(2)} €', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                    Text('Solde actuel: ${_selectedStudent!.balance.toStringAsFixed(2)} €', style: TextStyle(color: context.textMuted, fontSize: 13)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            Icon(Icons.chevron_right, color: context.textMuted),
           ],
         ),
       ),
@@ -152,11 +153,11 @@ class _TopUpScreenState extends State<TopUpScreen> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+              color: isSelected ? Theme.of(context).primaryColor : context.surfaceColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isSelected ? Theme.of(context).primaryColor : Colors.grey.shade200, width: 2),
+              border: Border.all(color: isSelected ? Theme.of(context).primaryColor : context.borderColor, width: 2),
             ),
-            child: Text('$amt €', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black87)),
+            child: Text('$amt €', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : context.textSecondary)),
           ),
         );
       }).toList(),
@@ -167,7 +168,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
     final methods = ['Espèces', 'Lydia', 'Virement', 'Autre'];
     return Container(
       padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: context.surfaceVariantColor, borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: methods.map((m) {
           final isSelected = _paymentMethod == m;
@@ -177,11 +178,11 @@ class _TopUpScreenState extends State<TopUpScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.white : Colors.transparent,
+                  color: isSelected ? context.surfaceColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)] : [],
+                  boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.2 : 0.05), blurRadius: 5)] : [],
                 ),
-                child: Center(child: Text(m, style: GoogleFonts.poppins(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? Theme.of(context).primaryColor : Colors.grey))),
+                child: Center(child: Text(m, style: GoogleFonts.poppins(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? Theme.of(context).primaryColor : context.textMuted))),
               ),
             ),
           );

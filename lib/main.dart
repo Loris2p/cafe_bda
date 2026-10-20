@@ -48,6 +48,28 @@ class AdminProvider with ChangeNotifier {
   }
 }
 
+/// Gère le thème clair / sombre de l'application avec persistance locale.
+class ThemeProvider with ChangeNotifier {
+  bool _isDark = false;
+  bool get isDark => _isDark;
+
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isDark = prefs.getBool('is_dark_mode') ?? false;
+    notifyListeners();
+  }
+
+  void setDark(bool value) async {
+    if (_isDark == value) return;
+    _isDark = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_dark_mode', value);
+  }
+
+  void toggle() => setDark(!_isDark);
+}
+
 /// Gère l'onglet sélectionné dans la navigation principale.
 class TabProvider with ChangeNotifier {
   int _selectedIndex = 0;
@@ -65,6 +87,9 @@ void main() async {
   final adminProvider = AdminProvider();
   await adminProvider.init();
 
+  final themeProvider = ThemeProvider();
+  await themeProvider.init();
+
   // Initialisation Firebase SDK Officiel
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -74,6 +99,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: adminProvider),
+        ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => TabProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
@@ -94,11 +120,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.watch<AdminProvider>().isAdmin;
+    final isDark = context.watch<ThemeProvider>().isDark;
 
     return MaterialApp(
       title: 'Boutique BDA',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.getTheme(isAdmin: isAdmin),
+      theme: AppTheme.getTheme(isAdmin: isAdmin, isDark: false),
+      darkTheme: AppTheme.getTheme(isAdmin: isAdmin, isDark: true),
+      themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
       home: const AuthWrapper(),
     );
   }
@@ -264,6 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = context.isDark;
 
     return Scaffold(
       body: Container(
@@ -271,7 +301,18 @@ class _LoginScreenState extends State<LoginScreen> {
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(alpha: 0.6)],
+            colors: isDark
+                ? [
+                    Color.alphaBlend(
+                      theme.colorScheme.primary.withValues(alpha: 0.35),
+                      AppTheme.darkBackground,
+                    ),
+                    AppTheme.darkBackground,
+                  ]
+                : [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.primary.withValues(alpha: 0.6),
+                  ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

@@ -11,6 +11,7 @@ import '../services/firebase_service.dart';
 import '../main.dart';
 import '../models/app_user.dart';
 import '../models/feedback_item.dart';
+import '../core/app_theme.dart';
 import '../core/utils.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -65,7 +66,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.watch<AdminProvider>().isAdmin;
+    final isDark = context.watch<ThemeProvider>().isDark;
     final user = context.watch<AppUser?>();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Paramètres')),
@@ -131,6 +134,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 32),
             ],
+
+            _buildSectionTitle('Apparence'),
+            const SizedBox(height: 16),
+            Card(
+              child: SwitchListTile(
+                title: Text('Mode Sombre', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Interface sombre adaptée aux modes classique et admin'),
+                secondary: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (isDark ? theme.colorScheme.primary : Colors.grey).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                    color: isDark ? theme.colorScheme.primary : Colors.grey,
+                  ),
+                ),
+                value: isDark,
+                activeThumbColor: theme.colorScheme.primary,
+                onChanged: (val) {
+                  context.read<ThemeProvider>().setDark(val);
+                },
+              ),
+            ),
+            const SizedBox(height: 32),
 
             _buildSectionTitle('Sécurité'),
             const SizedBox(height: 16),
@@ -376,7 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: context.surfaceVariantColor, borderRadius: BorderRadius.circular(12)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -509,7 +538,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: context.surfaceVariantColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -519,7 +548,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Expanded(
                           child: Text(
                             'Auteur : $authorName • v$_appVersion (${_detectPlatformLabel()})\nUne GitHub Issue sera créée automatiquement.',
-                            style: const TextStyle(fontSize: 11, color: Colors.black54),
+                            style: TextStyle(fontSize: 11, color: context.textMuted),
                           ),
                         ),
                       ],
@@ -742,7 +771,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 8.0),
-      child: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87)),
+      child: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16, color: context.textSecondary)),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/transaction.dart';
 import '../services/firebase_service.dart';
+import '../core/app_theme.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -109,10 +110,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surfaceColor,
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: context.borderColor),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                    BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.15 : 0.02), blurRadius: 10, offset: const Offset(0, 4)),
                   ],
                 ),
                 child: Row(
@@ -120,7 +122,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isPurchase ? Colors.green.shade50 : Colors.blue.shade50,
+                        color: (isPurchase ? Colors.green : Colors.blue).withValues(alpha: context.isDark ? 0.15 : 0.08),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Icon(
@@ -136,10 +138,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           Text(tx.studentName, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15)),
                           Text(
                             isPurchase ? 'Achat: ${tx.productName}' : 'Rechargement compte',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            style: TextStyle(color: context.textMuted, fontSize: 12),
                           ),
                           const SizedBox(height: 4),
-                          Text(dateStr, style: TextStyle(color: Colors.grey.shade400, fontSize: 11)),
+                          Text(dateStr, style: TextStyle(color: context.textMuted, fontSize: 11)),
                         ],
                       ),
                     ),

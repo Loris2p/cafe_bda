@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/product.dart';
 import '../services/firebase_service.dart';
+import '../core/app_theme.dart';
 import '../core/utils.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -256,7 +257,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               // Bandeau Filtres de catégorie
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: Colors.grey.shade50,
+                color: context.subtleSurfaceColor,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -276,13 +277,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
               // Bannière info rapide
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                color: diffCount > 0 ? Colors.orange.shade50 : Colors.blue.shade50,
+                color: diffCount > 0
+                    ? (context.isDark ? Colors.orange.withValues(alpha: 0.15) : Colors.orange.shade50)
+                    : (context.isDark ? Colors.blue.withValues(alpha: 0.15) : Colors.blue.shade50),
                 child: Row(
                   children: [
                     Icon(
                       diffCount > 0 ? Icons.info_outline : Icons.check_circle_outline,
                       size: 18,
-                      color: diffCount > 0 ? Colors.orange.shade800 : Colors.blue.shade800,
+                      color: diffCount > 0
+                          ? (context.isDark ? Colors.orange.shade300 : Colors.orange.shade800)
+                          : (context.isDark ? Colors.blue.shade300 : Colors.blue.shade800),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -292,7 +297,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             : 'Ajustez directement le nombre de capsules constatées au Bureau et en Réserve.',
                         style: TextStyle(
                           fontSize: 12,
-                          color: diffCount > 0 ? Colors.orange.shade900 : Colors.blue.shade900,
+                          color: diffCount > 0
+                              ? (context.isDark ? Colors.orange.shade200 : Colors.orange.shade900)
+                              : (context.isDark ? Colors.blue.shade200 : Colors.blue.shade900),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -338,17 +345,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.black87),
+          Icon(icon, size: 16, color: isSelected ? Colors.white : context.textSecondary),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black87)),
+          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : context.textSecondary)),
         ],
       ),
       selectedColor: theme.primaryColor,
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaceColor,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: isSelected ? theme.primaryColor : Colors.grey.shade300),
+        side: BorderSide(color: isSelected ? theme.primaryColor : context.strongBorderColor),
       ),
       onSelected: (val) => setState(() => _selectedFilter = label),
     );
@@ -364,15 +371,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: hasChanges ? Colors.orange.shade400 : Colors.grey.shade200,
+          color: hasChanges ? Colors.orange.shade400 : context.borderColor,
           width: hasChanges ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: context.isDark ? 0.15 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -395,7 +402,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     ),
                     Text(
                       '${product.category} • ${product.subCategory} • ${product.price.toStringAsFixed(2)} €',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 12, color: context.textMuted),
                     ),
                   ],
                 ),
@@ -404,13 +411,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
+                    color: context.isDark ? Colors.orange.withValues(alpha: 0.2) : Colors.orange.shade100,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     'Modifié',
                     style: TextStyle(
-                      color: Colors.orange.shade900,
+                      color: context.isDark ? Colors.orange.shade300 : Colors.orange.shade900,
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
@@ -427,7 +434,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             originalQty: original.bureau,
             currentQty: current.bureau,
             diff: diffBureau,
-            color: Colors.blue.shade700,
+            color: context.isDark ? Colors.blue.shade300 : Colors.blue.shade700,
             onChanged: (newVal) {
               setState(() {
                 _editedStocks[product.id] = (bureau: newVal, reserve: current.reserve);
@@ -443,7 +450,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             originalQty: original.reserve,
             currentQty: current.reserve,
             diff: diffReserve,
-            color: Colors.brown.shade700,
+            color: context.isDark ? Colors.brown.shade200 : Colors.brown.shade700,
             onChanged: (newVal) {
               setState(() {
                 _editedStocks[product.id] = (bureau: current.bureau, reserve: newVal);
@@ -464,10 +471,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
     required Color color,
     required ValueChanged<int> onChanged,
   }) {
+    final isDark = context.isDark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: context.subtleSurfaceColor,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
@@ -481,7 +489,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 Text(
                   'Théorique : $originalQty',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 11, color: context.textMuted),
                 ),
               ],
             ),
@@ -492,7 +500,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: diff < 0 ? Colors.red.shade100 : Colors.green.shade100,
+                color: diff < 0
+                    ? (isDark ? Colors.red.withValues(alpha: 0.2) : Colors.red.shade100)
+                    : (isDark ? Colors.green.withValues(alpha: 0.2) : Colors.green.shade100),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -500,7 +510,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: diff < 0 ? Colors.red.shade900 : Colors.green.shade900,
+                  color: diff < 0
+                      ? (isDark ? Colors.red.shade300 : Colors.red.shade900)
+                      : (isDark ? Colors.green.shade300 : Colors.green.shade900),
                 ),
               ),
             ),
@@ -512,7 +524,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             onPressed: currentQty > 0 ? () => onChanged(currentQty - 1) : null,
             icon: const Icon(Icons.remove_circle_outline),
             iconSize: 26,
-            color: Colors.grey.shade700,
+            color: context.textMuted,
             visualDensity: VisualDensity.compact,
           ),
           InkWell(
@@ -524,9 +536,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.surfaceColor,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: context.strongBorderColor),
               ),
               child: Text(
                 '$currentQty',

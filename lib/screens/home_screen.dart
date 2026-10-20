@@ -5,6 +5,7 @@ import '../services/firebase_service.dart';
 import '../models/student.dart';
 import '../widgets/student_search_delegate.dart';
 import '../main.dart';
+import '../core/app_theme.dart';
 import 'settings_screen.dart';
 import 'sale_screen.dart';
 import 'top_up_screen.dart';
@@ -21,8 +22,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.watch<AdminProvider>().isAdmin;
+    final isDark = context.watch<ThemeProvider>().isDark;
     final firebaseService = context.read<FirebaseService>();
     final theme = Theme.of(context);
+
+    final headerStartColor = isDark
+        ? Color.alphaBlend(theme.colorScheme.primary.withValues(alpha: 0.45), AppTheme.darkSurface)
+        : theme.colorScheme.primary;
+    final headerEndColor = isDark
+        ? Color.alphaBlend(theme.colorScheme.primary.withValues(alpha: 0.25), AppTheme.darkBackground)
+        : theme.colorScheme.primary.withValues(alpha: 0.7);
 
     return Scaffold(
       body: CustomScrollView(
@@ -33,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
             floating: false,
             pinned: true,
             stretch: true,
-            backgroundColor: theme.colorScheme.primary,
+            backgroundColor: headerStartColor,
             elevation: 0,
             flexibleSpace: LayoutBuilder(
               builder: (context, constraints) {
@@ -57,8 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary.withValues(alpha: 0.7),
+                          headerStartColor,
+                          headerEndColor,
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -120,6 +129,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             actions: [
               IconButton(
+                onPressed: () => context.read<ThemeProvider>().toggle(),
+                icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined, color: Colors.white),
+                tooltip: isDark ? 'Mode Clair' : 'Mode Sombre',
+              ),
+              IconButton(
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
                 icon: const Icon(Icons.settings_outlined, color: Colors.white),
                 tooltip: 'Paramètres',
@@ -174,11 +188,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       height: 60,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: context.isDark ? 0.2 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -197,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 16),
                 Text(
                   'Rechercher un Étudiant...',
-                  style: GoogleFonts.poppins(color: Colors.black45, fontSize: 16, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.poppins(color: context.textMuted, fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const Spacer(),
                 Container(
@@ -348,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: student.balance >= 0 ? Colors.green.shade50 : Colors.red.shade50,
+                color: (student.balance >= 0 ? Colors.green : Colors.red).withValues(alpha: context.isDark ? 0.15 : 0.08),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -390,8 +405,9 @@ class _ModernCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: context.borderColor),
         boxShadow: [
           BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 8)),
         ],
@@ -408,7 +424,7 @@ class _ModernCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Icon(icon, color: color, size: 24),
@@ -419,8 +435,8 @@ class _ModernCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
-                      Text(subtitle, style: GoogleFonts.poppins(color: Colors.black54, fontSize: 11, fontWeight: FontWeight.w500)),
+                      Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15, color: context.textPrimary)),
+                      Text(subtitle, style: GoogleFonts.poppins(color: context.textMuted, fontSize: 11, fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -454,8 +470,11 @@ class _AdminTile extends StatelessWidget {
       ),
       title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
       trailing: const Icon(Icons.chevron_right, size: 20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      tileColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: context.borderColor),
+      ),
+      tileColor: context.surfaceColor,
     );
   }
 }

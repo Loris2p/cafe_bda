@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/payment_method.dart';
 import '../services/firebase_service.dart';
+import '../core/app_theme.dart';
 
 class PaymentInfoScreen extends StatelessWidget {
   const PaymentInfoScreen({super.key});
@@ -35,15 +36,19 @@ class PaymentInfoScreen extends StatelessWidget {
               children: [
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: context.surfaceVariantColor, borderRadius: BorderRadius.circular(16)),
                   child: TabBar(
                     isScrollable: true,
                     tabAlignment: TabAlignment.center,
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: Colors.transparent,
-                    indicator: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 5)]),
+                    indicator: BoxDecoration(
+                      color: context.surfaceColor,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.2 : 0.05), blurRadius: 5)],
+                    ),
                     labelColor: Theme.of(context).primaryColor,
-                    unselectedLabelColor: Colors.grey,
+                    unselectedLabelColor: context.textMuted,
                     labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                     tabs: methods.map((m) => Tab(text: m.label)).toList(),
                   ),
@@ -81,18 +86,26 @@ class _ModernPaymentDetail extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.surfaceColor,
                 borderRadius: BorderRadius.circular(32),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10))],
+                border: Border.all(color: context.borderColor),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.2 : 0.05), blurRadius: 20, offset: const Offset(0, 10))],
               ),
               child: Column(
                 children: [
-                  QrImageView(
-                    data: link,
-                    version: QrVersions.auto,
-                    size: 200.0,
-                    eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.circle, color: Colors.black87),
-                    dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle, color: Colors.black87),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: QrImageView(
+                      data: link,
+                      version: QrVersions.auto,
+                      size: 200.0,
+                      eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.circle, color: Colors.black87),
+                      dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle, color: Colors.black87),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
@@ -111,7 +124,11 @@ class _ModernPaymentDetail extends StatelessWidget {
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.shade100)),
+            decoration: BoxDecoration(
+              color: context.surfaceColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: context.borderColor),
+            ),
             child: Row(
               children: [
                 Icon(Icons.phone_android, color: Theme.of(context).primaryColor),

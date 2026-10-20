@@ -5,6 +5,7 @@ import '../models/student.dart';
 import '../services/firebase_service.dart';
 import '../widgets/data_table_widget.dart';
 import '../main.dart';
+import '../core/app_theme.dart';
 
 class StudentListScreen extends StatefulWidget {
   const StudentListScreen({super.key});
@@ -60,20 +61,21 @@ class _StudentListScreenState extends State<StudentListScreen> {
             child: Container(
               height: 55,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.surfaceColor,
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.borderColor),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4)),
+                  BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.15 : 0.03), blurRadius: 10, offset: const Offset(0, 4)),
                 ],
               ),
               child: TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Nom ou N° Étudiant...',
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: Icon(Icons.search),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  contentPadding: EdgeInsets.symmetric(vertical: 15),
                 ),
                 onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
               ),
@@ -84,10 +86,11 @@ class _StudentListScreenState extends State<StudentListScreen> {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.surfaceColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: context.borderColor),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20),
+                  BoxShadow(color: Colors.black.withValues(alpha: context.isDark ? 0.15 : 0.02), blurRadius: 20),
                 ],
               ),
               clipBehavior: Clip.antiAlias,
@@ -263,7 +266,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade200,
+        fillColor: enabled ? context.subtleSurfaceColor : context.surfaceVariantColor,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
       ),
       validator: (v) => v!.isEmpty ? 'Requis' : null,
@@ -287,7 +290,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: student.balance >= 0 ? Colors.green.shade50 : Colors.red.shade50,
+                color: (student.balance >= 0 ? Colors.green : Colors.red).withValues(alpha: context.isDark ? 0.15 : 0.08),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(

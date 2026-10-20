@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/product.dart';
 import '../services/firebase_service.dart';
+import '../core/app_theme.dart';
 import '../core/utils.dart';
 import 'inventory_screen.dart';
 
@@ -140,7 +141,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               // Bandeau Filtres Catégorie
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-                color: Colors.grey.shade50,
+                color: context.subtleSurfaceColor,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -180,7 +181,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               // Bandeau Filtres Alertes de stock
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                color: Colors.grey.shade50,
+                color: context.subtleSurfaceColor,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -188,7 +189,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                       _buildStockBadgeChip(
                         label: 'Tout statut',
                         badgeText: '${allProducts.length}',
-                        color: Colors.grey.shade700,
+                        color: context.isDark ? Colors.grey.shade400 : Colors.grey.shade700,
                         isSelected: _selectedStockFilter == 'Tous',
                         onTap: () => setState(() => _selectedStockFilter = 'Tous'),
                       ),
@@ -281,17 +282,17 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.black87),
+          Icon(icon, size: 16, color: isSelected ? Colors.white : context.textSecondary),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black87)),
+          Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : context.textSecondary)),
         ],
       ),
       selectedColor: theme.primaryColor,
-      backgroundColor: Colors.white,
+      backgroundColor: context.surfaceColor,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: isSelected ? theme.primaryColor : Colors.grey.shade300),
+        side: BorderSide(color: isSelected ? theme.primaryColor : context.strongBorderColor),
       ),
       onSelected: (_) => onTap(),
     );
@@ -310,9 +311,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? color : Colors.white,
+          color: isSelected ? color : context.surfaceColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? color : Colors.grey.shade300),
+          border: Border.all(color: isSelected ? color : context.strongBorderColor),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -322,7 +323,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : Colors.black87,
+                color: isSelected ? Colors.white : context.textSecondary,
               ),
             ),
             const SizedBox(width: 6),
@@ -348,6 +349,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   Widget _buildProductCard(BuildContext context, Product p) {
+    final isDark = context.isDark;
     Color statusColor = Colors.green;
     String statusLabel = 'En stock';
     IconData statusIcon = Icons.check_circle_outline;
@@ -357,11 +359,11 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       statusLabel = 'Épuisé';
       statusIcon = Icons.cancel_outlined;
     } else if (p.needsDeskTransfer) {
-      statusColor = Colors.amber.shade800;
+      statusColor = isDark ? Colors.amber.shade400 : Colors.amber.shade800;
       statusLabel = 'À remonter au bureau';
       statusIcon = Icons.warning_amber_rounded;
     } else if (p.isLowStock) {
-      statusColor = Colors.orange.shade800;
+      statusColor = isDark ? Colors.orange.shade400 : Colors.orange.shade800;
       statusLabel = 'Stock global faible';
       statusIcon = Icons.error_outline;
     }
@@ -370,15 +372,17 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surfaceColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: p.needsDeskTransfer ? Colors.amber.shade400 : (p.isOutOfStock ? Colors.red.shade200 : Colors.grey.shade200),
+          color: p.needsDeskTransfer
+              ? Colors.amber.shade400
+              : (p.isOutOfStock ? Colors.red.withValues(alpha: 0.4) : context.borderColor),
           width: p.needsDeskTransfer ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -392,7 +396,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: p.isAvailable ? statusColor.withValues(alpha: 0.15) : Colors.grey.shade200,
+                backgroundColor: p.isAvailable ? statusColor.withValues(alpha: 0.15) : context.surfaceVariantColor,
                 child: Icon(
                   isTea ? Icons.emoji_food_beverage : Icons.coffee,
                   color: p.isAvailable ? statusColor : Colors.grey,
@@ -414,7 +418,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     ),
                     Text(
                       '${p.price.toStringAsFixed(2)} € • ${p.category} (${p.subCategory})',
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(fontSize: 12, color: context.textMuted),
                     ),
                   ],
                 ),
@@ -459,7 +463,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               const Spacer(),
               Text(
                 'Total : ${p.totalStock}',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: context.textSecondary),
               ),
             ],
           ),
@@ -469,7 +473,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: context.subtleSurfaceColor,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
@@ -480,9 +484,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.storefront, size: 14, color: Colors.blue.shade700),
+                          Icon(Icons.storefront, size: 14, color: isDark ? Colors.blue.shade300 : Colors.blue.shade700),
                           const SizedBox(width: 4),
-                          const Text('Bureau (rayon)', style: TextStyle(fontSize: 11, color: Colors.black54)),
+                          Text('Bureau (rayon)', style: TextStyle(fontSize: 11, color: context.textMuted)),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -491,13 +495,13 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: p.stockBureau == 0 ? Colors.red : Colors.blue.shade900,
+                          color: p.stockBureau == 0 ? Colors.red : (isDark ? Colors.blue.shade200 : Colors.blue.shade900),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Container(width: 1, height: 32, color: Colors.grey.shade300),
+                Container(width: 1, height: 32, color: context.strongBorderColor),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -505,9 +509,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.inventory_2_outlined, size: 14, color: Colors.brown.shade700),
+                          Icon(Icons.inventory_2_outlined, size: 14, color: isDark ? Colors.brown.shade200 : Colors.brown.shade700),
                           const SizedBox(width: 4),
-                          const Text('Réserve (fond)', style: TextStyle(fontSize: 11, color: Colors.black54)),
+                          Text('Réserve (fond)', style: TextStyle(fontSize: 11, color: context.textMuted)),
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -516,7 +520,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: Colors.brown.shade900,
+                          color: isDark ? Colors.brown.shade100 : Colors.brown.shade900,
                         ),
                       ),
                     ],
@@ -539,9 +543,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: p.needsDeskTransfer ? Colors.amber.shade900 : Theme.of(context).primaryColor,
+                    foregroundColor: p.needsDeskTransfer ? (isDark ? Colors.amber.shade300 : Colors.amber.shade900) : Theme.of(context).primaryColor,
                     side: BorderSide(
-                      color: p.needsDeskTransfer ? Colors.amber.shade700 : Colors.grey.shade300,
+                      color: p.needsDeskTransfer ? Colors.amber.shade700 : context.strongBorderColor,
                       width: p.needsDeskTransfer ? 2 : 1,
                     ),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -555,8 +559,8 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 icon: const Icon(Icons.add_shopping_cart, size: 18),
                 label: const Text('Arrivage', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.brown.shade800,
-                  side: BorderSide(color: Colors.grey.shade300),
+                  foregroundColor: isDark ? Colors.brown.shade200 : Colors.brown.shade800,
+                  side: BorderSide(color: context.strongBorderColor),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 ),
@@ -868,7 +872,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Nom du produit (ex: Ristretto, Menthe...)',
                         filled: true,
-                        fillColor: Colors.grey.shade50,
+                        fillColor: context.subtleSurfaceColor,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                       ),
                       validator: (v) => v!.isEmpty ? 'Requis' : null,
@@ -929,7 +933,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Prix unitaire (€)',
                         filled: true,
-                        fillColor: Colors.grey.shade50,
+                        fillColor: context.subtleSurfaceColor,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                       ),
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -946,7 +950,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                             decoration: InputDecoration(
                               labelText: 'Stock Bureau',
                               filled: true,
-                              fillColor: Colors.grey.shade50,
+                              fillColor: context.subtleSurfaceColor,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                             ),
                             keyboardType: TextInputType.number,
@@ -959,7 +963,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                             decoration: InputDecoration(
                               labelText: 'Stock Réserve',
                               filled: true,
-                              fillColor: Colors.grey.shade50,
+                              fillColor: context.subtleSurfaceColor,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                             ),
                             keyboardType: TextInputType.number,
@@ -976,7 +980,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                         labelText: 'Seuil d\'alerte stock faible (Bureau + Réserve)',
                         helperText: 'Alerte quand le stock total tombe sous ce seuil',
                         filled: true,
-                        fillColor: Colors.grey.shade50,
+                        fillColor: context.subtleSurfaceColor,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                       ),
                       keyboardType: TextInputType.number,

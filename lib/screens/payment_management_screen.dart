@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/payment_method.dart';
 import '../services/firebase_service.dart';
+import '../core/app_theme.dart';
 import '../core/utils.dart';
 
 class PaymentManagementScreen extends StatefulWidget {
@@ -105,7 +106,7 @@ class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
               final m = methods[index];
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: m.isActive ? Colors.blue.shade100 : Colors.grey.shade200,
+                  backgroundColor: m.isActive ? Colors.blue.withValues(alpha: 0.15) : context.surfaceVariantColor,
                   child: Icon(Icons.payment, color: m.isActive ? Colors.blue : Colors.grey),
                 ),
                 title: Text(m.label, style: TextStyle(
@@ -186,7 +187,7 @@ class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
                 decoration: InputDecoration(
                   labelText: 'Label (ex: Lydia)',
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: context.subtleSurfaceColor,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
                 validator: (v) => v!.isEmpty ? 'Requis' : null,
@@ -197,7 +198,7 @@ class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
                 decoration: InputDecoration(
                   labelText: 'Numéro de téléphone',
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: context.subtleSurfaceColor,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
               ),
@@ -207,7 +208,7 @@ class _PaymentManagementScreenState extends State<PaymentManagementScreen> {
                 decoration: InputDecoration(
                   labelText: 'Lien de paiement (pour QR)',
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: context.subtleSurfaceColor,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                 ),
               ),

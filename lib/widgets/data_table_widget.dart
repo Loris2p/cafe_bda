@@ -145,7 +145,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
             ),
             if (widget.isLoading)
               Container(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
                 child: const Center(child: CircularProgressIndicator()),
               ),
           ],
